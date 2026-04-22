@@ -657,3 +657,6 @@ MigrationBackup/
 # End of https://www.toptal.com/developers/gitignore/api/dotenv,dotnetcore,aspnetcore,react,remix,remix+vercel,node,vs
 
 appsettings.*.json
+.vscode/
+postgres_data/
+redis_data/

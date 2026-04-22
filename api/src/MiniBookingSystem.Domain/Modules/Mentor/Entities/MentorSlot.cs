@@ -1,0 +1,11 @@
+public class MentorSlot : BaseEntity
+{
+    public Guid MentorId { get; set; }
+    public DateTime StartTime { get; set; }
+    public DateTime EndTime { get; set; }
+    public MentorSlotStatus Status { get; set; }
+    public decimal Price { get; set; }
+
+    public Mentor Mentor { get; set; } = default!;
+    public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
+}
