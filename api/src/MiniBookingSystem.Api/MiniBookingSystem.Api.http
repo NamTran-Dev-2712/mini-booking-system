@@ -1,0 +1,6 @@
+@MiniBookingSystem.Api_HostAddress = http://localhost:5296
+
+GET {{MiniBookingSystem.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/MiniBookingSystem.Api/MiniBookingSystem.Api.csproj" />
+    <Project Path="src/MiniBookingSystem.Application/MiniBookingSystem.Application.csproj" />
+    <Project Path="src/MiniBookingSystem.Domain/MiniBookingSystem.Domain.csproj" />
+    <Project Path="src/MiniBookingSystem.Infrastructure/MiniBookingSystem.Infrastructure.csproj" />
+  </Folder>
+</Solution>
