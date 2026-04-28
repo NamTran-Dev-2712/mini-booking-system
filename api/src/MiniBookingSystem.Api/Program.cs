@@ -20,6 +20,7 @@ try
 
     // Add Dependency Injection
     builder.Services.AddPresentation(builder.Configuration);
+    builder.Services.AddApplication();
     builder.Services.AddInfrastructure(builder.Configuration);
 
     // Add health checks
@@ -54,9 +55,15 @@ try
 
     app.MapControllers();
 
+    // Seed initial data (roles, etc.)
+    await DatabaseSeeder.SeedRolesAsync(app.Services);
+
+    Log.Information("Docs: http://localhost:5296/scalar/v1");
+    Log.Information("Application started successfully.");
+
     app.Run();
 }
-catch (System.Exception)
+catch (Exception)
 {
     Log.Logger.Fatal("The application failed to start correctly.");
     throw;

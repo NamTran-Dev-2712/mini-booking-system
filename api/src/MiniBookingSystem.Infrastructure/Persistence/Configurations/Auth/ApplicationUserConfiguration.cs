@@ -13,6 +13,10 @@ public class ApplicationUserConfiguration : IEntityTypeConfiguration<Application
 
         builder.Property(u => u.CreatedAt).IsRequired();
 
+        builder.Property(u => u.PhoneNumber).IsRequired().HasMaxLength(15);
+
+        builder.HasIndex(u => u.PhoneNumber).IsUnique();
+
         // One-to-one: ApplicationUser <-> Mentor
         builder
             .HasOne(u => u.MentorProfile)

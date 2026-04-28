@@ -4,7 +4,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace MiniBookingSystem.Infrastructure.Persistence.DbContext.Migrations
+namespace MiniBookingSystem.Infrastructure.Migrations
 {
     /// <inheritdoc />
     public partial class InitDatabase : Migration
@@ -16,37 +16,37 @@ namespace MiniBookingSystem.Infrastructure.Persistence.DbContext.Migrations
                 name: "ai_conversation_logs",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    UserId = table.Column<Guid>(type: "uuid", nullable: true),
-                    Feature = table.Column<string>(
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    user_id = table.Column<Guid>(type: "uuid", nullable: true),
+                    feature = table.Column<string>(
                         type: "character varying(100)",
                         maxLength: 100,
                         nullable: false
                     ),
-                    Prompt = table.Column<string>(type: "text", nullable: false),
-                    Response = table.Column<string>(type: "text", nullable: false),
-                    ModelName = table.Column<string>(
+                    prompt = table.Column<string>(type: "text", nullable: false),
+                    response = table.Column<string>(type: "text", nullable: false),
+                    model_name = table.Column<string>(
                         type: "character varying(100)",
                         maxLength: 100,
                         nullable: false
                     ),
-                    CreatedAt = table.Column<DateTime>(
+                    created_at = table.Column<DateTime>(
                         type: "timestamp with time zone",
                         nullable: false
                     ),
-                    UpdatedAt = table.Column<DateTime>(
+                    updated_at = table.Column<DateTime>(
                         type: "timestamp with time zone",
                         nullable: false
                     ),
-                    IsDeleted = table.Column<bool>(type: "boolean", nullable: true),
-                    DeletedAt = table.Column<DateTime>(
+                    is_deleted = table.Column<bool>(type: "boolean", nullable: true),
+                    deleted_at = table.Column<DateTime>(
                         type: "timestamp with time zone",
                         nullable: true
                     ),
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ai_conversation_logs", x => x.Id);
+                    table.PrimaryKey("pk_ai_conversation_logs", x => x.id);
                 }
             );
 
@@ -54,46 +54,46 @@ namespace MiniBookingSystem.Infrastructure.Persistence.DbContext.Migrations
                 name: "payment_webhook_logs",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Provider = table.Column<string>(
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    provider = table.Column<string>(
                         type: "character varying(50)",
                         maxLength: 50,
                         nullable: false
                     ),
-                    EventType = table.Column<string>(
+                    event_type = table.Column<string>(
                         type: "character varying(100)",
                         maxLength: 100,
                         nullable: false
                     ),
-                    ExternalReference = table.Column<string>(type: "text", nullable: true),
-                    Payload = table.Column<string>(type: "text", nullable: false),
-                    ReceivedAt = table.Column<DateTime>(
+                    external_reference = table.Column<string>(type: "text", nullable: true),
+                    payload = table.Column<string>(type: "text", nullable: false),
+                    received_at = table.Column<DateTime>(
                         type: "timestamp with time zone",
                         nullable: false
                     ),
-                    ProcessedAt = table.Column<DateTime>(
+                    processed_at = table.Column<DateTime>(
                         type: "timestamp with time zone",
                         nullable: true
                     ),
-                    Status = table.Column<int>(type: "integer", nullable: false),
-                    ErrorMessage = table.Column<string>(type: "text", nullable: true),
-                    CreatedAt = table.Column<DateTime>(
+                    status = table.Column<int>(type: "integer", nullable: false),
+                    error_message = table.Column<string>(type: "text", nullable: true),
+                    created_at = table.Column<DateTime>(
                         type: "timestamp with time zone",
                         nullable: false
                     ),
-                    UpdatedAt = table.Column<DateTime>(
+                    updated_at = table.Column<DateTime>(
                         type: "timestamp with time zone",
                         nullable: false
                     ),
-                    IsDeleted = table.Column<bool>(type: "boolean", nullable: true),
-                    DeletedAt = table.Column<DateTime>(
+                    is_deleted = table.Column<bool>(type: "boolean", nullable: true),
+                    deleted_at = table.Column<DateTime>(
                         type: "timestamp with time zone",
                         nullable: true
                     ),
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_payment_webhook_logs", x => x.Id);
+                    table.PrimaryKey("pk_payment_webhook_logs", x => x.id);
                 }
             );
 
@@ -101,22 +101,22 @@ namespace MiniBookingSystem.Infrastructure.Persistence.DbContext.Migrations
                 name: "roles",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Name = table.Column<string>(
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    name = table.Column<string>(
                         type: "character varying(256)",
                         maxLength: 256,
                         nullable: true
                     ),
-                    NormalizedName = table.Column<string>(
+                    normalized_name = table.Column<string>(
                         type: "character varying(256)",
                         maxLength: 256,
                         nullable: true
                     ),
-                    ConcurrencyStamp = table.Column<string>(type: "text", nullable: true),
+                    concurrency_stamp = table.Column<string>(type: "text", nullable: true),
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_roles", x => x.Id);
+                    table.PrimaryKey("pk_roles", x => x.id);
                 }
             );
 
@@ -124,20 +124,20 @@ namespace MiniBookingSystem.Infrastructure.Persistence.DbContext.Migrations
                 name: "system_settings",
                 columns: table => new
                 {
-                    Key = table.Column<string>(
+                    key = table.Column<string>(
                         type: "character varying(200)",
                         maxLength: 200,
                         nullable: false
                     ),
-                    Value = table.Column<string>(type: "text", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(
+                    value = table.Column<string>(type: "text", nullable: false),
+                    updated_at = table.Column<DateTime>(
                         type: "timestamp with time zone",
                         nullable: false
                     ),
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_system_settings", x => x.Key);
+                    table.PrimaryKey("pk_system_settings", x => x.key);
                 }
             );
 
@@ -145,62 +145,66 @@ namespace MiniBookingSystem.Infrastructure.Persistence.DbContext.Migrations
                 name: "users",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    FullName = table.Column<string>(
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    full_name = table.Column<string>(
                         type: "character varying(200)",
                         maxLength: 200,
                         nullable: false
                     ),
-                    IsActive = table.Column<bool>(
+                    is_active = table.Column<bool>(
                         type: "boolean",
                         nullable: false,
                         defaultValue: true
                     ),
-                    CreatedAt = table.Column<DateTime>(
+                    created_at = table.Column<DateTime>(
                         type: "timestamp with time zone",
                         nullable: false
                     ),
-                    UpdatedAt = table.Column<DateTime>(
+                    updated_at = table.Column<DateTime>(
                         type: "timestamp with time zone",
                         nullable: true
                     ),
-                    UserName = table.Column<string>(
+                    user_name = table.Column<string>(
                         type: "character varying(256)",
                         maxLength: 256,
                         nullable: true
                     ),
-                    NormalizedUserName = table.Column<string>(
+                    normalized_user_name = table.Column<string>(
                         type: "character varying(256)",
                         maxLength: 256,
                         nullable: true
                     ),
-                    Email = table.Column<string>(
+                    email = table.Column<string>(
                         type: "character varying(256)",
                         maxLength: 256,
                         nullable: true
                     ),
-                    NormalizedEmail = table.Column<string>(
+                    normalized_email = table.Column<string>(
                         type: "character varying(256)",
                         maxLength: 256,
                         nullable: true
                     ),
-                    EmailConfirmed = table.Column<bool>(type: "boolean", nullable: false),
-                    PasswordHash = table.Column<string>(type: "text", nullable: true),
-                    SecurityStamp = table.Column<string>(type: "text", nullable: true),
-                    ConcurrencyStamp = table.Column<string>(type: "text", nullable: true),
-                    PhoneNumber = table.Column<string>(type: "text", nullable: true),
-                    PhoneNumberConfirmed = table.Column<bool>(type: "boolean", nullable: false),
-                    TwoFactorEnabled = table.Column<bool>(type: "boolean", nullable: false),
-                    LockoutEnd = table.Column<DateTimeOffset>(
+                    email_confirmed = table.Column<bool>(type: "boolean", nullable: false),
+                    password_hash = table.Column<string>(type: "text", nullable: true),
+                    security_stamp = table.Column<string>(type: "text", nullable: true),
+                    concurrency_stamp = table.Column<string>(type: "text", nullable: true),
+                    phone_number = table.Column<string>(
+                        type: "character varying(15)",
+                        maxLength: 15,
+                        nullable: false
+                    ),
+                    phone_number_confirmed = table.Column<bool>(type: "boolean", nullable: false),
+                    two_factor_enabled = table.Column<bool>(type: "boolean", nullable: false),
+                    lockout_end = table.Column<DateTimeOffset>(
                         type: "timestamp with time zone",
                         nullable: true
                     ),
-                    LockoutEnabled = table.Column<bool>(type: "boolean", nullable: false),
-                    AccessFailedCount = table.Column<int>(type: "integer", nullable: false),
+                    lockout_enabled = table.Column<bool>(type: "boolean", nullable: false),
+                    access_failed_count = table.Column<int>(type: "integer", nullable: false),
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_users", x => x.Id);
+                    table.PrimaryKey("pk_users", x => x.id);
                 }
             );
 
@@ -208,24 +212,24 @@ namespace MiniBookingSystem.Infrastructure.Persistence.DbContext.Migrations
                 name: "role_claims",
                 columns: table => new
                 {
-                    Id = table
+                    id = table
                         .Column<int>(type: "integer", nullable: false)
                         .Annotation(
                             "Npgsql:ValueGenerationStrategy",
                             NpgsqlValueGenerationStrategy.IdentityByDefaultColumn
                         ),
-                    RoleId = table.Column<Guid>(type: "uuid", nullable: false),
-                    ClaimType = table.Column<string>(type: "text", nullable: true),
-                    ClaimValue = table.Column<string>(type: "text", nullable: true),
+                    role_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    claim_type = table.Column<string>(type: "text", nullable: true),
+                    claim_value = table.Column<string>(type: "text", nullable: true),
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_role_claims", x => x.Id);
+                    table.PrimaryKey("pk_role_claims", x => x.id);
                     table.ForeignKey(
-                        name: "FK_role_claims_roles_RoleId",
-                        column: x => x.RoleId,
+                        name: "fk_role_claims_roles_role_id",
+                        column: x => x.role_id,
                         principalTable: "roles",
-                        principalColumn: "Id",
+                        principalColumn: "id",
                         onDelete: ReferentialAction.Cascade
                     );
                 }
@@ -235,50 +239,50 @@ namespace MiniBookingSystem.Infrastructure.Persistence.DbContext.Migrations
                 name: "mentors",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
-                    DisplayName = table.Column<string>(
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    user_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    display_name = table.Column<string>(
                         type: "character varying(200)",
                         maxLength: 200,
                         nullable: false
                     ),
-                    Email = table.Column<string>(
+                    email = table.Column<string>(
                         type: "character varying(256)",
                         maxLength: 256,
                         nullable: false
                     ),
-                    Bio = table.Column<string>(type: "text", nullable: true),
-                    Specialization = table.Column<string>(type: "text", nullable: true),
-                    ExperienceYears = table.Column<int>(type: "integer", nullable: false),
-                    BasePrice = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    AvatarUrl = table.Column<string>(type: "text", nullable: true),
-                    IsActive = table.Column<bool>(
+                    bio = table.Column<string>(type: "text", nullable: true),
+                    specialization = table.Column<string>(type: "text", nullable: true),
+                    experience_years = table.Column<int>(type: "integer", nullable: false),
+                    base_price = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    avatar_url = table.Column<string>(type: "text", nullable: true),
+                    is_active = table.Column<bool>(
                         type: "boolean",
                         nullable: false,
                         defaultValue: true
                     ),
-                    CreatedAt = table.Column<DateTime>(
+                    created_at = table.Column<DateTime>(
                         type: "timestamp with time zone",
                         nullable: false
                     ),
-                    UpdatedAt = table.Column<DateTime>(
+                    updated_at = table.Column<DateTime>(
                         type: "timestamp with time zone",
                         nullable: false
                     ),
-                    IsDeleted = table.Column<bool>(type: "boolean", nullable: true),
-                    DeletedAt = table.Column<DateTime>(
+                    is_deleted = table.Column<bool>(type: "boolean", nullable: true),
+                    deleted_at = table.Column<DateTime>(
                         type: "timestamp with time zone",
                         nullable: true
                     ),
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_mentors", x => x.Id);
+                    table.PrimaryKey("pk_mentors", x => x.id);
                     table.ForeignKey(
-                        name: "FK_mentors_users_UserId",
-                        column: x => x.UserId,
+                        name: "fk_mentors_users_user_id",
+                        column: x => x.user_id,
                         principalTable: "users",
-                        principalColumn: "Id",
+                        principalColumn: "id",
                         onDelete: ReferentialAction.Restrict
                     );
                 }
@@ -288,52 +292,52 @@ namespace MiniBookingSystem.Infrastructure.Persistence.DbContext.Migrations
                 name: "refresh_tokens",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Token = table.Column<string>(type: "text", nullable: false),
-                    ExpiresAt = table.Column<DateTime>(
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    user_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    token = table.Column<string>(type: "text", nullable: false),
+                    expires_at = table.Column<DateTime>(
                         type: "timestamp with time zone",
                         nullable: false
                     ),
-                    RevokedAt = table.Column<DateTime>(
+                    revoked_at = table.Column<DateTime>(
                         type: "timestamp with time zone",
                         nullable: true
                     ),
-                    CreatedByIp = table.Column<string>(
+                    created_by_ip = table.Column<string>(
                         type: "character varying(50)",
                         maxLength: 50,
                         nullable: true
                     ),
-                    RevokedByIp = table.Column<string>(
+                    revoked_by_ip = table.Column<string>(
                         type: "character varying(50)",
                         maxLength: 50,
                         nullable: true
                     ),
-                    ReplacedByToken = table.Column<string>(type: "text", nullable: true),
-                    DeviceInfo = table.Column<string>(type: "text", nullable: true),
-                    IsUsed = table.Column<bool>(type: "boolean", nullable: false),
-                    CreatedAt = table.Column<DateTime>(
+                    replaced_by_token = table.Column<string>(type: "text", nullable: true),
+                    device_info = table.Column<string>(type: "text", nullable: true),
+                    is_used = table.Column<bool>(type: "boolean", nullable: false),
+                    created_at = table.Column<DateTime>(
                         type: "timestamp with time zone",
                         nullable: false
                     ),
-                    UpdatedAt = table.Column<DateTime>(
+                    updated_at = table.Column<DateTime>(
                         type: "timestamp with time zone",
                         nullable: false
                     ),
-                    IsDeleted = table.Column<bool>(type: "boolean", nullable: true),
-                    DeletedAt = table.Column<DateTime>(
+                    is_deleted = table.Column<bool>(type: "boolean", nullable: true),
+                    deleted_at = table.Column<DateTime>(
                         type: "timestamp with time zone",
                         nullable: true
                     ),
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_refresh_tokens", x => x.Id);
+                    table.PrimaryKey("pk_refresh_tokens", x => x.id);
                     table.ForeignKey(
-                        name: "FK_refresh_tokens_users_UserId",
-                        column: x => x.UserId,
+                        name: "fk_refresh_tokens_users_user_id",
+                        column: x => x.user_id,
                         principalTable: "users",
-                        principalColumn: "Id",
+                        principalColumn: "id",
                         onDelete: ReferentialAction.Cascade
                     );
                 }
@@ -343,24 +347,24 @@ namespace MiniBookingSystem.Infrastructure.Persistence.DbContext.Migrations
                 name: "user_claims",
                 columns: table => new
                 {
-                    Id = table
+                    id = table
                         .Column<int>(type: "integer", nullable: false)
                         .Annotation(
                             "Npgsql:ValueGenerationStrategy",
                             NpgsqlValueGenerationStrategy.IdentityByDefaultColumn
                         ),
-                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
-                    ClaimType = table.Column<string>(type: "text", nullable: true),
-                    ClaimValue = table.Column<string>(type: "text", nullable: true),
+                    user_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    claim_type = table.Column<string>(type: "text", nullable: true),
+                    claim_value = table.Column<string>(type: "text", nullable: true),
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_user_claims", x => x.Id);
+                    table.PrimaryKey("pk_user_claims", x => x.id);
                     table.ForeignKey(
-                        name: "FK_user_claims_users_UserId",
-                        column: x => x.UserId,
+                        name: "fk_user_claims_users_user_id",
+                        column: x => x.user_id,
                         principalTable: "users",
-                        principalColumn: "Id",
+                        principalColumn: "id",
                         onDelete: ReferentialAction.Cascade
                     );
                 }
@@ -370,19 +374,22 @@ namespace MiniBookingSystem.Infrastructure.Persistence.DbContext.Migrations
                 name: "user_logins",
                 columns: table => new
                 {
-                    LoginProvider = table.Column<string>(type: "text", nullable: false),
-                    ProviderKey = table.Column<string>(type: "text", nullable: false),
-                    ProviderDisplayName = table.Column<string>(type: "text", nullable: true),
-                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    login_provider = table.Column<string>(type: "text", nullable: false),
+                    provider_key = table.Column<string>(type: "text", nullable: false),
+                    provider_display_name = table.Column<string>(type: "text", nullable: true),
+                    user_id = table.Column<Guid>(type: "uuid", nullable: false),
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_user_logins", x => new { x.LoginProvider, x.ProviderKey });
+                    table.PrimaryKey(
+                        "pk_user_logins",
+                        x => new { x.login_provider, x.provider_key }
+                    );
                     table.ForeignKey(
-                        name: "FK_user_logins_users_UserId",
-                        column: x => x.UserId,
+                        name: "fk_user_logins_users_user_id",
+                        column: x => x.user_id,
                         principalTable: "users",
-                        principalColumn: "Id",
+                        principalColumn: "id",
                         onDelete: ReferentialAction.Cascade
                     );
                 }
@@ -392,24 +399,24 @@ namespace MiniBookingSystem.Infrastructure.Persistence.DbContext.Migrations
                 name: "user_roles",
                 columns: table => new
                 {
-                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
-                    RoleId = table.Column<Guid>(type: "uuid", nullable: false),
+                    user_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    role_id = table.Column<Guid>(type: "uuid", nullable: false),
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_user_roles", x => new { x.UserId, x.RoleId });
+                    table.PrimaryKey("pk_user_roles", x => new { x.user_id, x.role_id });
                     table.ForeignKey(
-                        name: "FK_user_roles_roles_RoleId",
-                        column: x => x.RoleId,
+                        name: "fk_user_roles_roles_role_id",
+                        column: x => x.role_id,
                         principalTable: "roles",
-                        principalColumn: "Id",
+                        principalColumn: "id",
                         onDelete: ReferentialAction.Cascade
                     );
                     table.ForeignKey(
-                        name: "FK_user_roles_users_UserId",
-                        column: x => x.UserId,
+                        name: "fk_user_roles_users_user_id",
+                        column: x => x.user_id,
                         principalTable: "users",
-                        principalColumn: "Id",
+                        principalColumn: "id",
                         onDelete: ReferentialAction.Cascade
                     );
                 }
@@ -419,27 +426,27 @@ namespace MiniBookingSystem.Infrastructure.Persistence.DbContext.Migrations
                 name: "user_tokens",
                 columns: table => new
                 {
-                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
-                    LoginProvider = table.Column<string>(type: "text", nullable: false),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    Value = table.Column<string>(type: "text", nullable: true),
+                    user_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    login_provider = table.Column<string>(type: "text", nullable: false),
+                    name = table.Column<string>(type: "text", nullable: false),
+                    value = table.Column<string>(type: "text", nullable: true),
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey(
-                        "PK_user_tokens",
+                        "pk_user_tokens",
                         x => new
                         {
-                            x.UserId,
-                            x.LoginProvider,
-                            x.Name,
+                            x.user_id,
+                            x.login_provider,
+                            x.name,
                         }
                     );
                     table.ForeignKey(
-                        name: "FK_user_tokens_users_UserId",
-                        column: x => x.UserId,
+                        name: "fk_user_tokens_users_user_id",
+                        column: x => x.user_id,
                         principalTable: "users",
-                        principalColumn: "Id",
+                        principalColumn: "id",
                         onDelete: ReferentialAction.Cascade
                     );
                 }
@@ -449,35 +456,35 @@ namespace MiniBookingSystem.Infrastructure.Persistence.DbContext.Migrations
                 name: "mentor_skills",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    MentorId = table.Column<Guid>(type: "uuid", nullable: false),
-                    SkillName = table.Column<string>(
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    mentor_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    skill_name = table.Column<string>(
                         type: "character varying(100)",
                         maxLength: 100,
                         nullable: false
                     ),
-                    CreatedAt = table.Column<DateTime>(
+                    created_at = table.Column<DateTime>(
                         type: "timestamp with time zone",
                         nullable: false
                     ),
-                    UpdatedAt = table.Column<DateTime>(
+                    updated_at = table.Column<DateTime>(
                         type: "timestamp with time zone",
                         nullable: false
                     ),
-                    IsDeleted = table.Column<bool>(type: "boolean", nullable: true),
-                    DeletedAt = table.Column<DateTime>(
+                    is_deleted = table.Column<bool>(type: "boolean", nullable: true),
+                    deleted_at = table.Column<DateTime>(
                         type: "timestamp with time zone",
                         nullable: true
                     ),
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_mentor_skills", x => x.Id);
+                    table.PrimaryKey("pk_mentor_skills", x => x.id);
                     table.ForeignKey(
-                        name: "FK_mentor_skills_mentors_MentorId",
-                        column: x => x.MentorId,
+                        name: "fk_mentor_skills_mentors_mentor_id",
+                        column: x => x.mentor_id,
                         principalTable: "mentors",
-                        principalColumn: "Id",
+                        principalColumn: "id",
                         onDelete: ReferentialAction.Cascade
                     );
                 }
@@ -487,40 +494,40 @@ namespace MiniBookingSystem.Infrastructure.Persistence.DbContext.Migrations
                 name: "mentor_slots",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    MentorId = table.Column<Guid>(type: "uuid", nullable: false),
-                    StartTime = table.Column<DateTime>(
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    mentor_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    start_time = table.Column<DateTime>(
                         type: "timestamp with time zone",
                         nullable: false
                     ),
-                    EndTime = table.Column<DateTime>(
+                    end_time = table.Column<DateTime>(
                         type: "timestamp with time zone",
                         nullable: false
                     ),
-                    Status = table.Column<int>(type: "integer", nullable: false),
-                    Price = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    CreatedAt = table.Column<DateTime>(
+                    status = table.Column<int>(type: "integer", nullable: false),
+                    price = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    created_at = table.Column<DateTime>(
                         type: "timestamp with time zone",
                         nullable: false
                     ),
-                    UpdatedAt = table.Column<DateTime>(
+                    updated_at = table.Column<DateTime>(
                         type: "timestamp with time zone",
                         nullable: false
                     ),
-                    IsDeleted = table.Column<bool>(type: "boolean", nullable: true),
-                    DeletedAt = table.Column<DateTime>(
+                    is_deleted = table.Column<bool>(type: "boolean", nullable: true),
+                    deleted_at = table.Column<DateTime>(
                         type: "timestamp with time zone",
                         nullable: true
                     ),
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_mentor_slots", x => x.Id);
+                    table.PrimaryKey("pk_mentor_slots", x => x.id);
                     table.ForeignKey(
-                        name: "FK_mentor_slots_mentors_MentorId",
-                        column: x => x.MentorId,
+                        name: "fk_mentor_slots_mentors_mentor_id",
+                        column: x => x.mentor_id,
                         principalTable: "mentors",
-                        principalColumn: "Id",
+                        principalColumn: "id",
                         onDelete: ReferentialAction.Cascade
                     );
                 }
@@ -530,58 +537,58 @@ namespace MiniBookingSystem.Infrastructure.Persistence.DbContext.Migrations
                 name: "bookings",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
-                    MentorSlotId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Status = table.Column<int>(type: "integer", nullable: false),
-                    BookingCode = table.Column<string>(
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    user_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    mentor_slot_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    status = table.Column<int>(type: "integer", nullable: false),
+                    booking_code = table.Column<string>(
                         type: "character varying(50)",
                         maxLength: 50,
                         nullable: false
                     ),
-                    BookedAt = table.Column<DateTime>(
+                    booked_at = table.Column<DateTime>(
                         type: "timestamp with time zone",
                         nullable: false
                     ),
-                    ConfirmedAt = table.Column<DateTime>(
+                    confirmed_at = table.Column<DateTime>(
                         type: "timestamp with time zone",
                         nullable: true
                     ),
-                    CancelledAt = table.Column<DateTime>(
+                    cancelled_at = table.Column<DateTime>(
                         type: "timestamp with time zone",
                         nullable: true
                     ),
-                    CancellationReason = table.Column<string>(type: "text", nullable: true),
-                    Notes = table.Column<string>(type: "text", nullable: true),
-                    CreatedAt = table.Column<DateTime>(
+                    cancellation_reason = table.Column<string>(type: "text", nullable: true),
+                    notes = table.Column<string>(type: "text", nullable: true),
+                    created_at = table.Column<DateTime>(
                         type: "timestamp with time zone",
                         nullable: false
                     ),
-                    UpdatedAt = table.Column<DateTime>(
+                    updated_at = table.Column<DateTime>(
                         type: "timestamp with time zone",
                         nullable: false
                     ),
-                    IsDeleted = table.Column<bool>(type: "boolean", nullable: true),
-                    DeletedAt = table.Column<DateTime>(
+                    is_deleted = table.Column<bool>(type: "boolean", nullable: true),
+                    deleted_at = table.Column<DateTime>(
                         type: "timestamp with time zone",
                         nullable: true
                     ),
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_bookings", x => x.Id);
+                    table.PrimaryKey("pk_bookings", x => x.id);
                     table.ForeignKey(
-                        name: "FK_bookings_mentor_slots_MentorSlotId",
-                        column: x => x.MentorSlotId,
+                        name: "fk_bookings_mentor_slots_mentor_slot_id",
+                        column: x => x.mentor_slot_id,
                         principalTable: "mentor_slots",
-                        principalColumn: "Id",
+                        principalColumn: "id",
                         onDelete: ReferentialAction.Restrict
                     );
                     table.ForeignKey(
-                        name: "FK_bookings_users_UserId",
-                        column: x => x.UserId,
+                        name: "fk_bookings_users_user_id",
+                        column: x => x.user_id,
                         principalTable: "users",
-                        principalColumn: "Id",
+                        principalColumn: "id",
                         onDelete: ReferentialAction.Restrict
                     );
                 }
@@ -591,171 +598,178 @@ namespace MiniBookingSystem.Infrastructure.Persistence.DbContext.Migrations
                 name: "payment_transactions",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    BookingId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Provider = table.Column<string>(
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    booking_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    provider = table.Column<string>(
                         type: "character varying(50)",
                         maxLength: 50,
                         nullable: false
                     ),
-                    ProviderTransactionId = table.Column<string>(type: "text", nullable: true),
-                    ProviderOrderCode = table.Column<string>(
+                    provider_transaction_id = table.Column<string>(type: "text", nullable: true),
+                    provider_order_code = table.Column<string>(
                         type: "character varying(100)",
                         maxLength: 100,
                         nullable: false
                     ),
-                    Amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    Currency = table.Column<string>(
+                    amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    currency = table.Column<string>(
                         type: "character varying(10)",
                         maxLength: 10,
                         nullable: false,
                         defaultValue: "VND"
                     ),
-                    Status = table.Column<int>(type: "integer", nullable: false),
-                    PaymentUrl = table.Column<string>(type: "text", nullable: true),
-                    QrCodeUrl = table.Column<string>(type: "text", nullable: true),
-                    PaidAt = table.Column<DateTime>(
+                    status = table.Column<int>(type: "integer", nullable: false),
+                    payment_url = table.Column<string>(type: "text", nullable: true),
+                    qr_code_url = table.Column<string>(type: "text", nullable: true),
+                    paid_at = table.Column<DateTime>(
                         type: "timestamp with time zone",
                         nullable: true
                     ),
-                    ExpiredAt = table.Column<DateTime>(
+                    expired_at = table.Column<DateTime>(
                         type: "timestamp with time zone",
                         nullable: true
                     ),
-                    RawCallbackData = table.Column<string>(type: "text", nullable: true),
-                    FailureReason = table.Column<string>(type: "text", nullable: true),
-                    CreatedAt = table.Column<DateTime>(
+                    raw_callback_data = table.Column<string>(type: "text", nullable: true),
+                    failure_reason = table.Column<string>(type: "text", nullable: true),
+                    created_at = table.Column<DateTime>(
                         type: "timestamp with time zone",
                         nullable: false
                     ),
-                    UpdatedAt = table.Column<DateTime>(
+                    updated_at = table.Column<DateTime>(
                         type: "timestamp with time zone",
                         nullable: false
                     ),
-                    IsDeleted = table.Column<bool>(type: "boolean", nullable: true),
-                    DeletedAt = table.Column<DateTime>(
+                    is_deleted = table.Column<bool>(type: "boolean", nullable: true),
+                    deleted_at = table.Column<DateTime>(
                         type: "timestamp with time zone",
                         nullable: true
                     ),
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_payment_transactions", x => x.Id);
+                    table.PrimaryKey("pk_payment_transactions", x => x.id);
                     table.ForeignKey(
-                        name: "FK_payment_transactions_bookings_BookingId",
-                        column: x => x.BookingId,
+                        name: "fk_payment_transactions_bookings_booking_id",
+                        column: x => x.booking_id,
                         principalTable: "bookings",
-                        principalColumn: "Id",
+                        principalColumn: "id",
                         onDelete: ReferentialAction.Restrict
                     );
                 }
             );
 
             migrationBuilder.CreateIndex(
-                name: "IX_bookings_BookingCode",
+                name: "ix_bookings_booking_code",
                 table: "bookings",
-                column: "BookingCode",
+                column: "booking_code",
                 unique: true
             );
 
             migrationBuilder.CreateIndex(
-                name: "IX_bookings_MentorSlotId",
+                name: "ix_bookings_mentor_slot_id",
                 table: "bookings",
-                column: "MentorSlotId"
+                column: "mentor_slot_id"
             );
 
             migrationBuilder.CreateIndex(
-                name: "IX_bookings_UserId",
+                name: "ix_bookings_user_id",
                 table: "bookings",
-                column: "UserId"
+                column: "user_id"
             );
 
             migrationBuilder.CreateIndex(
-                name: "IX_mentor_skills_MentorId",
+                name: "ix_mentor_skills_mentor_id",
                 table: "mentor_skills",
-                column: "MentorId"
+                column: "mentor_id"
             );
 
             migrationBuilder.CreateIndex(
-                name: "IX_mentor_slots_MentorId",
+                name: "ix_mentor_slots_mentor_id",
                 table: "mentor_slots",
-                column: "MentorId"
+                column: "mentor_id"
             );
 
             migrationBuilder.CreateIndex(
-                name: "IX_mentors_Email",
+                name: "ix_mentors_email",
                 table: "mentors",
-                column: "Email",
+                column: "email",
                 unique: true
             );
 
             migrationBuilder.CreateIndex(
-                name: "IX_mentors_UserId",
+                name: "ix_mentors_user_id",
                 table: "mentors",
-                column: "UserId",
+                column: "user_id",
                 unique: true
             );
 
             migrationBuilder.CreateIndex(
-                name: "IX_payment_transactions_BookingId",
+                name: "ix_payment_transactions_booking_id",
                 table: "payment_transactions",
-                column: "BookingId"
+                column: "booking_id"
             );
 
             migrationBuilder.CreateIndex(
-                name: "IX_refresh_tokens_Token",
+                name: "ix_refresh_tokens_token",
                 table: "refresh_tokens",
-                column: "Token",
+                column: "token",
                 unique: true
             );
 
             migrationBuilder.CreateIndex(
-                name: "IX_refresh_tokens_UserId",
+                name: "ix_refresh_tokens_user_id",
                 table: "refresh_tokens",
-                column: "UserId"
+                column: "user_id"
             );
 
             migrationBuilder.CreateIndex(
-                name: "IX_role_claims_RoleId",
+                name: "ix_role_claims_role_id",
                 table: "role_claims",
-                column: "RoleId"
+                column: "role_id"
             );
 
             migrationBuilder.CreateIndex(
                 name: "RoleNameIndex",
                 table: "roles",
-                column: "NormalizedName",
+                column: "normalized_name",
                 unique: true
             );
 
             migrationBuilder.CreateIndex(
-                name: "IX_user_claims_UserId",
+                name: "ix_user_claims_user_id",
                 table: "user_claims",
-                column: "UserId"
+                column: "user_id"
             );
 
             migrationBuilder.CreateIndex(
-                name: "IX_user_logins_UserId",
+                name: "ix_user_logins_user_id",
                 table: "user_logins",
-                column: "UserId"
+                column: "user_id"
             );
 
             migrationBuilder.CreateIndex(
-                name: "IX_user_roles_RoleId",
+                name: "ix_user_roles_role_id",
                 table: "user_roles",
-                column: "RoleId"
+                column: "role_id"
             );
 
             migrationBuilder.CreateIndex(
                 name: "EmailIndex",
                 table: "users",
-                column: "NormalizedEmail"
+                column: "normalized_email"
+            );
+
+            migrationBuilder.CreateIndex(
+                name: "ix_users_phone_number",
+                table: "users",
+                column: "phone_number",
+                unique: true
             );
 
             migrationBuilder.CreateIndex(
                 name: "UserNameIndex",
                 table: "users",
-                column: "NormalizedUserName",
+                column: "normalized_user_name",
                 unique: true
             );
         }

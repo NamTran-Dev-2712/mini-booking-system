@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics;
 
 public class GlobalExceptionHandler : IExceptionHandler
@@ -24,7 +25,19 @@ public class GlobalExceptionHandler : IExceptionHandler
         List<string>? errors = null;
 
         // domain validation error (400)
-        if (exception is AppDomainException appEx)
+        if (exception is ValidationException validationException)
+        {
+            statusCode = StatusCodes.Status400BadRequest;
+            message = "Validation failed.";
+
+            errors = validationException
+                .Errors.Select(x => $"{x.PropertyName}: {x.ErrorMessage}")
+                .Distinct()
+                .ToList();
+
+            _logger.LogWarning(exception, "FluentValidation error. TraceId: {TraceId}", traceId);
+        }
+        else if (exception is AppDomainException appEx)
         {
             statusCode = appEx.StatusCode;
             message = appEx.Message;
