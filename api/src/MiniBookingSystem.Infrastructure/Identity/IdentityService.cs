@@ -8,18 +8,21 @@ public class IdentityService : IIdentityService
     private readonly IJwtTokenService _tokenService;
     private readonly ITokenHasher _tokenHasher;
     private readonly IRefreshTokenRepository _refreshTokenRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
     public IdentityService(
         UserManager<ApplicationUser> userManager,
         IJwtTokenService tokenService,
         ITokenHasher tokenHasher,
-        IRefreshTokenRepository refreshTokenRepository
+        IRefreshTokenRepository refreshTokenRepository,
+        IUnitOfWork unitOfWork
     )
     {
         _userManager = userManager;
         _tokenService = tokenService;
         _tokenHasher = tokenHasher;
         _refreshTokenRepository = refreshTokenRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<Guid> RegisterAsync(
@@ -36,10 +39,11 @@ public class IdentityService : IIdentityService
             throw new ConflictException("Email is already registered.");
 
         // Check for existing user by phone number
-        var phoneExists = await _userManager.Users.AnyAsync(
-            u => u.PhoneNumber == phoneNumber,
+        var phoneExists = await _unitOfWork.User.IsPhoneNumberTakenAsync(
+            phoneNumber,
             cancellationToken
         );
+
         if (phoneExists)
             throw new ConflictException("Phone number is already registered.");
 

@@ -14,6 +14,11 @@ public abstract class BaseApiController : ControllerBase
         return StatusCode(201, ApiResponse<T>.Created(data, message));
     }
 
+    protected IActionResult NoContentResponse(string message = "No content")
+    {
+        return StatusCode(200, ApiResponse<object>.NoContent(message));
+    }
+
     public IActionResult FailureResponse<T>(
         int statusCode,
         string message,

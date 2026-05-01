@@ -18,4 +18,12 @@ public static class ValidationPatterns
     // Ít nhất 1 ký tự đặc biệt
     // Ít nhất 1 số
     public const string StrongPassword = @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$";
+
+    public static bool LinkMustBeValid(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+            return true;
+        return Uri.TryCreate(url, UriKind.Absolute, out var outUri)
+            && (outUri.Scheme == Uri.UriSchemeHttp || outUri.Scheme == Uri.UriSchemeHttps);
+    }
 }

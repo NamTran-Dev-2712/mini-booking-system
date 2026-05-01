@@ -93,6 +93,6 @@ public class AuthController : BaseApiController
     {
         ClearAuthCookies();
 
-        return OkResponse<string>(null, "Logged out successfully");
+        return NoContentResponse("Logged out successfully");
     }
 }

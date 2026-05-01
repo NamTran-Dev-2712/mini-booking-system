@@ -4,8 +4,8 @@ public interface IGenericRepository<T>
     where T : class
 {
     // Get Methods
-    Task<T?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
-    Task<T?> GetByIdAsync(int id, params Expression<Func<T, object>>[] includes);
+    Task<T?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<T?> GetByIdAsync(Guid id, params Expression<Func<T, object>>[] includes);
     Task<T?> GetFirstOrDefaultAsync(
         Expression<Func<T, bool>> predicate,
         params Expression<Func<T, object>>[] includes
@@ -60,4 +60,11 @@ public interface IGenericRepository<T>
     // Special
     IQueryable<T> Query();
     void Detach(T entity);
+
+    // Async query execution — keeps EF Core out of Application layer
+    Task<int> CountAsync(IQueryable<T> query, CancellationToken cancellationToken = default);
+    Task<List<TResult>> ToListAsync<TResult>(
+        IQueryable<TResult> query,
+        CancellationToken cancellationToken = default
+    );
 }

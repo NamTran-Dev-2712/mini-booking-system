@@ -34,6 +34,17 @@ public class ApiResponse<T>
         };
     }
 
+    public static ApiResponse<object> NoContent(string message = "No content")
+    {
+        return new ApiResponse<object>
+        {
+            Success = true,
+            Data = null,
+            Message = message,
+            StatusCode = 200,
+        };
+    }
+
     public static ApiResponse<T> Failure(
         int statusCode,
         string message,

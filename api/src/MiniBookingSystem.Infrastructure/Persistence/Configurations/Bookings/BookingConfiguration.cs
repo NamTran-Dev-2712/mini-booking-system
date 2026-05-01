@@ -24,6 +24,14 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
             .HasForeignKey(b => b.MentorSlotId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // Quan hệ Booking → ApplicationUser (many:1).
+        // Booking ở Domain không thể reference ApplicationUser, dùng generic type.
+        builder
+            .HasOne<ApplicationUser>()
+            .WithMany(u => u.Bookings)
+            .HasForeignKey(b => b.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.HasQueryFilter(b => b.IsDeleted != true);
     }
 }

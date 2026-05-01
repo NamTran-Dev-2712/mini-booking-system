@@ -96,6 +96,10 @@ namespace MiniBookingSystem.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
                     b.Property<string>("Email")
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)")
@@ -116,6 +120,12 @@ namespace MiniBookingSystem.Infrastructure.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(true)
                         .HasColumnName("is_active");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_deleted");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("boolean")
@@ -178,7 +188,8 @@ namespace MiniBookingSystem.Infrastructure.Migrations
 
                     b.HasIndex("PhoneNumber")
                         .IsUnique()
-                        .HasDatabaseName("ix_users_phone_number");
+                        .HasDatabaseName("ix_users_phone_number")
+                        .HasFilter("is_deleted = false");
 
                     b.ToTable("users", (string)null);
                 });

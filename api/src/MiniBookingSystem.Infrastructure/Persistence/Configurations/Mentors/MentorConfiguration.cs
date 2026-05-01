@@ -23,6 +23,16 @@ public class MentorConfiguration : IEntityTypeConfiguration<Mentor>
 
         builder.Property(m => m.IsActive).IsRequired().HasDefaultValue(true);
 
+        // Quan hệ Mentor → ApplicationUser (1:1).
+        // Mentor ở Domain không thể reference ApplicationUser ở Infrastructure,
+        // nên dùng HasOne<ApplicationUser>() (generic, không cần CLR nav property trên Mentor).
+        // EF biết FK là Mentor.UserId và nav ngược là ApplicationUser.MentorProfile.
+        builder
+            .HasOne<ApplicationUser>()
+            .WithOne(u => u.MentorProfile)
+            .HasForeignKey<Mentor>(m => m.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.HasQueryFilter(m => m.IsDeleted != true);
     }
 }

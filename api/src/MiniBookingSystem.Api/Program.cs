@@ -55,8 +55,8 @@ try
 
     app.MapControllers();
 
-    // Seed initial data (roles, etc.)
-    await DatabaseSeeder.SeedRolesAsync(app.Services);
+    // Seed initial data (roles, mentors, etc.)
+    await DatabaseSeeder.SeedAllAsync(app.Services);
 
     Log.Information("Docs: http://localhost:5296/scalar/v1");
     Log.Information("Application started successfully.");

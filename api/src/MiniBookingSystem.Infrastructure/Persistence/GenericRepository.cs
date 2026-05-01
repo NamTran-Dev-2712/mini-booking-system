@@ -14,7 +14,7 @@ public class GenericRepository<T> : IGenericRepository<T>
     }
 
     public virtual async Task<T?> GetByIdAsync(
-        int id,
+        Guid id,
         CancellationToken cancellationToken = default
     )
     {
@@ -22,7 +22,7 @@ public class GenericRepository<T> : IGenericRepository<T>
     }
 
     public virtual async Task<T?> GetByIdAsync(
-        int id,
+        Guid id,
         params Expression<Func<T, object>>[] includes
     )
     {
@@ -33,7 +33,7 @@ public class GenericRepository<T> : IGenericRepository<T>
             query = query.Include(include);
         }
 
-        return await query.FirstOrDefaultAsync(e => EF.Property<int>(e, "Id") == id);
+        return await query.FirstOrDefaultAsync(e => EF.Property<Guid>(e, "Id") == id);
     }
 
     public virtual async Task<T?> GetFirstOrDefaultAsync(
@@ -195,7 +195,23 @@ public class GenericRepository<T> : IGenericRepository<T>
 
     public virtual IQueryable<T> Query()
     {
-        return _dbSet.AsQueryable();
+        return _dbSet.AsNoTracking();
+    }
+
+    public virtual Task<int> CountAsync(
+        IQueryable<T> query,
+        CancellationToken cancellationToken = default
+    )
+    {
+        return query.CountAsync(cancellationToken);
+    }
+
+    public virtual Task<List<TResult>> ToListAsync<TResult>(
+        IQueryable<TResult> query,
+        CancellationToken cancellationToken = default
+    )
+    {
+        return query.ToListAsync(cancellationToken);
     }
 
     public virtual void Detach(T entity)
