@@ -37,6 +37,8 @@ services:
       - "${REDIS_PORT}:6379"
     volumes:
       - ${REDIS_DATA_PATH}:/data
+    networks:
+      - booking_network
     deploy:
       resources:
         limits:
@@ -48,3 +50,6 @@ services:
 volumes:
   postgres_data:
   redis_data:
+
+networks:
+  booking_network:

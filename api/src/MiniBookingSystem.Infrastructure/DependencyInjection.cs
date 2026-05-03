@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using StackExchange.Redis;
 
 public static class DependencyInjection
 {
@@ -87,6 +88,22 @@ public static class DependencyInjection
                     },
                 };
             });
+
+        // Configure cache options
+        services.Configure<CacheOptions>(configuration.GetSection(ConfigurationValue.Redis));
+        var redisSettings =
+            configuration.GetSection(ConfigurationValue.Redis).Get<CacheOptions>()
+            ?? throw new InvalidOperationException("Redis settings are not properly configured.");
+
+        services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = redisSettings.ConnectionString;
+            options.InstanceName = redisSettings.InstanceName;
+        });
+        services.AddSingleton<IConnectionMultiplexer>(_ =>
+            ConnectionMultiplexer.Connect(redisSettings.ConnectionString!)
+        );
+        services.AddScoped<ICacheService, RedisCacheService>();
 
         // Register application services
         services.AddScoped<IUnitOfWork, UnitOfWork>();
