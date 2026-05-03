@@ -3,10 +3,12 @@ using MediatR;
 public class DeleteMentorCommandHandler : IRequestHandler<DeleteMentorCommand, Unit>
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ICacheService _cacheService;
 
-    public DeleteMentorCommandHandler(IUnitOfWork unitOfWork)
+    public DeleteMentorCommandHandler(IUnitOfWork unitOfWork, ICacheService cacheService)
     {
         _unitOfWork = unitOfWork;
+        _cacheService = cacheService;
     }
 
     public async Task<Unit> Handle(DeleteMentorCommand request, CancellationToken cancellationToken)
@@ -31,6 +33,8 @@ public class DeleteMentorCommandHandler : IRequestHandler<DeleteMentorCommand, U
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
             await _unitOfWork.CommitTransactionAsync(cancellationToken);
+
+            await _cacheService.RemoveAsync(CacheKeys.MentorDetail(mentor.Id));
 
             return Unit.Value;
         }

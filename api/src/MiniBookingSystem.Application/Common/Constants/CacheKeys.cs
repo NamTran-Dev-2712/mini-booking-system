@@ -1,14 +1,16 @@
 public static class CacheKeys
 {
     private const string App = "booking";
+    public const string PublicMentorListPolicy = "PublicMentorListPolicy";
+    public const string PublicListMentorTag = "public-mentor-list";
 
     public static string MentorDetail(Guid mentorId) => $"{App}:mentors:{mentorId}:detail";
 
-    public static string Availability(Guid mentorId, DateOnly from, DateOnly to) =>
-        $"{App}:mentors:{mentorId}:availability:{from:yyyyMMdd}:{to:yyyyMMdd}";
+    // public static string Availability(Guid mentorId, DateOnly from, DateOnly to) =>
+    //     $"{App}:mentors:{mentorId}:availability:{from:yyyyMMdd}:{to:yyyyMMdd}";
 
-    public static string ServiceList(int page, int pageSize, string? keyword, string? sortBy) =>
-        $"{App}:services:list:page:{page}:size:{pageSize}:keyword:{Normalize(keyword)}:sort:{Normalize(sortBy)}";
+    // public static string ServiceList(int page, int pageSize, string? keyword, string? sortBy) =>
+    //     $"{App}:services:list:page:{page}:size:{pageSize}:keyword:{Normalize(keyword)}:sort:{Normalize(sortBy)}";
 
     public static string UserProfile(Guid userId) => $"{App}:users:{userId}:profile";
 

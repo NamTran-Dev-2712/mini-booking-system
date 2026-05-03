@@ -52,6 +52,46 @@ public static class DependencyInjection
             );
         });
 
+        // setup output caching
+        services.AddStackExchangeRedisOutputCache(options =>
+        {
+            options.Configuration = configuration[ConfigurationValue.RedisConnectionString];
+            options.InstanceName = configuration[ConfigurationValue.RedisInstanceName] + "output:";
+        });
+        services.AddOutputCache(options =>
+        {
+            options.AddPolicy(
+                CacheKeys.PublicMentorListPolicy,
+                policy =>
+                {
+                    policy
+                        .Expire(TimeSpan.FromMinutes(5))
+                        .SetVaryByQuery("*")
+                        .Tag(CacheKeys.PublicListMentorTag);
+                }
+            );
+
+            // options.AddPolicy("Availability", policy =>
+            // {
+            //     policy
+            //         .Expire(TimeSpan.FromSeconds(30))
+            //         .SetVaryByRouteValue("mentorId")
+            //         .SetVaryByQuery("from", "to")
+            //         .Tag("mentor-availability");
+            // });
+
+            // options.AddPolicy(
+            //     "ServiceList",
+            //     policy =>
+            //     {
+            //         policy
+            //             .Expire(TimeSpan.FromMinutes(5))
+            //             .SetVaryByQuery("page", "pageSize", "keyword", "sortBy")
+            //             .Tag("services");
+            //     }
+            // );
+        });
+
         return services;
     }
 }

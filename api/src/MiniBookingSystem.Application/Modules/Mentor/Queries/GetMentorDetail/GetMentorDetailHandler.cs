@@ -4,10 +4,12 @@ using MediatR;
 public class GetMentorDetailHandler : IRequestHandler<GetMentorDetailQuery, MentorDetailDTO>
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ICacheService _cacheService;
 
-    public GetMentorDetailHandler(IUnitOfWork unitOfWork)
+    public GetMentorDetailHandler(IUnitOfWork unitOfWork, ICacheService cacheService)
     {
         _unitOfWork = unitOfWork;
+        _cacheService = cacheService;
     }
 
     public async Task<MentorDetailDTO> Handle(
@@ -15,6 +17,11 @@ public class GetMentorDetailHandler : IRequestHandler<GetMentorDetailQuery, Ment
         CancellationToken cancellationToken
     )
     {
+        var key = CacheKeys.MentorDetail(request.MentorId);
+        var cached = await _cacheService.GetAsync<MentorDetailDTO>(key);
+        if (cached != null)
+            return cached;
+
         var mentor = await _unitOfWork.Mentor.GetByIdAsync(request.MentorId, cancellationToken);
         if (mentor == null)
             throw new NotFoundException($"Mentor", request.MentorId.ToString());
@@ -23,7 +30,7 @@ public class GetMentorDetailHandler : IRequestHandler<GetMentorDetailQuery, Ment
             ms.MentorId == request.MentorId
         );
 
-        return new MentorDetailDTO
+        var mentorDetail = new MentorDetailDTO
         {
             Id = mentor.Id,
             UserId = mentor.UserId,
@@ -32,5 +39,9 @@ public class GetMentorDetailHandler : IRequestHandler<GetMentorDetailQuery, Ment
                 .Select(ms => new MentorSkillDTO { Id = ms.Id, SkillName = ms.SkillName })
                 .ToList(),
         };
+
+        await _cacheService.SetAsync(key, mentorDetail, TimeSpan.FromMinutes(10));
+
+        return mentorDetail;
     }
 }

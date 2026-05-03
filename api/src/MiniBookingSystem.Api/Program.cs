@@ -53,6 +53,8 @@ try
     app.UseAuthentication();
     app.UseAuthorization();
 
+    app.UseOutputCache();
+
     app.MapControllers();
 
     // Seed initial data (roles, mentors, etc.)

@@ -2,16 +2,24 @@ using System.IdentityModel.Tokens.Jwt;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OutputCaching;
 
 [ApiController]
 [Route("api/[controller]")]
 public class MentorController : BaseApiController
 {
     private readonly ISender _mediator;
+    private readonly IOutputCacheStore _cacheStore;
 
-    public MentorController(ISender mediator)
+    public MentorController(ISender mediator, IOutputCacheStore cacheStore)
     {
         _mediator = mediator;
+        _cacheStore = cacheStore;
+    }
+
+    private async Task EvictMentorCache(CancellationToken cancellationToken)
+    {
+        await _cacheStore.EvictByTagAsync(CacheKeys.PublicListMentorTag, cancellationToken);
     }
 
     [HttpPost()]
@@ -22,6 +30,7 @@ public class MentorController : BaseApiController
     )
     {
         var result = await _mediator.Send(command, cancellationToken);
+        await EvictMentorCache(cancellationToken);
         return CreatedResponse(result, "Mentor created successfully");
     }
 
@@ -65,6 +74,7 @@ public class MentorController : BaseApiController
             return FailureResponse<Guid>(400, "ID in URL does not match ID in body.");
 
         var result = await _mediator.Send(command, cancellationToken);
+        await EvictMentorCache(cancellationToken);
         return OkResponse(result, "Mentor updated successfully");
     }
 
@@ -74,10 +84,12 @@ public class MentorController : BaseApiController
     {
         var command = new DeleteMentorCommand(id);
         await _mediator.Send(command, cancellationToken);
+        await EvictMentorCache(cancellationToken);
         return NoContentResponse("Mentor deleted successfully");
     }
 
     [HttpGet()]
+    [OutputCache(PolicyName = CacheKeys.PublicMentorListPolicy)]
     public async Task<IActionResult> GetMentors(
         [FromQuery] GetMentorQuery query,
         CancellationToken cancellationToken
