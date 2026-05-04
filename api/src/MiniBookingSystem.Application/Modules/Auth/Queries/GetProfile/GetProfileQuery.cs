@@ -1,3 +1,3 @@
 using MediatR;
 
-public record GetProfileQuery(string UserId) : IRequest<UserDTO>;
+public record GetProfileQuery(Guid UserId) : IRequest<UserDTO>;

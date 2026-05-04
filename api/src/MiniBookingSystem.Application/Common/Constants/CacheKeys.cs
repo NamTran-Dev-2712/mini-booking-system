@@ -1,8 +1,15 @@
 public static class CacheKeys
 {
     private const string App = "booking";
+
+    // output cache keys
     public const string PublicMentorListPolicy = "PublicMentorListPolicy";
     public const string PublicListMentorTag = "public-mentor-list";
+
+    // rate limiting keys
+    public const string AuthRateLimitPolicy = "AuthPolicy";
+    public const string BookingRateLimitPolicy = "BookingPolicy";
+    public const string AiRateLimitPolicy = "AiPolicy";
 
     public static string MentorDetail(Guid mentorId) => $"{App}:mentors:{mentorId}:detail";
 

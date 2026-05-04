@@ -50,10 +50,12 @@ try
 
     app.UseCors("DefaultCors");
 
-    app.UseAuthentication();
-    app.UseAuthorization();
+    app.UseRateLimiter();
 
     app.UseOutputCache();
+
+    app.UseAuthentication();
+    app.UseAuthorization();
 
     app.MapControllers();
 

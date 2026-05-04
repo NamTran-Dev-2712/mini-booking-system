@@ -134,12 +134,12 @@ public class IdentityService : IIdentityService
     }
 
     public async Task<UserDTO> GetProfileAsync(
-        string userId,
+        Guid userId,
         CancellationToken cancellationToken = default
     )
     {
         var user = await _userManager
-            .Users.Where(u => u.Id.ToString() == userId)
+            .Users.Where(u => u.Id == userId)
             .Select(u => new UserDTO(
                 Id: u.Id,
                 FullName: u.FullName,

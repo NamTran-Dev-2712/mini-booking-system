@@ -1,3 +1,4 @@
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -90,6 +91,74 @@ public static class DependencyInjection
             //             .Tag("services");
             //     }
             // );
+        });
+
+        // setup rate limiting
+        services.AddRateLimiter(options =>
+        {
+            options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+            options.AddPolicy(
+                CacheKeys.AuthRateLimitPolicy,
+                httpContext =>
+                {
+                    var ip = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
+                    return RateLimitPartition.GetFixedWindowLimiter(
+                        partitionKey: ip,
+                        factory: _ => new FixedWindowRateLimiterOptions
+                        {
+                            PermitLimit = 5,
+                            Window = TimeSpan.FromMinutes(1),
+                            QueueLimit = 0,
+                            AutoReplenishment = true,
+                        }
+                    );
+                }
+            );
+
+            options.AddPolicy(
+                CacheKeys.BookingRateLimitPolicy,
+                httpContext =>
+                {
+                    var userId =
+                        httpContext.User.FindFirst("sub")?.Value
+                        ?? httpContext.Connection.RemoteIpAddress?.ToString()
+                        ?? "anonymous";
+
+                    return RateLimitPartition.GetSlidingWindowLimiter(
+                        partitionKey: userId,
+                        factory: _ => new SlidingWindowRateLimiterOptions
+                        {
+                            PermitLimit = 10,
+                            Window = TimeSpan.FromMinutes(1),
+                            SegmentsPerWindow = 6,
+                            QueueLimit = 0,
+                            AutoReplenishment = true,
+                        }
+                    );
+                }
+            );
+
+            options.AddPolicy(
+                CacheKeys.AiRateLimitPolicy,
+                httpContext =>
+                {
+                    var userId = httpContext.User.FindFirst("sub")?.Value ?? "anonymous";
+
+                    return RateLimitPartition.GetTokenBucketLimiter(
+                        partitionKey: userId,
+                        factory: _ => new TokenBucketRateLimiterOptions
+                        {
+                            TokenLimit = 30,
+                            TokensPerPeriod = 30,
+                            ReplenishmentPeriod = TimeSpan.FromDays(1),
+                            QueueLimit = 0,
+                            AutoReplenishment = true,
+                        }
+                    );
+                }
+            );
         });
 
         return services;

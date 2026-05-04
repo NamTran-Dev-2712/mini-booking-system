@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -25,6 +26,7 @@ public class AuthController : BaseApiController
     }
 
     [HttpPost("login")]
+    [EnableRateLimiting(CacheKeys.AuthRateLimitPolicy)]
     public async Task<IActionResult> Login(
         LoginCommand command,
         CancellationToken cancellationToken
@@ -55,13 +57,14 @@ public class AuthController : BaseApiController
             throw new UnauthorizedException("User ID claim is missing");
         }
 
-        var query = new GetProfileQuery(userId);
+        var query = new GetProfileQuery(Guid.Parse(userId));
         var userProfile = await _mediator.Send(query, cancellationToken);
 
         return OkResponse(userProfile);
     }
 
     [HttpPost("refresh")]
+    [EnableRateLimiting(CacheKeys.AuthRateLimitPolicy)]
     public async Task<IActionResult> Refresh(CancellationToken cancellationToken)
     {
         var refreshToken = Request.Cookies["refresh_token"];
@@ -89,6 +92,7 @@ public class AuthController : BaseApiController
     }
 
     [HttpPost("logout")]
+    [EnableRateLimiting(CacheKeys.AuthRateLimitPolicy)]
     public async Task<IActionResult> Logout(CancellationToken cancellationToken)
     {
         ClearAuthCookies();

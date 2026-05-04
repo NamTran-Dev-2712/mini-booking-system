@@ -20,7 +20,7 @@ public interface IIdentityService
         CancellationToken cancellationToken = default
     );
 
-    Task<UserDTO> GetProfileAsync(string userId, CancellationToken cancellationToken = default);
+    Task<UserDTO> GetProfileAsync(Guid userId, CancellationToken cancellationToken = default);
     Task<AuthResult> RefreshTokenAsync(
         string refreshToken,
         CancellationToken cancellationToken = default
