@@ -62,6 +62,21 @@ public class MentorController : BaseApiController
         return CreatedResponse(result, "Skill added to mentor successfully");
     }
 
+    [HttpPost("{id:guid}/slots")]
+    [Authorize(Roles = "Admin, Mentor")]
+    public async Task<IActionResult> CreateSlot(
+        Guid id,
+        CreateSlotMentorCommand command,
+        CancellationToken cancellationToken
+    )
+    {
+        if (id != command.MentorId)
+            return FailureResponse<Guid>(400, "ID in URL does not match MentorId in body.");
+
+        var result = await _mediator.Send(command, cancellationToken);
+        return CreatedResponse(result, "Slot created successfully");
+    }
+
     [HttpPut("{id:guid}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateMentor(
@@ -76,6 +91,25 @@ public class MentorController : BaseApiController
         var result = await _mediator.Send(command, cancellationToken);
         await EvictMentorCache(cancellationToken);
         return OkResponse(result, "Mentor updated successfully");
+    }
+
+    [HttpPut("{id:guid}/slots/{slotId:guid}")]
+    [Authorize(Roles = "Admin, Mentor")]
+    public async Task<IActionResult> UpdateSlot(
+        Guid id,
+        Guid slotId,
+        UpdateSlotMentorCommand command,
+        CancellationToken cancellationToken
+    )
+    {
+        if (id != command.MentorId)
+            return FailureResponse<Guid>(400, "ID in URL does not match MentorId in body.");
+
+        if (slotId != command.Id)
+            return FailureResponse<Guid>(400, "Slot ID in URL does not match ID in body.");
+
+        var result = await _mediator.Send(command, cancellationToken);
+        return OkResponse(result, "Slot updated successfully");
     }
 
     [HttpDelete("{id:guid}")]

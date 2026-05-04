@@ -30,6 +30,10 @@ public class GetMentorDetailHandler : IRequestHandler<GetMentorDetailQuery, Ment
             ms.MentorId == request.MentorId
         );
 
+        var mentorSlots = await _unitOfWork.MentorSlot.GetAllAsync(ms =>
+            ms.MentorId == request.MentorId
+        );
+
         var mentorDetail = new MentorDetailDTO
         {
             Id = mentor.Id,
@@ -37,6 +41,16 @@ public class GetMentorDetailHandler : IRequestHandler<GetMentorDetailQuery, Ment
             Bio = mentor.Bio,
             Skills = mentorSkills
                 .Select(ms => new MentorSkillDTO { Id = ms.Id, SkillName = ms.SkillName })
+                .ToList(),
+            Slots = mentorSlots
+                .Select(ms => new MentorSlotDTO
+                {
+                    Id = ms.Id,
+                    StartTime = ms.StartTime,
+                    EndTime = ms.EndTime,
+                    Status = ms.Status,
+                    Price = ms.Price,
+                })
                 .ToList(),
         };
 

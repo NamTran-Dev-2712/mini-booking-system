@@ -16,12 +16,15 @@ public class UnitOfWork : IUnitOfWork
     private IUserRepository? _userRepository;
     private IMentorRepository? _mentorRepository;
     private IMentorSkillRepository? _mentorSkillRepository;
+    private IMentorSlotRepository? _mentorSlotRepository;
 
     // lazy loading of repositories
     public IUserRepository User => _userRepository ??= new UserRepository(_userManager);
     public IMentorRepository Mentor => _mentorRepository ??= new MentorRepository(_context);
     public IMentorSkillRepository MentorSkill =>
         _mentorSkillRepository ??= new MentorSkillRepository(_context);
+    public IMentorSlotRepository MentorSlot =>
+        _mentorSlotRepository ??= new MentorSlotRepository(_context);
 
     public IGenericRepository<T> Repository<T>()
         where T : class

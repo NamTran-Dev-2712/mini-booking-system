@@ -6,6 +6,7 @@ public interface IUnitOfWork
     IUserRepository User { get; }
     IMentorRepository Mentor { get; }
     IMentorSkillRepository MentorSkill { get; }
+    IMentorSlotRepository MentorSlot { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     Task BeginTransactionAsync(CancellationToken cancellationToken = default);
