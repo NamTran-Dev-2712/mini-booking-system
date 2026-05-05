@@ -1,0 +1,263 @@
+namespace MiniBookingSystem.UnitTests.Application.Mentor.Validators;
+
+public sealed class CreateMentorValidatorTests
+{
+    private readonly CreateMentorCommandValidator _validator = new();
+
+    private static CreateMentorCommand ValidCommand() => MentorTestData.BuildCreateMentorCommand();
+
+    // ── Valid input ────────────────────────────────────────────────────────
+
+    [Fact]
+    public void Validate_WithAllValidData_PassesWithNoErrors()
+    {
+        _validator.TestValidate(ValidCommand()).ShouldNotHaveAnyValidationErrors();
+    }
+
+    // ── FullName rules ─────────────────────────────────────────────────────
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Validate_WhenFullNameIsEmpty_HasRequiredError(string fullName)
+    {
+        var result = _validator.TestValidate(ValidCommand() with { FullName = fullName });
+        result
+            .ShouldHaveValidationErrorFor(x => x.FullName)
+            .WithErrorMessage("Full name is required.");
+    }
+
+    [Fact]
+    public void Validate_WhenFullNameExceeds100Chars_HasMaxLengthError()
+    {
+        var result = _validator.TestValidate(
+            ValidCommand() with
+            {
+                FullName = new string('a', 101),
+            }
+        );
+        result
+            .ShouldHaveValidationErrorFor(x => x.FullName)
+            .WithErrorMessage("Full name must not exceed 100 characters.");
+    }
+
+    [Theory]
+    [InlineData("Nguyen123")]
+    [InlineData("John@Doe")]
+    public void Validate_WhenFullNameContainsInvalidChars_HasPatternError(string fullName)
+    {
+        var result = _validator.TestValidate(ValidCommand() with { FullName = fullName });
+        result
+            .ShouldHaveValidationErrorFor(x => x.FullName)
+            .WithErrorMessage("Full name must contain only Vietnamese letters and spaces.");
+    }
+
+    [Theory]
+    [InlineData("Nguyen Van An")]
+    [InlineData("Trần Thị Bích")]
+    [InlineData("Lê Văn Cường")]
+    public void Validate_WithValidVietnameseName_HasNoFullNameError(string fullName)
+    {
+        _validator
+            .TestValidate(ValidCommand() with { FullName = fullName })
+            .ShouldNotHaveValidationErrorFor(x => x.FullName);
+    }
+
+    // ── Email rules ────────────────────────────────────────────────────────
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Validate_WhenEmailIsEmpty_HasRequiredError(string email)
+    {
+        var result = _validator.TestValidate(ValidCommand() with { Email = email });
+        result.ShouldHaveValidationErrorFor(x => x.Email).WithErrorMessage("Email is required.");
+    }
+
+    [Theory]
+    [InlineData("invalidemail")]
+    [InlineData("missing@")]
+    [InlineData("no-at-sign.com")]
+    public void Validate_WithInvalidEmailFormat_HasFormatError(string email)
+    {
+        var result = _validator.TestValidate(ValidCommand() with { Email = email });
+        result.ShouldHaveValidationErrorFor(x => x.Email).WithErrorMessage("Invalid email format.");
+    }
+
+    // ── Password rules ─────────────────────────────────────────────────────
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Validate_WhenPasswordIsEmpty_HasRequiredError(string password)
+    {
+        var result = _validator.TestValidate(ValidCommand() with { Password = password });
+        result
+            .ShouldHaveValidationErrorFor(x => x.Password)
+            .WithErrorMessage("Password is required.");
+    }
+
+    [Theory]
+    [InlineData("Ab1@")] // 4 chars
+    [InlineData("A1@bcde")] // 7 chars
+    public void Validate_WhenPasswordTooShort_HasMinLengthError(string password)
+    {
+        var result = _validator.TestValidate(ValidCommand() with { Password = password });
+        result
+            .ShouldHaveValidationErrorFor(x => x.Password)
+            .WithErrorMessage("Password must be at least 8 characters long.");
+    }
+
+    [Theory]
+    [InlineData("alllowercase1@")] // no uppercase
+    [InlineData("ALLUPPERCASE1@")] // no lowercase
+    [InlineData("NoSpecialChar1")] // no special char
+    [InlineData("NoDigitHere!@")] // no digit
+    public void Validate_WhenPasswordNotStrong_HasPatternError(string password)
+    {
+        var result = _validator.TestValidate(ValidCommand() with { Password = password });
+        result.ShouldHaveValidationErrorFor(x => x.Password);
+    }
+
+    // ── PhoneNumber rules ──────────────────────────────────────────────────
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Validate_WhenPhoneNumberIsEmpty_HasRequiredError(string phone)
+    {
+        var result = _validator.TestValidate(ValidCommand() with { PhoneNumber = phone });
+        result
+            .ShouldHaveValidationErrorFor(x => x.PhoneNumber)
+            .WithErrorMessage("Phone number is required.");
+    }
+
+    [Theory]
+    [InlineData("12345678")] // too short, wrong prefix
+    [InlineData("0112345678")] // invalid prefix (01x is old format)
+    public void Validate_WithInvalidVietnamesePhone_HasPatternError(string phone)
+    {
+        var result = _validator.TestValidate(ValidCommand() with { PhoneNumber = phone });
+        result.ShouldHaveValidationErrorFor(x => x.PhoneNumber);
+    }
+
+    // ── DisplayName rules ──────────────────────────────────────────────────
+
+    [Fact]
+    public void Validate_WhenDisplayNameExceeds50Chars_HasMaxLengthError()
+    {
+        var result = _validator.TestValidate(
+            ValidCommand() with
+            {
+                DisplayName = new string('x', 51),
+            }
+        );
+        result
+            .ShouldHaveValidationErrorFor(x => x.DisplayName)
+            .WithErrorMessage("Display name must not exceed 50 characters.");
+    }
+
+    [Fact]
+    public void Validate_WhenDisplayNameIsNull_HasNoError()
+    {
+        _validator
+            .TestValidate(ValidCommand() with { DisplayName = null })
+            .ShouldNotHaveValidationErrorFor(x => x.DisplayName);
+    }
+
+    // ── ExperienceYears rules ──────────────────────────────────────────────
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(51)]
+    public void Validate_WhenExperienceYearsOutOfRange_HasRangeError(int years)
+    {
+        var result = _validator.TestValidate(ValidCommand() with { ExperienceYears = years });
+        result
+            .ShouldHaveValidationErrorFor(x => x.ExperienceYears)
+            .WithErrorMessage("Experience years is invalid (0 - 50 years).");
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(25)]
+    [InlineData(50)]
+    public void Validate_WhenExperienceYearsWithinRange_HasNoError(int years)
+    {
+        _validator
+            .TestValidate(
+                ValidCommand() with
+                {
+                    ExperienceYears = years,
+                    Specialization = years > 0 ? MentorTestData.Valid.Specialization : null,
+                }
+            )
+            .ShouldNotHaveValidationErrorFor(x => x.ExperienceYears);
+    }
+
+    // ── Specialization rules ───────────────────────────────────────────────
+
+    [Fact]
+    public void Validate_WhenExperienceGreaterThanZeroAndSpecializationIsNull_HasRequiredError()
+    {
+        var result = _validator.TestValidate(
+            ValidCommand() with
+            {
+                ExperienceYears = 3,
+                Specialization = null,
+            }
+        );
+
+        result
+            .ShouldHaveValidationErrorFor(x => x.Specialization)
+            .WithErrorMessage("Specialization is required if experience years is greater than 0.");
+    }
+
+    [Fact]
+    public void Validate_WhenExperienceIsZeroAndSpecializationIsNull_HasNoError()
+    {
+        _validator
+            .TestValidate(ValidCommand() with { ExperienceYears = 0, Specialization = null })
+            .ShouldNotHaveValidationErrorFor(x => x.Specialization);
+    }
+
+    // ── BasePrice rules ────────────────────────────────────────────────────
+
+    [Fact]
+    public void Validate_WhenBasePriceIsNegative_HasNegativeError()
+    {
+        var result = _validator.TestValidate(ValidCommand() with { BasePrice = -1 });
+        result
+            .ShouldHaveValidationErrorFor(x => x.BasePrice)
+            .WithErrorMessage("Base price must not be a negative number.");
+    }
+
+    [Fact]
+    public void Validate_WhenBasePriceIsZero_HasNoError()
+    {
+        _validator
+            .TestValidate(ValidCommand() with { BasePrice = 0 })
+            .ShouldNotHaveValidationErrorFor(x => x.BasePrice);
+    }
+
+    // ── AvatarUrl rules ────────────────────────────────────────────────────
+
+    [Theory]
+    [InlineData("not-a-url")]
+    [InlineData("ftp://invalid")]
+    public void Validate_WhenAvatarUrlIsInvalid_HasUrlError(string avatarUrl)
+    {
+        var result = _validator.TestValidate(ValidCommand() with { AvatarUrl = avatarUrl });
+        result
+            .ShouldHaveValidationErrorFor(x => x.AvatarUrl)
+            .WithErrorMessage("Invalid avatar URL.");
+    }
+
+    [Fact]
+    public void Validate_WhenAvatarUrlIsNull_HasNoError()
+    {
+        _validator
+            .TestValidate(ValidCommand() with { AvatarUrl = null })
+            .ShouldNotHaveValidationErrorFor(x => x.AvatarUrl);
+    }
+}

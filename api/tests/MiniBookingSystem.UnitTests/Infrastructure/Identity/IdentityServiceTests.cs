@@ -11,6 +11,8 @@ public sealed class IdentityServiceTests
     private readonly Mock<IJwtTokenService> _tokenService;
     private readonly Mock<ITokenHasher> _tokenHasher;
     private readonly Mock<IRefreshTokenRepository> _refreshTokenRepo;
+    private readonly Mock<IUnitOfWork> _unitOfWork;
+    private readonly Mock<IUserRepository> _userRepo;
     private readonly IdentityService _sut;
 
     public IdentityServiceTests()
@@ -19,12 +21,17 @@ public sealed class IdentityServiceTests
         _tokenService = new Mock<IJwtTokenService>(MockBehavior.Strict);
         _tokenHasher = new Mock<ITokenHasher>(MockBehavior.Strict);
         _refreshTokenRepo = new Mock<IRefreshTokenRepository>(MockBehavior.Strict);
+        _unitOfWork = new Mock<IUnitOfWork>(MockBehavior.Strict);
+        _userRepo = new Mock<IUserRepository>(MockBehavior.Strict);
+
+        _unitOfWork.Setup(u => u.User).Returns(_userRepo.Object);
 
         _sut = new IdentityService(
             _userManager.Object,
             _tokenService.Object,
             _tokenHasher.Object,
-            _refreshTokenRepo.Object
+            _refreshTokenRepo.Object,
+            _unitOfWork.Object
         );
     }
 
@@ -42,7 +49,14 @@ public sealed class IdentityServiceTests
             .Setup(um => um.FindByEmailAsync(AuthTestData.Valid.Email))
             .ReturnsAsync((ApplicationUser?)null);
 
-        _userManager.Setup(um => um.Users).Returns(new List<ApplicationUser>().AsAsyncQueryable());
+        _userRepo
+            .Setup(r =>
+                r.IsPhoneNumberTakenAsync(
+                    AuthTestData.Valid.PhoneNumber,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(false);
 
         _userManager
             .Setup(um => um.CreateAsync(It.IsAny<ApplicationUser>(), AuthTestData.Valid.Password))
@@ -126,7 +140,14 @@ public sealed class IdentityServiceTests
             .Setup(um => um.FindByEmailAsync(AuthTestData.Valid.Email))
             .ReturnsAsync((ApplicationUser?)null);
 
-        _userManager.Setup(um => um.Users).Returns(existingUsers.AsAsyncQueryable());
+        _userRepo
+            .Setup(r =>
+                r.IsPhoneNumberTakenAsync(
+                    AuthTestData.Valid.PhoneNumber,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(true);
 
         // Act
         var act = () =>
@@ -158,7 +179,11 @@ public sealed class IdentityServiceTests
             .Setup(um => um.FindByEmailAsync(It.IsAny<string>()))
             .ReturnsAsync((ApplicationUser?)null);
 
-        _userManager.Setup(um => um.Users).Returns(new List<ApplicationUser>().AsAsyncQueryable());
+        _userRepo
+            .Setup(r =>
+                r.IsPhoneNumberTakenAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(false);
 
         _userManager
             .Setup(um => um.CreateAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>()))
@@ -191,7 +216,11 @@ public sealed class IdentityServiceTests
             .Setup(um => um.FindByEmailAsync(It.IsAny<string>()))
             .ReturnsAsync((ApplicationUser?)null);
 
-        _userManager.Setup(um => um.Users).Returns(new List<ApplicationUser>().AsAsyncQueryable());
+        _userRepo
+            .Setup(r =>
+                r.IsPhoneNumberTakenAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(false);
 
         _userManager
             .Setup(um => um.CreateAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>()))
@@ -364,7 +393,7 @@ public sealed class IdentityServiceTests
             .Returns(new List<ApplicationUser> { user }.AsAsyncQueryable());
 
         // Act
-        var result = await _sut.GetProfileAsync(user.Id.ToString());
+        var result = await _sut.GetProfileAsync(user.Id);
 
         // Assert
         result.Id.Should().Be(user.Id);
@@ -377,7 +406,7 @@ public sealed class IdentityServiceTests
     public async Task GetProfileAsync_WhenUserNotFound_ThrowsNotFoundException()
     {
         // Arrange
-        var absentId = Guid.NewGuid().ToString();
+        var absentId = Guid.NewGuid();
 
         _userManager.Setup(um => um.Users).Returns(new List<ApplicationUser>().AsAsyncQueryable());
 
