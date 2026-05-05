@@ -41,6 +41,8 @@ public class UpdateSlotMentorCommandHandler : IRequestHandler<UpdateSlotMentorCo
         mentorSlot.StartTime = request.StartTime;
         mentorSlot.EndTime = request.EndTime;
         mentorSlot.Price = request.Price;
+        mentorSlot.Description = request.Description;
+        mentorSlot.MaxBookings = request.MaxBookings;
 
         await _unitOfWork.MentorSlot.UpdateSlotAsync(mentorSlot, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);

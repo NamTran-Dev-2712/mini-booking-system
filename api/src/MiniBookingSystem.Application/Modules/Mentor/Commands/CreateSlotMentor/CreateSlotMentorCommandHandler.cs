@@ -40,6 +40,8 @@ public class CreateSlotMentorCommandHandler : IRequestHandler<CreateSlotMentorCo
             StartTime = request.StartTime,
             EndTime = request.EndTime,
             Price = request.Price,
+            Description = request.Description,
+            MaxBookings = request.MaxBookings,
             Status = MentorSlotStatus.Available,
         };
 

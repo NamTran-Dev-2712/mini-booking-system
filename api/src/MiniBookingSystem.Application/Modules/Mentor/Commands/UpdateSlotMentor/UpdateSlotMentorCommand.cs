@@ -5,5 +5,7 @@ public record UpdateSlotMentorCommand(
     Guid MentorId,
     DateTime StartTime,
     DateTime EndTime,
-    decimal Price
+    decimal Price,
+    string? Description,
+    int MaxBookings
 ) : IRequest<Guid>;

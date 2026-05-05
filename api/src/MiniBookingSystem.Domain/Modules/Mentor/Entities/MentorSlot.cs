@@ -4,6 +4,8 @@ public class MentorSlot : BaseEntity
     public DateTime StartTime { get; set; }
     public DateTime EndTime { get; set; }
     public MentorSlotStatus Status { get; set; }
+    public string? Description { get; set; }
+    public int MaxBookings { get; set; }
     public decimal Price { get; set; }
 
     public Mentor Mentor { get; set; } = default!;
