@@ -52,10 +52,10 @@ try
 
     app.UseRateLimiter();
 
-    app.UseOutputCache();
-
     app.UseAuthentication();
     app.UseAuthorization();
+
+    app.UseOutputCache();
 
     app.MapControllers();
 

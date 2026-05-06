@@ -3,10 +3,12 @@ using MediatR;
 public class CancelBookingCommandHandler : IRequestHandler<CancelBookingCommand, Guid>
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ICacheService _cacheService;
 
-    public CancelBookingCommandHandler(IUnitOfWork unitOfWork)
+    public CancelBookingCommandHandler(IUnitOfWork unitOfWork, ICacheService cacheService)
     {
         _unitOfWork = unitOfWork;
+        _cacheService = cacheService;
     }
 
     public async Task<Guid> Handle(
@@ -53,6 +55,12 @@ public class CancelBookingCommandHandler : IRequestHandler<CancelBookingCommand,
             }
 
             await _unitOfWork.CommitTransactionAsync(cancellationToken);
+
+            // Invalidate booking detail cache so next read reflects the cancelled status
+            await _cacheService.RemoveAsync(
+                CacheKeys.BookingDetail(request.BookingId),
+                cancellationToken
+            );
 
             return booking.Id;
         }

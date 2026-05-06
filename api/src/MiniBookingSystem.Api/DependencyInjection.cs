@@ -72,6 +72,29 @@ public static class DependencyInjection
                 }
             );
 
+            options.AddPolicy(
+                CacheKeys.BookingUserListPolicy,
+                policy =>
+                {
+                    policy
+                        .Expire(TimeSpan.FromMinutes(3))
+                        .SetVaryByRouteValue("userId")
+                        .SetVaryByQuery("*")
+                        .Tag(CacheKeys.BookingUserListTag);
+                }
+            );
+
+            options.AddPolicy(
+                CacheKeys.BookingAdminListPolicy,
+                policy =>
+                {
+                    policy
+                        .Expire(TimeSpan.FromMinutes(2))
+                        .SetVaryByQuery("*")
+                        .Tag(CacheKeys.BookingAdminListTag);
+                }
+            );
+
             // options.AddPolicy("Availability", policy =>
             // {
             //     policy
