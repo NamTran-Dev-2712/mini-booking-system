@@ -2,17 +2,20 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace MiniBookingSystem.Infrastructure.Migrations
+namespace MiniBookingSystem.Infrastructure.Persistence.DbContext.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260505180129_AddCurrentBookingsToMentorSlot")]
+    partial class AddCurrentBookingsToMentorSlot
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -212,8 +215,7 @@ namespace MiniBookingSystem.Infrastructure.Migrations
                         .HasColumnName("booking_code");
 
                     b.Property<string>("CancellationReason")
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)")
+                        .HasColumnType("text")
                         .HasColumnName("cancellation_reason");
 
                     b.Property<DateTime?>("CancelledAt")
@@ -232,10 +234,6 @@ namespace MiniBookingSystem.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("deleted_at");
 
-                    b.Property<DateTime>("ExpiresAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("expires_at");
-
                     b.Property<bool?>("IsDeleted")
                         .HasColumnType("boolean")
                         .HasColumnName("is_deleted");
@@ -245,8 +243,7 @@ namespace MiniBookingSystem.Infrastructure.Migrations
                         .HasColumnName("mentor_slot_id");
 
                     b.Property<string>("Notes")
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)")
+                        .HasColumnType("text")
                         .HasColumnName("notes");
 
                     b.Property<int>("Status")
@@ -271,10 +268,8 @@ namespace MiniBookingSystem.Infrastructure.Migrations
                     b.HasIndex("MentorSlotId")
                         .HasDatabaseName("ix_bookings_mentor_slot_id");
 
-                    b.HasIndex("UserId", "MentorSlotId")
-                        .IsUnique()
-                        .HasDatabaseName("ix_bookings_user_slot_active_unique")
-                        .HasFilter("status IN (1, 2)");
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_bookings_user_id");
 
                     b.ToTable("bookings", (string)null);
                 });

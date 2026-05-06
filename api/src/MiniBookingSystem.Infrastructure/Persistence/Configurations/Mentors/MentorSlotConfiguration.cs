@@ -19,6 +19,7 @@ public class MentorSlotConfiguration : IEntityTypeConfiguration<MentorSlot>
 
         builder.Property(ms => ms.Description).HasMaxLength(1000);
         builder.Property(ms => ms.MaxBookings).IsRequired();
+        builder.Property(ms => ms.CurrentBookings).HasDefaultValue(0);
 
         builder
             .HasOne(ms => ms.Mentor)

@@ -32,6 +32,17 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
 
         // Apply all IEntityTypeConfiguration<T> found in this assembly
         builder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
+
+        // Partial unique index: one user can only have one active booking per slot
+        // Active = PendingPayment (1) or Confirmed (2)
+        builder
+            .Entity<Booking>()
+            .HasIndex(b => new { b.UserId, b.MentorSlotId })
+            .HasFilter(
+                $"status IN ({(int)BookingStatus.PendingPayment}, {(int)BookingStatus.Confirmed})"
+            )
+            .IsUnique()
+            .HasDatabaseName("ix_bookings_user_slot_active_unique");
     }
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

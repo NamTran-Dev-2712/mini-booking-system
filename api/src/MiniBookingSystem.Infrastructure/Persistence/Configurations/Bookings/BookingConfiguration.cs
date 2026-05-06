@@ -16,6 +16,11 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
         builder.Property(b => b.Status).IsRequired();
 
         builder.Property(b => b.BookedAt).IsRequired();
+        builder.Property(b => b.ConfirmedAt);
+        builder.Property(b => b.CancelledAt);
+        builder.Property(b => b.ExpiresAt).IsRequired();
+        builder.Property(b => b.CancellationReason).HasMaxLength(1000);
+        builder.Property(b => b.Notes).HasMaxLength(2000);
 
         // Relationship to MentorSlot (configured on this side to avoid duplication)
         builder

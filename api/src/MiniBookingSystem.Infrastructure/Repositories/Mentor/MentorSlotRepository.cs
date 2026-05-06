@@ -7,13 +7,15 @@ public class MentorSlotRepository : GenericRepository<MentorSlot>, IMentorSlotRe
 
     public async Task<List<MentorSlot>> GetSlotsByMentorIdAsync(Guid mentorId)
     {
-        return await _dbSet.Where(slot => slot.MentorId == mentorId).ToListAsync();
+        return await _context.MentorSlots.Where(slot => slot.MentorId == mentorId).ToListAsync();
     }
 
     public async Task<List<MentorSlot>> GetAvailableSlotsByMentorIdAsync(Guid mentorId)
     {
-        return await _dbSet
-            .Where(slot => slot.MentorId == mentorId && slot.Status == MentorSlotStatus.Available)
+        return await _context
+            .MentorSlots.Where(slot =>
+                slot.MentorId == mentorId && slot.Status == MentorSlotStatus.Available
+            )
             .ToListAsync();
     }
 
@@ -22,8 +24,8 @@ public class MentorSlotRepository : GenericRepository<MentorSlot>, IMentorSlotRe
         MentorSlotStatus status
     )
     {
-        return await _dbSet
-            .Where(slot => slot.MentorId == mentorId && slot.Status == status)
+        return await _context
+            .MentorSlots.Where(slot => slot.MentorId == mentorId && slot.Status == status)
             .ToListAsync();
     }
 
@@ -34,7 +36,7 @@ public class MentorSlotRepository : GenericRepository<MentorSlot>, IMentorSlotRe
         CancellationToken cancellationToken = default
     )
     {
-        return await _dbSet.AnyAsync(slot =>
+        return await _context.MentorSlots.AnyAsync(slot =>
             slot.MentorId == mentorId
             && slot.Status != MentorSlotStatus.Cancelled
             && // Ignore cancelled slots
@@ -56,7 +58,7 @@ public class MentorSlotRepository : GenericRepository<MentorSlot>, IMentorSlotRe
         CancellationToken cancellationToken = default
     )
     {
-        return await _dbSet.AnyAsync(slot =>
+        return await _context.MentorSlots.AnyAsync(slot =>
             slot.Id != excludeSlotId
             && // Exclude the slot being updated
             slot.MentorId == mentorId
@@ -77,7 +79,25 @@ public class MentorSlotRepository : GenericRepository<MentorSlot>, IMentorSlotRe
         CancellationToken cancellationToken = default
     )
     {
-        _dbSet.Update(mentorSlot);
+        _context.MentorSlots.Update(mentorSlot);
         return mentorSlot.Id;
+    }
+
+    public async Task<MentorSlot?> GetSlotByIdForUpdateAsync(Guid slotId)
+    {
+        var slot = await _context
+            .MentorSlots.FromSqlInterpolated(
+                $"SELECT * FROM \"mentor_slots\" WHERE \"id\" = {slotId} FOR UPDATE"
+            )
+            .FirstOrDefaultAsync();
+        return slot;
+    }
+
+    public async Task<List<MentorSlot>> GetPastUncompletedSlotsWithBookingsAsync(
+        DateTime now,
+        CancellationToken cancellationToken = default
+    )
+    {
+        throw new NotImplementedException();
     }
 }

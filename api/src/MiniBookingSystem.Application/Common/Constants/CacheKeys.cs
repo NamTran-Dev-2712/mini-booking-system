@@ -18,6 +18,7 @@ public static class CacheKeys
 
     // public static string ServiceList(int page, int pageSize, string? keyword, string? sortBy) =>
     //     $"{App}:services:list:page:{page}:size:{pageSize}:keyword:{Normalize(keyword)}:sort:{Normalize(sortBy)}";
+    public static string MentorSlots(Guid mentorId) => $"{App}:mentors:{mentorId}:slots";
 
     public static string UserProfile(Guid userId) => $"{App}:users:{userId}:profile";
 

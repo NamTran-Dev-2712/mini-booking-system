@@ -17,6 +17,7 @@ public class UnitOfWork : IUnitOfWork
     private IMentorRepository? _mentorRepository;
     private IMentorSkillRepository? _mentorSkillRepository;
     private IMentorSlotRepository? _mentorSlotRepository;
+    private IBookingRepository? _bookingRepository;
 
     // lazy loading of repositories
     public IUserRepository User => _userRepository ??= new UserRepository(_userManager);
@@ -25,6 +26,7 @@ public class UnitOfWork : IUnitOfWork
         _mentorSkillRepository ??= new MentorSkillRepository(_context);
     public IMentorSlotRepository MentorSlot =>
         _mentorSlotRepository ??= new MentorSlotRepository(_context);
+    public IBookingRepository Booking => _bookingRepository ??= new BookingRepository(_context);
 
     public IGenericRepository<T> Repository<T>()
         where T : class

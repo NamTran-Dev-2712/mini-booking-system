@@ -116,6 +116,10 @@ public static class DependencyInjection
         services.AddScoped<IMentorRepository, MentorRepository>();
         services.AddScoped<IMentorSkillRepository, MentorSkillRepository>();
 
+        // Register background jobs
+        services.AddHostedService<ExpiredBookingCleanupJob>();
+        services.AddHostedService<CompletedBookingJob>();
+
         return services;
     }
 }

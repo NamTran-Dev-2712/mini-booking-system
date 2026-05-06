@@ -7,6 +7,7 @@ public interface IUnitOfWork
     IMentorRepository Mentor { get; }
     IMentorSkillRepository MentorSkill { get; }
     IMentorSlotRepository MentorSlot { get; }
+    IBookingRepository Booking { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     Task BeginTransactionAsync(CancellationToken cancellationToken = default);

@@ -2,17 +2,20 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace MiniBookingSystem.Infrastructure.Migrations
+namespace MiniBookingSystem.Infrastructure.Persistence.DbContext.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260505181312_AddExpiresAtToBookings")]
+    partial class AddExpiresAtToBookings
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -271,10 +274,8 @@ namespace MiniBookingSystem.Infrastructure.Migrations
                     b.HasIndex("MentorSlotId")
                         .HasDatabaseName("ix_bookings_mentor_slot_id");
 
-                    b.HasIndex("UserId", "MentorSlotId")
-                        .IsUnique()
-                        .HasDatabaseName("ix_bookings_user_slot_active_unique")
-                        .HasFilter("status IN (1, 2)");
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_bookings_user_id");
 
                     b.ToTable("bookings", (string)null);
                 });
