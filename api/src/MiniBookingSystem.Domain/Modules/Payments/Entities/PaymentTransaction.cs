@@ -1,7 +1,7 @@
 public class PaymentTransaction : BaseEntity
 {
     public Guid BookingId { get; set; }
-    public string Provider { get; set; } = default!;
+    public PaymentProvider Provider { get; set; } = default!;
     public string? ProviderTransactionId { get; set; }
     public string ProviderOrderCode { get; set; } = default!;
     public decimal Amount { get; set; }

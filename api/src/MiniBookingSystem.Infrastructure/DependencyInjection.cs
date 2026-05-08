@@ -110,6 +110,10 @@ public static class DependencyInjection
         services.AddScoped<ITokenHasher, TokenHasher>();
         services.AddScoped<IIdentityService, IdentityService>();
 
+        // Register SePay
+        services.Configure<SePayOptions>(configuration.GetSection("SePay"));
+        services.AddScoped<ISePayQrService, SePayQrService>();
+
         // Register repositories
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddScoped<IUserRepository, UserRepository>();

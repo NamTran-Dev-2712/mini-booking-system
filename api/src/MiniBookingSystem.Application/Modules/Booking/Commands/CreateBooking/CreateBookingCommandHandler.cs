@@ -27,7 +27,19 @@ public class CreateBookingCommandHandler : IRequestHandler<CreateBookingCommand,
             );
             var cached = await _cacheService.GetAsync<Guid>(idempotencyCacheKey, cancellationToken);
             if (cached != Guid.Empty)
-                return cached;
+            {
+                // Validate the cached booking is still active before returning it.
+                // If booking expired/cancelled (background job ran), evict the stale key
+                // so the user can create a new booking.
+                var cachedBooking = await _unitOfWork.Booking.GetByIdAsync(
+                    cached,
+                    cancellationToken
+                );
+                if (cachedBooking != null && cachedBooking.Status == BookingStatus.PendingPayment)
+                    return cached;
+
+                await _cacheService.RemoveAsync(idempotencyCacheKey, cancellationToken);
+            }
         }
 
         await _unitOfWork.BeginTransactionAsync(cancellationToken);

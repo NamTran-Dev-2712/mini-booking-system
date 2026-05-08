@@ -43,6 +43,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
             )
             .IsUnique()
             .HasDatabaseName("ix_bookings_user_slot_active_unique");
+
+        builder.Entity<PaymentTransaction>().Property(p => p.Provider).HasConversion<int>();
     }
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

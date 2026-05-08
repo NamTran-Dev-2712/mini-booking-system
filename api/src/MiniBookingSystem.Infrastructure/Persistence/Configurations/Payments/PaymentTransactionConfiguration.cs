@@ -9,7 +9,7 @@ public class PaymentTransactionConfiguration : IEntityTypeConfiguration<PaymentT
 
         builder.HasKey(pt => pt.Id);
 
-        builder.Property(pt => pt.Provider).IsRequired().HasMaxLength(50);
+        builder.Property(pt => pt.Provider).IsRequired();
 
         builder.Property(pt => pt.ProviderOrderCode).IsRequired().HasMaxLength(100);
 

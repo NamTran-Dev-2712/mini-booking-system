@@ -98,6 +98,13 @@ public class MentorSlotRepository : GenericRepository<MentorSlot>, IMentorSlotRe
         CancellationToken cancellationToken = default
     )
     {
-        throw new NotImplementedException();
+        return await _context
+            .MentorSlots.Include(s => s.Bookings)
+            .Where(s =>
+                s.EndTime < now
+                && s.Status != MentorSlotStatus.Completed
+                && s.Status != MentorSlotStatus.Cancelled
+            )
+            .ToListAsync(cancellationToken);
     }
 }

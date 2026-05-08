@@ -1,7 +1,3 @@
-/// <summary>
-/// Orchestrates all seed operations in dependency order.
-/// Add new seeders here; each seeder is responsible for its own idempotency check.
-/// </summary>
 public static class DatabaseSeeder
 {
     public static async Task SeedAllAsync(IServiceProvider serviceProvider)
