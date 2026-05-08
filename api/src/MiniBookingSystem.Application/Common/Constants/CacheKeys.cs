@@ -35,6 +35,11 @@ public static class CacheKeys
 
     public static string TokenBlacklist(string jti) => $"{App}:auth:blacklist:jti:{jti}";
 
+    public static string AiConversation(Guid userId, string conversationId) =>
+        $"{App}:ai:conv:user:{userId}:{conversationId}";
+
+    public const string AiMentorContext = "booking:ai:mentor-context";
+
     private static string Normalize(string? value) =>
         string.IsNullOrWhiteSpace(value) ? "none" : value.Trim().ToLowerInvariant();
 }

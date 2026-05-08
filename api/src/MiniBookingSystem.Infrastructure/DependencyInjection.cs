@@ -1,3 +1,4 @@
+using System.Net.Http.Headers;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
@@ -113,6 +114,31 @@ public static class DependencyInjection
         // Register SePay
         services.Configure<SePayOptions>(configuration.GetSection("SePay"));
         services.AddScoped<ISePayQrService, SePayQrService>();
+
+        // Register MiniMax AI
+        services.Configure<MiniMaxOptions>(configuration.GetSection(ConfigurationValue.MiniMax));
+        var miniMaxOptions =
+            configuration.GetSection(ConfigurationValue.MiniMax).Get<MiniMaxOptions>()
+            ?? throw new InvalidOperationException(
+                "MiniMax settings are not configured. Add a 'MiniMax' section to appsettings."
+            );
+        if (string.IsNullOrWhiteSpace(miniMaxOptions.ApiKey))
+            throw new InvalidOperationException(
+                "MiniMax:ApiKey must be configured. "
+                    + "Set it via User Secrets (dev) or environment variable MiniMax__ApiKey (prod)."
+            );
+
+        services.AddHttpClient<IMiniMaxService, MiniMaxService>(client =>
+        {
+            client.BaseAddress = new Uri(miniMaxOptions.BaseUrl);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+                "Bearer",
+                miniMaxOptions.ApiKey
+            );
+            client.Timeout = TimeSpan.FromSeconds(30);
+        });
+
+        services.AddScoped<IConversationHistoryService, ConversationHistoryService>();
 
         // Register repositories
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
