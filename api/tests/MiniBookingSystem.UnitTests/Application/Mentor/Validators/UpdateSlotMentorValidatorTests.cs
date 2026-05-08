@@ -1,13 +1,21 @@
 namespace MiniBookingSystem.UnitTests.Application.Mentor.Validators;
 
-public sealed class CreateSlotMentorValidatorTests
+public sealed class UpdateSlotMentorValidatorTests
 {
-    private readonly CreateSlotMentorCommandValidator _validator = new();
+    private readonly UpdateSlotMentorCommandValidator _validator = new();
 
-    private static CreateSlotMentorCommand ValidCommand()
+    private static UpdateSlotMentorCommand ValidCommand()
     {
         var start = DateTime.UtcNow.AddDays(1);
-        return MentorTestData.BuildCreateSlotCommand(start: start, end: start.AddHours(1));
+        return MentorTestData.BuildUpdateSlotCommand(
+            slotId: MentorTestData.Valid.SlotId,
+            mentorId: MentorTestData.Valid.MentorId,
+            maxBookings: 2
+        ) with
+        {
+            StartTime = start,
+            EndTime = start.AddHours(2),
+        };
     }
 
     // ── Valid input ────────────────────────────────────────────────────────
@@ -16,6 +24,17 @@ public sealed class CreateSlotMentorValidatorTests
     public void Validate_WithAllValidData_PassesWithNoErrors()
     {
         _validator.TestValidate(ValidCommand()).ShouldNotHaveAnyValidationErrors();
+    }
+
+    // ── Id rules ──────────────────────────────────────────────────────────
+
+    [Fact]
+    public void Validate_WhenIdIsEmpty_HasRequiredError()
+    {
+        var result = _validator.TestValidate(ValidCommand() with { Id = Guid.Empty });
+        result
+            .ShouldHaveValidationErrorFor(x => x.Id)
+            .WithErrorMessage("Slot Id is required for updating.");
     }
 
     // ── MentorId rules ─────────────────────────────────────────────────────
@@ -34,8 +53,7 @@ public sealed class CreateSlotMentorValidatorTests
     [Fact]
     public void Validate_WhenStartTimeIsDefault_HasRequiredError()
     {
-        var cmd = ValidCommand();
-        var result = _validator.TestValidate(cmd with { StartTime = default });
+        var result = _validator.TestValidate(ValidCommand() with { StartTime = default });
         result
             .ShouldHaveValidationErrorFor(x => x.StartTime)
             .WithErrorMessage("StartTime is required.");
@@ -52,7 +70,6 @@ public sealed class CreateSlotMentorValidatorTests
                 EndTime = pastStart.AddHours(1),
             }
         );
-
         result
             .ShouldHaveValidationErrorFor(x => x.StartTime)
             .WithErrorMessage("StartTime must be in the future.");
@@ -80,25 +97,9 @@ public sealed class CreateSlotMentorValidatorTests
                 EndTime = start.AddHours(-1),
             }
         );
-
         result
             .ShouldHaveValidationErrorFor(x => x.EndTime)
             .WithErrorMessage("EndTime must be after StartTime.");
-    }
-
-    [Fact]
-    public void Validate_WhenEndTimeEqualsStartTime_HasOrderError()
-    {
-        var start = DateTime.UtcNow.AddDays(1);
-        var result = _validator.TestValidate(
-            ValidCommand() with
-            {
-                StartTime = start,
-                EndTime = start,
-            }
-        );
-
-        result.ShouldHaveValidationErrorFor(x => x.EndTime);
     }
 
     // ── Duration rules ─────────────────────────────────────────────────────
@@ -114,19 +115,9 @@ public sealed class CreateSlotMentorValidatorTests
                 EndTime = start.AddMinutes(29),
             }
         );
-
         result
             .ShouldHaveValidationErrorFor(x => x)
             .WithErrorMessage("The duration of a slot must be at least 30 minutes.");
-    }
-
-    [Fact]
-    public void Validate_WhenDurationIsExactly30Minutes_HasNoError()
-    {
-        var start = DateTime.UtcNow.AddDays(1);
-        _validator
-            .TestValidate(ValidCommand() with { StartTime = start, EndTime = start.AddMinutes(30) })
-            .ShouldNotHaveValidationErrorFor(x => x);
     }
 
     [Fact]
@@ -140,38 +131,9 @@ public sealed class CreateSlotMentorValidatorTests
                 EndTime = start.AddHours(13),
             }
         );
-
         result
             .ShouldHaveValidationErrorFor(x => x)
             .WithErrorMessage("A slot cannot exceed 12 hours in duration.");
-    }
-
-    [Fact]
-    public void Validate_WhenDurationIsExactly12Hours_HasNoError()
-    {
-        var start = DateTime.UtcNow.AddDays(1);
-        _validator
-            .TestValidate(ValidCommand() with { StartTime = start, EndTime = start.AddHours(12) })
-            .ShouldNotHaveValidationErrorFor(x => x);
-    }
-
-    // ── Price rules ────────────────────────────────────────────────────────
-
-    [Fact]
-    public void Validate_WhenPriceIsNegative_HasNegativeError()
-    {
-        var result = _validator.TestValidate(ValidCommand() with { Price = -1 });
-        result
-            .ShouldHaveValidationErrorFor(x => x.Price)
-            .WithErrorMessage("Price cannot be a negative value.");
-    }
-
-    [Fact]
-    public void Validate_WhenPriceIsZero_HasNotEmptyError()
-    {
-        // Price = 0 is the default for decimal; FluentValidation's NotEmpty() treats it as empty.
-        var result = _validator.TestValidate(ValidCommand() with { Price = 0 });
-        result.ShouldHaveValidationErrorFor(x => x.Price).WithErrorMessage("Price is required.");
     }
 
     // ── MaxBookings rules ──────────────────────────────────────────────────
@@ -188,7 +150,7 @@ public sealed class CreateSlotMentorValidatorTests
     [Fact]
     public void Validate_WhenMaxBookingsIsNegative_HasError()
     {
-        var result = _validator.TestValidate(ValidCommand() with { MaxBookings = -1 });
+        var result = _validator.TestValidate(ValidCommand() with { MaxBookings = -5 });
         result
             .ShouldHaveValidationErrorFor(x => x.MaxBookings)
             .WithErrorMessage("MaxBookings must be greater than 0.");
@@ -198,7 +160,7 @@ public sealed class CreateSlotMentorValidatorTests
     public void Validate_WhenMaxBookingsIsPositive_HasNoError()
     {
         _validator
-            .TestValidate(ValidCommand() with { MaxBookings = 5 })
+            .TestValidate(ValidCommand() with { MaxBookings = 10 })
             .ShouldNotHaveValidationErrorFor(x => x.MaxBookings);
     }
 
@@ -218,7 +180,7 @@ public sealed class CreateSlotMentorValidatorTests
         var result = _validator.TestValidate(
             ValidCommand() with
             {
-                Description = new string('a', 1001),
+                Description = new string('x', 1001),
             }
         );
         result
@@ -226,11 +188,23 @@ public sealed class CreateSlotMentorValidatorTests
             .WithErrorMessage("Description cannot exceed 1000 characters.");
     }
 
+    // ── Price rules ────────────────────────────────────────────────────────
+
     [Fact]
-    public void Validate_WhenDescriptionIsExactly1000Characters_HasNoError()
+    public void Validate_WhenPriceIsNegative_HasNegativeError()
     {
+        var result = _validator.TestValidate(ValidCommand() with { Price = -1 });
+        result
+            .ShouldHaveValidationErrorFor(x => x.Price)
+            .WithErrorMessage("Price cannot be a negative value.");
+    }
+
+    [Fact]
+    public void Validate_WhenPriceIsZero_HasNoError()
+    {
+        // Update validator allows Price = 0 (no NotEmpty rule unlike Create)
         _validator
-            .TestValidate(ValidCommand() with { Description = new string('a', 1000) })
-            .ShouldNotHaveValidationErrorFor(x => x.Description);
+            .TestValidate(ValidCommand() with { Price = 0 })
+            .ShouldNotHaveValidationErrorFor(x => x.Price);
     }
 }

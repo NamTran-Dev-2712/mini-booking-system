@@ -1,6 +1,8 @@
+global using System.Linq.Expressions;
 global using FluentAssertions;
 global using FluentValidation.TestHelper;
 global using Microsoft.AspNetCore.Identity;
+global using Microsoft.Extensions.Logging;
 global using MiniBookingSystem.Application.Common.Constants;
 global using MiniBookingSystem.UnitTests.Common.Builders;
 global using MiniBookingSystem.UnitTests.Common.Helpers;

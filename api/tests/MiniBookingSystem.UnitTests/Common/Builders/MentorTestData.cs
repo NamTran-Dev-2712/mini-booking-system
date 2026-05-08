@@ -73,7 +73,9 @@ internal static class MentorTestData
         Guid? mentorId = null,
         MentorSlotStatus status = MentorSlotStatus.Available,
         DateTime? startTime = null,
-        DateTime? endTime = null
+        DateTime? endTime = null,
+        int maxBookings = 5,
+        int currentBookings = 0
     )
     {
         var start = startTime ?? DateTime.UtcNow.AddDays(1);
@@ -85,6 +87,8 @@ internal static class MentorTestData
             EndTime = endTime ?? start.AddHours(1),
             Price = Valid.BasePrice,
             Status = status,
+            MaxBookings = maxBookings,
+            CurrentBookings = currentBookings,
         };
     }
 
@@ -117,7 +121,9 @@ internal static class MentorTestData
         Guid? mentorId = null,
         DateTime? start = null,
         DateTime? end = null,
-        decimal? price = null
+        decimal? price = null,
+        string? description = null,
+        int maxBookings = 1
     )
     {
         var s = start ?? DateTime.UtcNow.AddDays(1);
@@ -126,6 +132,8 @@ internal static class MentorTestData
             MentorId: mentorId ?? Valid.MentorId,
             StartTime: s,
             EndTime: e,
+            Description: description,
+            MaxBookings: maxBookings,
             Price: price ?? Valid.BasePrice
         );
     }
@@ -145,7 +153,9 @@ internal static class MentorTestData
 
     public static UpdateSlotMentorCommand BuildUpdateSlotCommand(
         Guid? slotId = null,
-        Guid? mentorId = null
+        Guid? mentorId = null,
+        string? description = null,
+        int maxBookings = 1
     )
     {
         var start = DateTime.UtcNow.AddDays(2);
@@ -154,7 +164,9 @@ internal static class MentorTestData
             MentorId: mentorId ?? Valid.MentorId,
             StartTime: start,
             EndTime: start.AddHours(2),
-            Price: 700_000m
+            Price: 700_000m,
+            Description: description,
+            MaxBookings: maxBookings
         );
     }
 

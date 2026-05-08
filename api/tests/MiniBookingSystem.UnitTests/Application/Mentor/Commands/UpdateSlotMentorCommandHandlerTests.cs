@@ -80,7 +80,10 @@ public sealed class UpdateSlotMentorCommandHandlerTests
     public async Task Handle_UpdatesSlotProperties()
     {
         // Arrange
-        var command = MentorTestData.BuildUpdateSlotCommand();
+        var command = MentorTestData.BuildUpdateSlotCommand(
+            description: "Updated description",
+            maxBookings: 3
+        );
         var slot = SetupHappyPath(command);
 
         // Act
@@ -90,6 +93,8 @@ public sealed class UpdateSlotMentorCommandHandlerTests
         slot.StartTime.Should().Be(command.StartTime);
         slot.EndTime.Should().Be(command.EndTime);
         slot.Price.Should().Be(command.Price);
+        slot.Description.Should().Be(command.Description);
+        slot.MaxBookings.Should().Be(command.MaxBookings);
     }
 
     [Fact]
