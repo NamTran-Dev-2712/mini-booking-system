@@ -48,7 +48,8 @@ internal static class AuthTestData
             RefreshToken: "eyJhbGciOiJIUzI1NiJ9.refresh",
             ExpiresIn: new DateTime(2025, 1, 1, 0, 15, 0, DateTimeKind.Utc),
             RefreshTokenExpiresAt: new DateTime(2025, 1, 8, 0, 0, 0, DateTimeKind.Utc),
-            CreatedAt: new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+            CreatedAt: new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+            Roles: ["User"]
         );
     }
 
@@ -59,7 +60,8 @@ internal static class AuthTestData
             FullName: Valid.FullName,
             Email: Valid.Email,
             PhoneNumber: Valid.PhoneNumber,
-            CreatedAt: new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+            CreatedAt: new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+            Roles: ["User"]
         );
     }
 

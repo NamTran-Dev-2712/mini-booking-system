@@ -4,5 +4,6 @@ export interface RegisterResponse {
   fullName: string;
   email: string;
   phoneNumber: string;
+  roles: string[];
   createdAt: string;
 }

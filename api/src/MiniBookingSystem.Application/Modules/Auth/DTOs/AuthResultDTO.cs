@@ -7,5 +7,6 @@ public record AuthResult(
     string RefreshToken,
     DateTime ExpiresIn,
     DateTime RefreshTokenExpiresAt,
-    DateTime CreatedAt
+    DateTime CreatedAt,
+    IEnumerable<string> Roles
 );

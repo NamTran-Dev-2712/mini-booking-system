@@ -11,7 +11,11 @@ import {
   ServerRouter,
   UNSAFE_withComponentProps,
   UNSAFE_withErrorBoundaryProps,
+  UNSAFE_withHydrateFallbackProps,
+  data,
   isRouteErrorResponse,
+  redirect,
+  useLocation,
   useNavigate,
 } from "react-router";
 import { isbot } from "isbot";
@@ -22,36 +26,47 @@ import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { Toaster, toast } from "sonner";
 import {
+  Activity,
   BarChart3,
+  BookOpen,
+  Bot,
   Building2,
   CalendarCheck,
   CalendarDays,
+  CheckCircle,
   CheckCircle2,
   ChevronRight,
   CircleCheckIcon,
+  CreditCard,
   Eye,
   EyeOff,
+  GraduationCap,
   Heart,
   InfoIcon,
+  LayoutDashboard,
   Lightbulb,
   Loader2,
   Loader2Icon,
+  LogOut,
   Menu,
   OctagonXIcon,
   Search,
   Shield,
+  ShieldX,
   Target,
   TriangleAlertIcon,
+  UserCircle,
   Users,
   XIcon,
   Zap,
 } from "lucide-react";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import { cva } from "class-variance-authority";
 import { Avatar, Dialog, Label, Separator, Slot } from "radix-ui";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { cva } from "class-variance-authority";
+import axios from "axios";
 import {
   Controller,
   FormProvider,
@@ -59,7 +74,6 @@ import {
   useFormContext,
 } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import axios from "axios";
 import { z } from "zod";
 //#region \0rolldown/runtime.js
 var __defProp = Object.defineProperty;
@@ -275,6 +289,29 @@ function cn(...inputs) {
   return twMerge(clsx(inputs));
 }
 //#endregion
+//#region app/components/ui/avatar.tsx
+function Avatar$1({ className, size = "default", ...props }) {
+  return /* @__PURE__ */ jsx(Avatar.Root, {
+    "data-slot": "avatar",
+    "data-size": size,
+    className: cn(
+      "group/avatar relative flex size-8 shrink-0 rounded-full select-none after:absolute after:inset-0 after:rounded-full after:border after:border-border after:mix-blend-darken data-[size=lg]:size-10 data-[size=sm]:size-6 dark:after:mix-blend-lighten",
+      className,
+    ),
+    ...props,
+  });
+}
+function AvatarFallback({ className, ...props }) {
+  return /* @__PURE__ */ jsx(Avatar.Fallback, {
+    "data-slot": "avatar-fallback",
+    className: cn(
+      "flex size-full items-center justify-center rounded-full bg-muted text-sm text-muted-foreground group-data-[size=sm]/avatar:text-xs",
+      className,
+    ),
+    ...props,
+  });
+}
+//#endregion
 //#region app/components/ui/button.tsx
 var buttonVariants = cva(
   "group/button inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
@@ -423,7 +460,101 @@ function SheetTitle({ className, ...props }) {
   });
 }
 //#endregion
+//#region app/components/ui/separator.tsx
+function Separator$1({
+  className,
+  orientation = "horizontal",
+  decorative = true,
+  ...props
+}) {
+  return /* @__PURE__ */ jsx(Separator.Root, {
+    "data-slot": "separator",
+    decorative,
+    orientation,
+    className: cn(
+      "shrink-0 bg-border data-horizontal:h-px data-horizontal:w-full data-vertical:w-px data-vertical:self-stretch",
+      className,
+    ),
+    ...props,
+  });
+}
+//#endregion
+//#region app/lib/axios.config.ts
+var apiClient = axios.create({
+  baseURL: "http://localhost:5296",
+  withCredentials: true,
+  headers: {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  },
+});
+apiClient.interceptors.response.use(
+  (response) => {
+    const body = response.data;
+    if (!body.success) {
+      const error = {
+        message: body.message,
+        errors: body.errors ?? [],
+        statusCode: body.statusCode,
+        traceId: body.traceId,
+      };
+      return Promise.reject(error);
+    }
+    return response;
+  },
+  (axiosError) => {
+    if (!axiosError.response)
+      return Promise.reject({
+        message: "Network error. Please check your connection.",
+        errors: [],
+        statusCode: 0,
+      });
+    const body = axiosError.response.data;
+    const error = {
+      message: body?.message ?? axiosError.message,
+      errors: body?.errors ?? [],
+      statusCode: body?.statusCode ?? axiosError.response.status,
+      traceId: body?.traceId,
+    };
+    return Promise.reject(error);
+  },
+);
+//#endregion
+//#region app/services/auth/auth.service.ts
+var authService = {
+  async login(data) {
+    return (await apiClient.post("/api/auth/login", data)).data.data;
+  },
+  async register(data) {
+    return (await apiClient.post("/api/auth/register", data)).data.data;
+  },
+  async getProfile() {
+    return (await apiClient.get("/api/auth/profile")).data.data;
+  },
+  async logout() {
+    await apiClient.post("/api/auth/logout");
+  },
+  async refresh() {
+    return (await apiClient.post("/api/auth/refresh")).data.data;
+  },
+};
+//#endregion
+//#region app/hooks/use-auth.ts
+/** Returns the currently authenticated user, or null. */
+function useCurrentUser() {
+  return useAuthStore((state) => state.user);
+}
+/** Returns the user's primary role (first in the roles array), or null. */
+function usePrimaryRole() {
+  return useAuthStore((state) => state.user?.roles[0] ?? null);
+}
+//#endregion
 //#region app/components/layouts/public/public.header.tsx
+var ROLE_DASHBOARD = {
+  Admin: "/admin",
+  Mentor: "/mentor",
+  User: "/user",
+};
 var navLinks = [
   {
     to: "/",
@@ -435,6 +566,27 @@ var navLinks = [
   },
 ];
 function PublicHeader() {
+  const navigate = useNavigate();
+  const user = useCurrentUser();
+  const primaryRole = usePrimaryRole();
+  const clearUser = useAuthStore((s) => s.clearUser);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const dashboardHref = ROLE_DASHBOARD[primaryRole ?? ""] ?? "/";
+  const initials = (user?.fullName ?? "?")
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+  async function handleLogout() {
+    try {
+      await authService.logout();
+    } catch {
+    } finally {
+      clearUser();
+      navigate("/login");
+    }
+  }
   return /* @__PURE__ */ jsx("header", {
     className:
       "sticky top-0 z-50 w-full border-b border-border/60 bg-background/95 backdrop-blur-sm",
@@ -467,27 +619,77 @@ function PublicHeader() {
             ),
           ),
         }),
-        /* @__PURE__ */ jsxs("div", {
+        /* @__PURE__ */ jsx("div", {
           className: "hidden md:flex items-center gap-2",
-          children: [
-            /* @__PURE__ */ jsx(Button, {
-              variant: "ghost",
-              size: "sm",
-              asChild: true,
-              children: /* @__PURE__ */ jsx(Link, {
-                to: "/login",
-                children: "Sign In",
+          children: isAuthenticated
+            ? /* @__PURE__ */ jsxs(Fragment, {
+                children: [
+                  /* @__PURE__ */ jsx(Button, {
+                    variant: "ghost",
+                    size: "sm",
+                    asChild: true,
+                    children: /* @__PURE__ */ jsxs(Link, {
+                      to: dashboardHref,
+                      className: "flex items-center gap-1.5",
+                      children: [
+                        /* @__PURE__ */ jsx(LayoutDashboard, {
+                          className: "size-3.5",
+                        }),
+                        "Dashboard",
+                      ],
+                    }),
+                  }),
+                  /* @__PURE__ */ jsxs("div", {
+                    className: "flex items-center gap-2 pl-1",
+                    children: [
+                      /* @__PURE__ */ jsx(Avatar$1, {
+                        className: "size-8",
+                        children: /* @__PURE__ */ jsx(AvatarFallback, {
+                          className:
+                            "bg-primary/10 text-xs font-semibold text-primary",
+                          children: initials,
+                        }),
+                      }),
+                      /* @__PURE__ */ jsx("span", {
+                        className:
+                          "text-sm font-medium leading-tight max-w-[120px] truncate",
+                        children: user?.fullName,
+                      }),
+                    ],
+                  }),
+                  /* @__PURE__ */ jsxs(Button, {
+                    variant: "ghost",
+                    size: "sm",
+                    onClick: handleLogout,
+                    className: "text-muted-foreground hover:text-destructive",
+                    children: [
+                      /* @__PURE__ */ jsx(LogOut, { className: "size-3.5" }),
+                      "Sign Out",
+                    ],
+                  }),
+                ],
+              })
+            : /* @__PURE__ */ jsxs(Fragment, {
+                children: [
+                  /* @__PURE__ */ jsx(Button, {
+                    variant: "ghost",
+                    size: "sm",
+                    asChild: true,
+                    children: /* @__PURE__ */ jsx(Link, {
+                      to: "/login",
+                      children: "Sign In",
+                    }),
+                  }),
+                  /* @__PURE__ */ jsx(Button, {
+                    size: "sm",
+                    asChild: true,
+                    children: /* @__PURE__ */ jsx(Link, {
+                      to: "/register",
+                      children: "Sign Up",
+                    }),
+                  }),
+                ],
               }),
-            }),
-            /* @__PURE__ */ jsx(Button, {
-              size: "sm",
-              asChild: true,
-              children: /* @__PURE__ */ jsx(Link, {
-                to: "/register",
-                children: "Sign Up",
-              }),
-            }),
-          ],
         }),
         /* @__PURE__ */ jsxs(Sheet, {
           children: [
@@ -537,51 +739,107 @@ function PublicHeader() {
                     ),
                   ),
                 }),
-                /* @__PURE__ */ jsxs("div", {
-                  className: "mt-6 flex flex-col gap-2 px-1",
-                  children: [
-                    /* @__PURE__ */ jsx(Button, {
-                      variant: "outline",
-                      asChild: true,
-                      children: /* @__PURE__ */ jsx(Link, {
-                        to: "/login",
-                        children: "Sign In",
-                      }),
+                /* @__PURE__ */ jsx(Separator$1, { className: "my-4" }),
+                isAuthenticated
+                  ? /* @__PURE__ */ jsxs("div", {
+                      className: "flex flex-col gap-2 px-1",
+                      children: [
+                        /* @__PURE__ */ jsxs("div", {
+                          className:
+                            "flex items-center gap-3 rounded-lg bg-muted px-3 py-2.5",
+                          children: [
+                            /* @__PURE__ */ jsx(Avatar$1, {
+                              className: "size-8 shrink-0",
+                              children: /* @__PURE__ */ jsx(AvatarFallback, {
+                                className:
+                                  "bg-primary/10 text-xs font-semibold text-primary",
+                                children: initials,
+                              }),
+                            }),
+                            /* @__PURE__ */ jsxs("div", {
+                              className: "min-w-0",
+                              children: [
+                                /* @__PURE__ */ jsx("p", {
+                                  className: "truncate text-sm font-medium",
+                                  children: user?.fullName,
+                                }),
+                                /* @__PURE__ */ jsx("p", {
+                                  className:
+                                    "truncate text-xs text-muted-foreground",
+                                  children: user?.email,
+                                }),
+                              ],
+                            }),
+                          ],
+                        }),
+                        /* @__PURE__ */ jsx(Button, {
+                          variant: "outline",
+                          asChild: true,
+                          children: /* @__PURE__ */ jsxs(Link, {
+                            to: dashboardHref,
+                            className: "flex items-center gap-2",
+                            children: [
+                              /* @__PURE__ */ jsx(LayoutDashboard, {
+                                className: "size-4",
+                              }),
+                              "Go to Dashboard",
+                            ],
+                          }),
+                        }),
+                        /* @__PURE__ */ jsx(Button, {
+                          asChild: true,
+                          variant: "ghost",
+                          children: /* @__PURE__ */ jsxs(Link, {
+                            to: `/${primaryRole?.toLowerCase()}/profile`,
+                            className: "flex items-center gap-2",
+                            children: [
+                              /* @__PURE__ */ jsx(UserCircle, {
+                                className: "size-4",
+                              }),
+                              "My Profile",
+                            ],
+                          }),
+                        }),
+                        /* @__PURE__ */ jsxs(Button, {
+                          variant: "ghost",
+                          onClick: handleLogout,
+                          className:
+                            "justify-start text-muted-foreground hover:text-destructive",
+                          children: [
+                            /* @__PURE__ */ jsx(LogOut, {
+                              className: "size-4",
+                            }),
+                            "Sign Out",
+                          ],
+                        }),
+                      ],
+                    })
+                  : /* @__PURE__ */ jsxs("div", {
+                      className: "flex flex-col gap-2 px-1",
+                      children: [
+                        /* @__PURE__ */ jsx(Button, {
+                          variant: "outline",
+                          asChild: true,
+                          children: /* @__PURE__ */ jsx(Link, {
+                            to: "/login",
+                            children: "Sign In",
+                          }),
+                        }),
+                        /* @__PURE__ */ jsx(Button, {
+                          asChild: true,
+                          children: /* @__PURE__ */ jsx(Link, {
+                            to: "/register",
+                            children: "Sign Up",
+                          }),
+                        }),
+                      ],
                     }),
-                    /* @__PURE__ */ jsx(Button, {
-                      asChild: true,
-                      children: /* @__PURE__ */ jsx(Link, {
-                        to: "/register",
-                        children: "Sign Up",
-                      }),
-                    }),
-                  ],
-                }),
               ],
             }),
           ],
         }),
       ],
     }),
-  });
-}
-//#endregion
-//#region app/components/ui/separator.tsx
-function Separator$1({
-  className,
-  orientation = "horizontal",
-  decorative = true,
-  ...props
-}) {
-  return /* @__PURE__ */ jsx(Separator.Root, {
-    "data-slot": "separator",
-    decorative,
-    orientation,
-    className: cn(
-      "shrink-0 bg-border data-horizontal:h-px data-horizontal:w-full data-vertical:w-px data-vertical:self-stretch",
-      className,
-    ),
-    ...props,
   });
 }
 //#endregion
@@ -771,10 +1029,21 @@ var PublicLayoutComponent = ({ children }) => {
 };
 //#endregion
 //#region app/routes/public/_layout.tsx
-var _layout_exports$1 = /* @__PURE__ */ __exportAll({
-  default: () => _layout_default$1,
+var _layout_exports$4 = /* @__PURE__ */ __exportAll({
+  HydrateFallback: () => HydrateFallback$4,
+  clientLoader: () => clientLoader$4,
+  default: () => _layout_default$4,
 });
-var _layout_default$1 = UNSAFE_withComponentProps(function PublicLayout() {
+async function clientLoader$4() {
+  await useAuthStore.persist.rehydrate();
+  return null;
+}
+var HydrateFallback$4 = UNSAFE_withHydrateFallbackProps(
+  function HydrateFallback() {
+    return null;
+  },
+);
+var _layout_default$4 = UNSAFE_withComponentProps(function PublicLayout() {
   return /* @__PURE__ */ jsx(PublicLayoutComponent, {
     children: /* @__PURE__ */ jsx(Outlet, {}),
   });
@@ -811,7 +1080,7 @@ function Badge({ className, variant = "default", asChild = false, ...props }) {
 }
 //#endregion
 //#region app/features/public/home/home.page.tsx
-function meta$3() {
+function meta$21() {
   return [
     { title: "MiniBooking — Smart Mentor Scheduling" },
     {
@@ -1132,34 +1401,11 @@ function HomePage() {
 //#region app/routes/public/home.tsx
 var home_exports = /* @__PURE__ */ __exportAll({
   default: () => HomePage,
-  meta: () => meta$3,
+  meta: () => meta$21,
 });
 //#endregion
-//#region app/components/ui/avatar.tsx
-function Avatar$1({ className, size = "default", ...props }) {
-  return /* @__PURE__ */ jsx(Avatar.Root, {
-    "data-slot": "avatar",
-    "data-size": size,
-    className: cn(
-      "group/avatar relative flex size-8 shrink-0 rounded-full select-none after:absolute after:inset-0 after:rounded-full after:border after:border-border after:mix-blend-darken data-[size=lg]:size-10 data-[size=sm]:size-6 dark:after:mix-blend-lighten",
-      className,
-    ),
-    ...props,
-  });
-}
-function AvatarFallback({ className, ...props }) {
-  return /* @__PURE__ */ jsx(Avatar.Fallback, {
-    "data-slot": "avatar-fallback",
-    className: cn(
-      "flex size-full items-center justify-center rounded-full bg-muted text-sm text-muted-foreground group-data-[size=sm]/avatar:text-xs",
-      className,
-    ),
-    ...props,
-  });
-}
-//#endregion
 //#region app/features/public/about/about.page.tsx
-function meta$2() {
+function meta$20() {
   return [
     { title: "About Us — MiniBooking" },
     {
@@ -1455,14 +1701,60 @@ function AboutPage() {
 //#region app/routes/public/about.tsx
 var about_exports = /* @__PURE__ */ __exportAll({
   default: () => AboutPage,
-  meta: () => meta$2,
+  meta: () => meta$20,
 });
 //#endregion
+//#region app/guards/require-role.ts
+var ROLE_REDIRECT$1 = {
+  Admin: "/admin",
+  Mentor: "/mentor",
+  User: "/user",
+};
+/**
+ * clientLoader factory that enforces role-based access control.
+ *
+ * Usage in a layout route:
+ *   export const clientLoader = requireRole("Admin");
+ *
+ * - Rehydrates the Zustand store from localStorage (SSR-safe).
+ * - Redirects to /login if not authenticated.
+ * - Throws a 404 if authenticated but missing the required role
+ *   (hides the existence of role-restricted routes from other roles).
+ */
+function requireRole(role) {
+  return async function clientLoader() {
+    await useAuthStore.persist.rehydrate();
+    const { isAuthenticated, user } = useAuthStore.getState();
+    if (!isAuthenticated) throw redirect("/login");
+    if (!user?.roles.includes(role)) throw data(null, { status: 404 });
+    return null;
+  };
+}
+/**
+ * Redirects an already-authenticated user to their role's dashboard.
+ * Used in public and auth layout loaders.
+ */
+async function redirectIfAuthenticated() {
+  await useAuthStore.persist.rehydrate();
+  const { isAuthenticated, user } = useAuthStore.getState();
+  if (isAuthenticated && user)
+    throw redirect(ROLE_REDIRECT$1[user.roles[0] ?? "User"] ?? "/");
+  return null;
+}
+//#endregion
 //#region app/routes/auth/_layout.tsx
-var _layout_exports = /* @__PURE__ */ __exportAll({
-  default: () => _layout_default,
+var _layout_exports$3 = /* @__PURE__ */ __exportAll({
+  HydrateFallback: () => HydrateFallback$3,
+  clientLoader: () => clientLoader$3,
+  default: () => _layout_default$3,
 });
-var _layout_default = UNSAFE_withComponentProps(function AuthRoutesLayout() {
+var clientLoader$3 = redirectIfAuthenticated;
+var HydrateFallback$3 = UNSAFE_withHydrateFallbackProps(
+  function HydrateFallback() {
+    return null;
+  },
+);
+var _layout_default$3 = UNSAFE_withComponentProps(function AuthRoutesLayout() {
   return /* @__PURE__ */ jsx(Outlet, {});
 });
 //#endregion
@@ -1744,66 +2036,6 @@ function isApiError(error) {
   );
 }
 //#endregion
-//#region app/lib/axios.config.ts
-var apiClient = axios.create({
-  baseURL: "http://localhost:5000",
-  withCredentials: true,
-  headers: {
-    "Content-Type": "application/json",
-    Accept: "application/json",
-  },
-});
-apiClient.interceptors.response.use(
-  (response) => {
-    const body = response.data;
-    if (!body.success) {
-      const error = {
-        message: body.message,
-        errors: body.errors ?? [],
-        statusCode: body.statusCode,
-        traceId: body.traceId,
-      };
-      return Promise.reject(error);
-    }
-    return response;
-  },
-  (axiosError) => {
-    if (!axiosError.response)
-      return Promise.reject({
-        message: "Network error. Please check your connection.",
-        errors: [],
-        statusCode: 0,
-      });
-    const body = axiosError.response.data;
-    const error = {
-      message: body?.message ?? axiosError.message,
-      errors: body?.errors ?? [],
-      statusCode: body?.statusCode ?? axiosError.response.status,
-      traceId: body?.traceId,
-    };
-    return Promise.reject(error);
-  },
-);
-//#endregion
-//#region app/services/auth/auth.service.ts
-var authService = {
-  async login(data) {
-    return (await apiClient.post("/api/auth/login", data)).data.data;
-  },
-  async register(data) {
-    return (await apiClient.post("/api/auth/register", data)).data.data;
-  },
-  async getProfile() {
-    return (await apiClient.get("/api/auth/profile")).data.data;
-  },
-  async logout() {
-    await apiClient.post("/api/auth/logout");
-  },
-  async refresh() {
-    return (await apiClient.post("/api/auth/refresh")).data.data;
-  },
-};
-//#endregion
 //#region app/features/auth/login/login.schema.ts
 var loginSchema = z.object({
   email: z.string().min(1, "Email is required").email("Invalid email address"),
@@ -1811,6 +2043,11 @@ var loginSchema = z.object({
 });
 //#endregion
 //#region app/features/auth/login/login.hook.ts
+var ROLE_REDIRECT = {
+  Admin: "/admin",
+  Mentor: "/mentor",
+  User: "/user",
+};
 function useLoginForm() {
   const navigate = useNavigate();
   const setUser = useAuthStore((state) => state.setUser);
@@ -1832,10 +2069,11 @@ function useLoginForm() {
         fullName: result.fullName,
         email: result.email,
         phoneNumber: result.phoneNumber,
+        roles: result.roles,
         expiresIn: result.expiresIn,
         createdAt: result.createdAt,
       });
-      navigate("/");
+      navigate(ROLE_REDIRECT[result.roles[0] ?? "User"] ?? "/");
     } catch (error) {
       toast.error(getApiErrorMessage(error));
     }
@@ -1966,7 +2204,7 @@ function LoginForm() {
 }
 //#endregion
 //#region app/features/auth/login/login.page.tsx
-function meta$1() {
+function meta$19() {
   return [
     { title: "Sign In — MiniBooking" },
     {
@@ -1986,7 +2224,7 @@ function LoginPage() {
 //#region app/routes/auth/login.tsx
 var login_exports = /* @__PURE__ */ __exportAll({
   default: () => LoginPage,
-  meta: () => meta$1,
+  meta: () => meta$19,
 });
 var registerSchema = z
   .object({
@@ -2266,7 +2504,7 @@ function RegisterForm() {
 }
 //#endregion
 //#region app/features/auth/register/register.page.tsx
-function meta() {
+function meta$18() {
   return [
     { title: "Sign Up — MiniBooking" },
     {
@@ -2286,17 +2524,1268 @@ function RegisterPage() {
 //#region app/routes/auth/register.tsx
 var register_exports = /* @__PURE__ */ __exportAll({
   default: () => RegisterPage,
+  meta: () => meta$18,
+});
+//#endregion
+//#region app/components/layouts/shared/app-sidebar.tsx
+function AppSidebar({ navItems, onNavigate }) {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { user, clearUser } = useAuthStore();
+  const initials = (user?.fullName ?? "?")
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+  async function handleLogout() {
+    try {
+      await authService.logout();
+    } catch {
+    } finally {
+      clearUser();
+      navigate("/login");
+    }
+  }
+  function isActive(item) {
+    if (item.exact) return location.pathname === item.href;
+    return (
+      location.pathname === item.href ||
+      location.pathname.startsWith(item.href + "/")
+    );
+  }
+  return /* @__PURE__ */ jsxs("div", {
+    className: "flex h-full w-[260px] flex-col border-r bg-background",
+    children: [
+      /* @__PURE__ */ jsxs("div", {
+        className: "flex h-16 shrink-0 items-center gap-3 px-5",
+        children: [
+          /* @__PURE__ */ jsx("div", {
+            className:
+              "flex size-8 items-center justify-center rounded-lg bg-primary",
+            children: /* @__PURE__ */ jsx(CalendarDays, {
+              className: "size-4 text-primary-foreground",
+            }),
+          }),
+          /* @__PURE__ */ jsx("span", {
+            className: "text-base font-semibold tracking-tight",
+            children: "MiniBooking",
+          }),
+        ],
+      }),
+      /* @__PURE__ */ jsx(Separator$1, {}),
+      /* @__PURE__ */ jsx("nav", {
+        className: "flex-1 overflow-y-auto px-3 py-4",
+        children: /* @__PURE__ */ jsx("ul", {
+          className: "space-y-0.5",
+          children: navItems.map((item) => {
+            const active = isActive(item);
+            return /* @__PURE__ */ jsx(
+              "li",
+              {
+                children: /* @__PURE__ */ jsxs(Link, {
+                  to: item.href,
+                  onClick: onNavigate,
+                  className: cn(
+                    "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                    active
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                  ),
+                  children: [
+                    /* @__PURE__ */ jsx(item.icon, {
+                      className: cn(
+                        "size-[18px] shrink-0",
+                        active ? "text-primary" : "text-muted-foreground",
+                      ),
+                    }),
+                    item.label,
+                  ],
+                }),
+              },
+              item.href,
+            );
+          }),
+        }),
+      }),
+      /* @__PURE__ */ jsx(Separator$1, {}),
+      /* @__PURE__ */ jsxs("div", {
+        className: "flex items-center gap-3 p-4",
+        children: [
+          /* @__PURE__ */ jsx(Avatar$1, {
+            className: "size-9 shrink-0",
+            children: /* @__PURE__ */ jsx(AvatarFallback, {
+              className: "bg-primary/10 text-sm font-semibold text-primary",
+              children: initials,
+            }),
+          }),
+          /* @__PURE__ */ jsxs("div", {
+            className: "min-w-0 flex-1",
+            children: [
+              /* @__PURE__ */ jsx("p", {
+                className: "truncate text-sm font-medium leading-tight",
+                children: user?.fullName,
+              }),
+              /* @__PURE__ */ jsx("p", {
+                className: "truncate text-xs text-muted-foreground",
+                children: user?.email,
+              }),
+            ],
+          }),
+          /* @__PURE__ */ jsx(Button, {
+            variant: "ghost",
+            size: "icon",
+            onClick: handleLogout,
+            "aria-label": "Logout",
+            className: "shrink-0 text-muted-foreground hover:text-destructive",
+            children: /* @__PURE__ */ jsx(LogOut, { className: "size-4" }),
+          }),
+        ],
+      }),
+    ],
+  });
+}
+//#endregion
+//#region app/components/layouts/shared/app-header.tsx
+function AppHeader({ navItems }) {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const location = useLocation();
+  const activeItem = navItems.find((item) => {
+    if (item.exact) return location.pathname === item.href;
+    return (
+      location.pathname === item.href ||
+      location.pathname.startsWith(item.href + "/")
+    );
+  });
+  return /* @__PURE__ */ jsxs("header", {
+    className:
+      "flex h-16 shrink-0 items-center gap-3 border-b bg-background px-4 lg:px-6",
+    children: [
+      /* @__PURE__ */ jsx(Button, {
+        variant: "ghost",
+        size: "icon",
+        className: "lg:hidden",
+        onClick: () => setMobileOpen(true),
+        "aria-label": "Open menu",
+        children: /* @__PURE__ */ jsx(Menu, { className: "size-5" }),
+      }),
+      /* @__PURE__ */ jsxs(Link, {
+        to: "/",
+        className: "flex items-center gap-2 font-semibold lg:hidden",
+        children: [
+          /* @__PURE__ */ jsx("div", {
+            className:
+              "flex size-7 items-center justify-center rounded-md bg-primary",
+            children: /* @__PURE__ */ jsx(CalendarDays, {
+              className: "size-3.5 text-primary-foreground",
+            }),
+          }),
+          /* @__PURE__ */ jsx("span", {
+            className: "text-sm",
+            children: "MiniBooking",
+          }),
+        ],
+      }),
+      activeItem &&
+        /* @__PURE__ */ jsx("h1", {
+          className: "hidden text-sm font-semibold text-foreground lg:block",
+          children: activeItem.label,
+        }),
+      /* @__PURE__ */ jsx(Sheet, {
+        open: mobileOpen,
+        onOpenChange: setMobileOpen,
+        children: /* @__PURE__ */ jsx(SheetContent, {
+          side: "left",
+          className: "w-[260px] p-0",
+          showCloseButton: false,
+          children: /* @__PURE__ */ jsx(AppSidebar, {
+            navItems,
+            onNavigate: () => setMobileOpen(false),
+          }),
+        }),
+      }),
+    ],
+  });
+}
+//#endregion
+//#region app/components/layouts/shared/app-layout.tsx
+function AppLayout({ navItems, children }) {
+  return /* @__PURE__ */ jsxs("div", {
+    className: "flex h-screen overflow-hidden bg-background",
+    children: [
+      /* @__PURE__ */ jsx("aside", {
+        className: "hidden shrink-0 lg:flex",
+        children: /* @__PURE__ */ jsx(AppSidebar, { navItems }),
+      }),
+      /* @__PURE__ */ jsxs("div", {
+        className: "flex min-w-0 flex-1 flex-col overflow-hidden",
+        children: [
+          /* @__PURE__ */ jsx(AppHeader, { navItems }),
+          /* @__PURE__ */ jsx("main", {
+            className: "flex-1 overflow-y-auto p-4 md:p-6 lg:p-8",
+            children,
+          }),
+        ],
+      }),
+    ],
+  });
+}
+//#endregion
+//#region app/components/layouts/shared/nav-config.ts
+var userNavItems = [
+  {
+    label: "Dashboard",
+    href: "/user",
+    icon: LayoutDashboard,
+    exact: true,
+  },
+  {
+    label: "Find Mentors",
+    href: "/user/mentors",
+    icon: Users,
+  },
+  {
+    label: "My Bookings",
+    href: "/user/bookings",
+    icon: CalendarCheck,
+  },
+  {
+    label: "AI Assistant",
+    href: "/user/ai-chat",
+    icon: Bot,
+  },
+  {
+    label: "Payments",
+    href: "/user/payments",
+    icon: CreditCard,
+  },
+  {
+    label: "Profile",
+    href: "/user/profile",
+    icon: UserCircle,
+  },
+];
+var mentorNavItems = [
+  {
+    label: "Dashboard",
+    href: "/mentor",
+    icon: LayoutDashboard,
+    exact: true,
+  },
+  {
+    label: "My Schedule",
+    href: "/mentor/schedule",
+    icon: CalendarDays,
+  },
+  {
+    label: "My Skills",
+    href: "/mentor/skills",
+    icon: GraduationCap,
+  },
+  {
+    label: "Bookings",
+    href: "/mentor/bookings",
+    icon: BookOpen,
+  },
+  {
+    label: "AI Assistant",
+    href: "/mentor/ai-chat",
+    icon: Bot,
+  },
+  {
+    label: "Profile",
+    href: "/mentor/profile",
+    icon: UserCircle,
+  },
+];
+var adminNavItems = [
+  {
+    label: "Dashboard",
+    href: "/admin",
+    icon: LayoutDashboard,
+    exact: true,
+  },
+  {
+    label: "Mentors",
+    href: "/admin/mentors",
+    icon: Users,
+  },
+  {
+    label: "Bookings",
+    href: "/admin/bookings",
+    icon: CalendarCheck,
+  },
+  {
+    label: "Payments",
+    href: "/admin/payments",
+    icon: CreditCard,
+  },
+  {
+    label: "System Health",
+    href: "/admin/health",
+    icon: Activity,
+  },
+];
+//#endregion
+//#region app/routes/user/_layout.tsx
+var _layout_exports$2 = /* @__PURE__ */ __exportAll({
+  HydrateFallback: () => HydrateFallback$2,
+  clientLoader: () => clientLoader$2,
+  default: () => _layout_default$2,
+});
+var clientLoader$2 = requireRole("User");
+var HydrateFallback$2 = UNSAFE_withHydrateFallbackProps(
+  function HydrateFallback() {
+    return /* @__PURE__ */ jsx("div", {
+      className: "h-screen animate-pulse bg-muted",
+    });
+  },
+);
+var _layout_default$2 = UNSAFE_withComponentProps(function UserLayout() {
+  return /* @__PURE__ */ jsx(AppLayout, {
+    navItems: userNavItems,
+    children: /* @__PURE__ */ jsx(Outlet, {}),
+  });
+});
+//#endregion
+//#region app/routes/user/dashboard.tsx
+var dashboard_exports$2 = /* @__PURE__ */ __exportAll({
+  default: () => dashboard_default$2,
+  meta: () => meta$17,
+});
+function meta$17() {
+  return [{ title: "Dashboard — MiniBooking" }];
+}
+var dashboard_default$2 = UNSAFE_withComponentProps(function UserDashboard() {
+  return /* @__PURE__ */ jsxs("div", {
+    className: "space-y-6",
+    children: [
+      /* @__PURE__ */ jsxs("div", {
+        children: [
+          /* @__PURE__ */ jsxs("h2", {
+            className: "text-2xl font-semibold tracking-tight",
+            children: ["Welcome back, ", useCurrentUser()?.fullName, " 👋"],
+          }),
+          /* @__PURE__ */ jsx("p", {
+            className: "text-muted-foreground",
+            children: "Here's what's happening with your sessions.",
+          }),
+        ],
+      }),
+      /* @__PURE__ */ jsx("div", {
+        className: "grid gap-4 sm:grid-cols-2 lg:grid-cols-3",
+        children: [
+          {
+            label: "Upcoming Bookings",
+            value: "—",
+          },
+          {
+            label: "Sessions Completed",
+            value: "—",
+          },
+          {
+            label: "Active Mentors",
+            value: "—",
+          },
+        ].map((stat) =>
+          /* @__PURE__ */ jsxs(
+            "div",
+            {
+              className: "rounded-xl border bg-card p-6 shadow-sm",
+              children: [
+                /* @__PURE__ */ jsx("p", {
+                  className: "text-sm text-muted-foreground",
+                  children: stat.label,
+                }),
+                /* @__PURE__ */ jsx("p", {
+                  className: "mt-1 text-3xl font-bold",
+                  children: stat.value,
+                }),
+              ],
+            },
+            stat.label,
+          ),
+        ),
+      }),
+    ],
+  });
+});
+//#endregion
+//#region app/routes/user/bookings.tsx
+var bookings_exports$2 = /* @__PURE__ */ __exportAll({
+  default: () => bookings_default$2,
+  meta: () => meta$16,
+});
+function meta$16() {
+  return [{ title: "My Bookings — MiniBooking" }];
+}
+var bookings_default$2 = UNSAFE_withComponentProps(function UserBookings() {
+  return /* @__PURE__ */ jsxs("div", {
+    className: "space-y-6",
+    children: [
+      /* @__PURE__ */ jsxs("div", {
+        children: [
+          /* @__PURE__ */ jsx("h2", {
+            className: "text-2xl font-semibold tracking-tight",
+            children: "My Bookings",
+          }),
+          /* @__PURE__ */ jsx("p", {
+            className: "text-muted-foreground",
+            children: "View and manage your mentoring sessions.",
+          }),
+        ],
+      }),
+      /* @__PURE__ */ jsxs("div", {
+        className:
+          "flex flex-col items-center justify-center rounded-xl border border-dashed py-16 text-center",
+        children: [
+          /* @__PURE__ */ jsx(CalendarCheck, {
+            className: "mb-4 size-10 text-muted-foreground/50",
+          }),
+          /* @__PURE__ */ jsx("p", {
+            className: "text-sm font-medium text-muted-foreground",
+            children: "No bookings yet",
+          }),
+          /* @__PURE__ */ jsx("p", {
+            className: "mt-1 text-xs text-muted-foreground/70",
+            children: "Book a session with a mentor to get started.",
+          }),
+        ],
+      }),
+    ],
+  });
+});
+//#endregion
+//#region app/routes/user/find-mentors.tsx
+var find_mentors_exports = /* @__PURE__ */ __exportAll({
+  default: () => find_mentors_default,
+  meta: () => meta$15,
+});
+function meta$15() {
+  return [{ title: "Find Mentors — MiniBooking" }];
+}
+var find_mentors_default = UNSAFE_withComponentProps(
+  function UserFindMentors() {
+    return /* @__PURE__ */ jsxs("div", {
+      className: "space-y-6",
+      children: [
+        /* @__PURE__ */ jsxs("div", {
+          children: [
+            /* @__PURE__ */ jsx("h2", {
+              className: "text-2xl font-semibold tracking-tight",
+              children: "Find Mentors",
+            }),
+            /* @__PURE__ */ jsx("p", {
+              className: "text-muted-foreground",
+              children: "Browse and connect with expert mentors.",
+            }),
+          ],
+        }),
+        /* @__PURE__ */ jsxs("div", {
+          className:
+            "flex flex-col items-center justify-center rounded-xl border border-dashed py-16 text-center",
+          children: [
+            /* @__PURE__ */ jsx(Users, {
+              className: "mb-4 size-10 text-muted-foreground/50",
+            }),
+            /* @__PURE__ */ jsx("p", {
+              className: "text-sm font-medium text-muted-foreground",
+              children: "Mentor directory coming soon",
+            }),
+          ],
+        }),
+      ],
+    });
+  },
+);
+//#endregion
+//#region app/routes/user/ai-chat.tsx
+var ai_chat_exports$1 = /* @__PURE__ */ __exportAll({
+  default: () => ai_chat_default$1,
+  meta: () => meta$14,
+});
+function meta$14() {
+  return [{ title: "AI Assistant — MiniBooking" }];
+}
+var ai_chat_default$1 = UNSAFE_withComponentProps(function UserAiChat() {
+  return /* @__PURE__ */ jsxs("div", {
+    className: "flex h-full flex-col space-y-6",
+    children: [
+      /* @__PURE__ */ jsxs("div", {
+        children: [
+          /* @__PURE__ */ jsx("h2", {
+            className: "text-2xl font-semibold tracking-tight",
+            children: "AI Assistant",
+          }),
+          /* @__PURE__ */ jsx("p", {
+            className: "text-muted-foreground",
+            children: "Get personalized guidance from our AI mentor.",
+          }),
+        ],
+      }),
+      /* @__PURE__ */ jsxs("div", {
+        className:
+          "flex flex-1 flex-col items-center justify-center rounded-xl border border-dashed py-16 text-center",
+        children: [
+          /* @__PURE__ */ jsx(Bot, {
+            className: "mb-4 size-10 text-muted-foreground/50",
+          }),
+          /* @__PURE__ */ jsx("p", {
+            className: "text-sm font-medium text-muted-foreground",
+            children: "AI chat coming soon",
+          }),
+        ],
+      }),
+    ],
+  });
+});
+//#endregion
+//#region app/routes/user/payments.tsx
+var payments_exports$1 = /* @__PURE__ */ __exportAll({
+  default: () => payments_default$1,
+  meta: () => meta$13,
+});
+function meta$13() {
+  return [{ title: "Payments — MiniBooking" }];
+}
+var payments_default$1 = UNSAFE_withComponentProps(function UserPayments() {
+  return /* @__PURE__ */ jsxs("div", {
+    className: "space-y-6",
+    children: [
+      /* @__PURE__ */ jsxs("div", {
+        children: [
+          /* @__PURE__ */ jsx("h2", {
+            className: "text-2xl font-semibold tracking-tight",
+            children: "Payments",
+          }),
+          /* @__PURE__ */ jsx("p", {
+            className: "text-muted-foreground",
+            children: "View your payment history and transactions.",
+          }),
+        ],
+      }),
+      /* @__PURE__ */ jsxs("div", {
+        className:
+          "flex flex-col items-center justify-center rounded-xl border border-dashed py-16 text-center",
+        children: [
+          /* @__PURE__ */ jsx(CreditCard, {
+            className: "mb-4 size-10 text-muted-foreground/50",
+          }),
+          /* @__PURE__ */ jsx("p", {
+            className: "text-sm font-medium text-muted-foreground",
+            children: "No payment records yet",
+          }),
+        ],
+      }),
+    ],
+  });
+});
+//#endregion
+//#region app/routes/user/profile.tsx
+var profile_exports$1 = /* @__PURE__ */ __exportAll({
+  default: () => profile_default$1,
+  meta: () => meta$12,
+});
+function meta$12() {
+  return [{ title: "Profile — MiniBooking" }];
+}
+var profile_default$1 = UNSAFE_withComponentProps(function UserProfile() {
+  const user = useCurrentUser();
+  return /* @__PURE__ */ jsxs("div", {
+    className: "space-y-6",
+    children: [
+      /* @__PURE__ */ jsxs("div", {
+        children: [
+          /* @__PURE__ */ jsx("h2", {
+            className: "text-2xl font-semibold tracking-tight",
+            children: "Profile",
+          }),
+          /* @__PURE__ */ jsx("p", {
+            className: "text-muted-foreground",
+            children: "Manage your personal information.",
+          }),
+        ],
+      }),
+      /* @__PURE__ */ jsx("div", {
+        className: "rounded-xl border bg-card p-6 shadow-sm",
+        children: /* @__PURE__ */ jsxs("div", {
+          className: "flex items-center gap-4",
+          children: [
+            /* @__PURE__ */ jsx("div", {
+              className:
+                "flex size-16 items-center justify-center rounded-full bg-primary/10",
+              children: /* @__PURE__ */ jsx(UserCircle, {
+                className: "size-8 text-primary",
+              }),
+            }),
+            /* @__PURE__ */ jsxs("div", {
+              children: [
+                /* @__PURE__ */ jsx("p", {
+                  className: "text-lg font-semibold",
+                  children: user?.fullName,
+                }),
+                /* @__PURE__ */ jsx("p", {
+                  className: "text-sm text-muted-foreground",
+                  children: user?.email,
+                }),
+                /* @__PURE__ */ jsx("p", {
+                  className: "text-sm text-muted-foreground",
+                  children: user?.phoneNumber,
+                }),
+              ],
+            }),
+          ],
+        }),
+      }),
+    ],
+  });
+});
+//#endregion
+//#region app/routes/mentor/_layout.tsx
+var _layout_exports$1 = /* @__PURE__ */ __exportAll({
+  HydrateFallback: () => HydrateFallback$1,
+  clientLoader: () => clientLoader$1,
+  default: () => _layout_default$1,
+});
+var clientLoader$1 = requireRole("Mentor");
+var HydrateFallback$1 = UNSAFE_withHydrateFallbackProps(
+  function HydrateFallback() {
+    return /* @__PURE__ */ jsx("div", {
+      className: "h-screen animate-pulse bg-muted",
+    });
+  },
+);
+var _layout_default$1 = UNSAFE_withComponentProps(function MentorLayout() {
+  return /* @__PURE__ */ jsx(AppLayout, {
+    navItems: mentorNavItems,
+    children: /* @__PURE__ */ jsx(Outlet, {}),
+  });
+});
+//#endregion
+//#region app/routes/mentor/dashboard.tsx
+var dashboard_exports$1 = /* @__PURE__ */ __exportAll({
+  default: () => dashboard_default$1,
+  meta: () => meta$11,
+});
+function meta$11() {
+  return [{ title: "Mentor Dashboard — MiniBooking" }];
+}
+var dashboard_default$1 = UNSAFE_withComponentProps(function MentorDashboard() {
+  return /* @__PURE__ */ jsxs("div", {
+    className: "space-y-6",
+    children: [
+      /* @__PURE__ */ jsxs("div", {
+        children: [
+          /* @__PURE__ */ jsxs("h2", {
+            className: "text-2xl font-semibold tracking-tight",
+            children: ["Welcome, ", useCurrentUser()?.fullName, " 👋"],
+          }),
+          /* @__PURE__ */ jsx("p", {
+            className: "text-muted-foreground",
+            children: "Manage your sessions and availability.",
+          }),
+        ],
+      }),
+      /* @__PURE__ */ jsx("div", {
+        className: "grid gap-4 sm:grid-cols-2 lg:grid-cols-3",
+        children: [
+          {
+            label: "Upcoming Sessions",
+            value: "—",
+          },
+          {
+            label: "Sessions This Month",
+            value: "—",
+          },
+          {
+            label: "Total Students",
+            value: "—",
+          },
+        ].map((stat) =>
+          /* @__PURE__ */ jsxs(
+            "div",
+            {
+              className: "rounded-xl border bg-card p-6 shadow-sm",
+              children: [
+                /* @__PURE__ */ jsx("p", {
+                  className: "text-sm text-muted-foreground",
+                  children: stat.label,
+                }),
+                /* @__PURE__ */ jsx("p", {
+                  className: "mt-1 text-3xl font-bold",
+                  children: stat.value,
+                }),
+              ],
+            },
+            stat.label,
+          ),
+        ),
+      }),
+    ],
+  });
+});
+//#endregion
+//#region app/routes/mentor/schedule.tsx
+var schedule_exports = /* @__PURE__ */ __exportAll({
+  default: () => schedule_default,
+  meta: () => meta$10,
+});
+function meta$10() {
+  return [{ title: "My Schedule — MiniBooking" }];
+}
+var schedule_default = UNSAFE_withComponentProps(function MentorSchedule() {
+  return /* @__PURE__ */ jsxs("div", {
+    className: "space-y-6",
+    children: [
+      /* @__PURE__ */ jsxs("div", {
+        children: [
+          /* @__PURE__ */ jsx("h2", {
+            className: "text-2xl font-semibold tracking-tight",
+            children: "My Schedule",
+          }),
+          /* @__PURE__ */ jsx("p", {
+            className: "text-muted-foreground",
+            children: "Manage your available time slots.",
+          }),
+        ],
+      }),
+      /* @__PURE__ */ jsxs("div", {
+        className:
+          "flex flex-col items-center justify-center rounded-xl border border-dashed py-16 text-center",
+        children: [
+          /* @__PURE__ */ jsx(CalendarDays, {
+            className: "mb-4 size-10 text-muted-foreground/50",
+          }),
+          /* @__PURE__ */ jsx("p", {
+            className: "text-sm font-medium text-muted-foreground",
+            children: "Schedule management coming soon",
+          }),
+        ],
+      }),
+    ],
+  });
+});
+//#endregion
+//#region app/routes/mentor/skills.tsx
+var skills_exports = /* @__PURE__ */ __exportAll({
+  default: () => skills_default,
+  meta: () => meta$9,
+});
+function meta$9() {
+  return [{ title: "My Skills — MiniBooking" }];
+}
+var skills_default = UNSAFE_withComponentProps(function MentorSkills() {
+  return /* @__PURE__ */ jsxs("div", {
+    className: "space-y-6",
+    children: [
+      /* @__PURE__ */ jsxs("div", {
+        children: [
+          /* @__PURE__ */ jsx("h2", {
+            className: "text-2xl font-semibold tracking-tight",
+            children: "My Skills",
+          }),
+          /* @__PURE__ */ jsx("p", {
+            className: "text-muted-foreground",
+            children: "Add and manage the skills you mentor in.",
+          }),
+        ],
+      }),
+      /* @__PURE__ */ jsxs("div", {
+        className:
+          "flex flex-col items-center justify-center rounded-xl border border-dashed py-16 text-center",
+        children: [
+          /* @__PURE__ */ jsx(GraduationCap, {
+            className: "mb-4 size-10 text-muted-foreground/50",
+          }),
+          /* @__PURE__ */ jsx("p", {
+            className: "text-sm font-medium text-muted-foreground",
+            children: "Skills management coming soon",
+          }),
+        ],
+      }),
+    ],
+  });
+});
+//#endregion
+//#region app/routes/mentor/bookings.tsx
+var bookings_exports$1 = /* @__PURE__ */ __exportAll({
+  default: () => bookings_default$1,
+  meta: () => meta$8,
+});
+function meta$8() {
+  return [{ title: "Bookings — MiniBooking" }];
+}
+var bookings_default$1 = UNSAFE_withComponentProps(function MentorBookings() {
+  return /* @__PURE__ */ jsxs("div", {
+    className: "space-y-6",
+    children: [
+      /* @__PURE__ */ jsxs("div", {
+        children: [
+          /* @__PURE__ */ jsx("h2", {
+            className: "text-2xl font-semibold tracking-tight",
+            children: "Bookings",
+          }),
+          /* @__PURE__ */ jsx("p", {
+            className: "text-muted-foreground",
+            children: "View all sessions booked with you.",
+          }),
+        ],
+      }),
+      /* @__PURE__ */ jsxs("div", {
+        className:
+          "flex flex-col items-center justify-center rounded-xl border border-dashed py-16 text-center",
+        children: [
+          /* @__PURE__ */ jsx(BookOpen, {
+            className: "mb-4 size-10 text-muted-foreground/50",
+          }),
+          /* @__PURE__ */ jsx("p", {
+            className: "text-sm font-medium text-muted-foreground",
+            children: "No bookings yet",
+          }),
+        ],
+      }),
+    ],
+  });
+});
+//#endregion
+//#region app/routes/mentor/ai-chat.tsx
+var ai_chat_exports = /* @__PURE__ */ __exportAll({
+  default: () => ai_chat_default,
+  meta: () => meta$7,
+});
+function meta$7() {
+  return [{ title: "AI Assistant — MiniBooking" }];
+}
+var ai_chat_default = UNSAFE_withComponentProps(function MentorAiChat() {
+  return /* @__PURE__ */ jsxs("div", {
+    className: "flex h-full flex-col space-y-6",
+    children: [
+      /* @__PURE__ */ jsxs("div", {
+        children: [
+          /* @__PURE__ */ jsx("h2", {
+            className: "text-2xl font-semibold tracking-tight",
+            children: "AI Assistant",
+          }),
+          /* @__PURE__ */ jsx("p", {
+            className: "text-muted-foreground",
+            children: "Get guidance and insights to improve your mentoring.",
+          }),
+        ],
+      }),
+      /* @__PURE__ */ jsxs("div", {
+        className:
+          "flex flex-1 flex-col items-center justify-center rounded-xl border border-dashed py-16 text-center",
+        children: [
+          /* @__PURE__ */ jsx(Bot, {
+            className: "mb-4 size-10 text-muted-foreground/50",
+          }),
+          /* @__PURE__ */ jsx("p", {
+            className: "text-sm font-medium text-muted-foreground",
+            children: "AI chat coming soon",
+          }),
+        ],
+      }),
+    ],
+  });
+});
+//#endregion
+//#region app/routes/mentor/profile.tsx
+var profile_exports = /* @__PURE__ */ __exportAll({
+  default: () => profile_default,
+  meta: () => meta$6,
+});
+function meta$6() {
+  return [{ title: "Profile — MiniBooking" }];
+}
+var profile_default = UNSAFE_withComponentProps(function MentorProfile() {
+  const user = useCurrentUser();
+  return /* @__PURE__ */ jsxs("div", {
+    className: "space-y-6",
+    children: [
+      /* @__PURE__ */ jsxs("div", {
+        children: [
+          /* @__PURE__ */ jsx("h2", {
+            className: "text-2xl font-semibold tracking-tight",
+            children: "Profile",
+          }),
+          /* @__PURE__ */ jsx("p", {
+            className: "text-muted-foreground",
+            children: "Manage your mentor profile and information.",
+          }),
+        ],
+      }),
+      /* @__PURE__ */ jsx("div", {
+        className: "rounded-xl border bg-card p-6 shadow-sm",
+        children: /* @__PURE__ */ jsxs("div", {
+          className: "flex items-center gap-4",
+          children: [
+            /* @__PURE__ */ jsx("div", {
+              className:
+                "flex size-16 items-center justify-center rounded-full bg-primary/10",
+              children: /* @__PURE__ */ jsx(UserCircle, {
+                className: "size-8 text-primary",
+              }),
+            }),
+            /* @__PURE__ */ jsxs("div", {
+              children: [
+                /* @__PURE__ */ jsx("p", {
+                  className: "text-lg font-semibold",
+                  children: user?.fullName,
+                }),
+                /* @__PURE__ */ jsx("p", {
+                  className: "text-sm text-muted-foreground",
+                  children: user?.email,
+                }),
+                /* @__PURE__ */ jsx("p", {
+                  className: "text-sm text-muted-foreground",
+                  children: user?.phoneNumber,
+                }),
+              ],
+            }),
+          ],
+        }),
+      }),
+    ],
+  });
+});
+//#endregion
+//#region app/routes/admin/_layout.tsx
+var _layout_exports = /* @__PURE__ */ __exportAll({
+  HydrateFallback: () => HydrateFallback,
+  clientLoader: () => clientLoader,
+  default: () => _layout_default,
+});
+var clientLoader = requireRole("Admin");
+var HydrateFallback = UNSAFE_withHydrateFallbackProps(
+  function HydrateFallback() {
+    return /* @__PURE__ */ jsx("div", {
+      className: "h-screen animate-pulse bg-muted",
+    });
+  },
+);
+var _layout_default = UNSAFE_withComponentProps(function AdminLayout() {
+  return /* @__PURE__ */ jsx(AppLayout, {
+    navItems: adminNavItems,
+    children: /* @__PURE__ */ jsx(Outlet, {}),
+  });
+});
+//#endregion
+//#region app/routes/admin/dashboard.tsx
+var dashboard_exports = /* @__PURE__ */ __exportAll({
+  default: () => dashboard_default,
+  meta: () => meta$5,
+});
+function meta$5() {
+  return [{ title: "Admin Dashboard — MiniBooking" }];
+}
+var dashboard_default = UNSAFE_withComponentProps(function AdminDashboard() {
+  return /* @__PURE__ */ jsxs("div", {
+    className: "space-y-6",
+    children: [
+      /* @__PURE__ */ jsxs("div", {
+        children: [
+          /* @__PURE__ */ jsx("h2", {
+            className: "text-2xl font-semibold tracking-tight",
+            children: "Dashboard",
+          }),
+          /* @__PURE__ */ jsx("p", {
+            className: "text-muted-foreground",
+            children: "System overview and key metrics.",
+          }),
+        ],
+      }),
+      /* @__PURE__ */ jsx("div", {
+        className: "grid gap-4 sm:grid-cols-2 lg:grid-cols-4",
+        children: [
+          {
+            label: "Total Users",
+            value: "—",
+          },
+          {
+            label: "Total Mentors",
+            value: "—",
+          },
+          {
+            label: "Bookings Today",
+            value: "—",
+          },
+          {
+            label: "Revenue This Month",
+            value: "—",
+          },
+        ].map((stat) =>
+          /* @__PURE__ */ jsxs(
+            "div",
+            {
+              className: "rounded-xl border bg-card p-6 shadow-sm",
+              children: [
+                /* @__PURE__ */ jsx("p", {
+                  className: "text-sm text-muted-foreground",
+                  children: stat.label,
+                }),
+                /* @__PURE__ */ jsx("p", {
+                  className: "mt-1 text-3xl font-bold",
+                  children: stat.value,
+                }),
+              ],
+            },
+            stat.label,
+          ),
+        ),
+      }),
+    ],
+  });
+});
+//#endregion
+//#region app/routes/admin/mentors.tsx
+var mentors_exports = /* @__PURE__ */ __exportAll({
+  default: () => mentors_default,
+  meta: () => meta$4,
+});
+function meta$4() {
+  return [{ title: "Mentors — Admin | MiniBooking" }];
+}
+var mentors_default = UNSAFE_withComponentProps(function AdminMentors() {
+  return /* @__PURE__ */ jsxs("div", {
+    className: "space-y-6",
+    children: [
+      /* @__PURE__ */ jsxs("div", {
+        children: [
+          /* @__PURE__ */ jsx("h2", {
+            className: "text-2xl font-semibold tracking-tight",
+            children: "Mentors",
+          }),
+          /* @__PURE__ */ jsx("p", {
+            className: "text-muted-foreground",
+            children: "Create and manage mentor accounts.",
+          }),
+        ],
+      }),
+      /* @__PURE__ */ jsxs("div", {
+        className:
+          "flex flex-col items-center justify-center rounded-xl border border-dashed py-16 text-center",
+        children: [
+          /* @__PURE__ */ jsx(Users, {
+            className: "mb-4 size-10 text-muted-foreground/50",
+          }),
+          /* @__PURE__ */ jsx("p", {
+            className: "text-sm font-medium text-muted-foreground",
+            children: "Mentor management coming soon",
+          }),
+        ],
+      }),
+    ],
+  });
+});
+//#endregion
+//#region app/routes/admin/bookings.tsx
+var bookings_exports = /* @__PURE__ */ __exportAll({
+  default: () => bookings_default,
+  meta: () => meta$3,
+});
+function meta$3() {
+  return [{ title: "Bookings — Admin | MiniBooking" }];
+}
+var bookings_default = UNSAFE_withComponentProps(function AdminBookings() {
+  return /* @__PURE__ */ jsxs("div", {
+    className: "space-y-6",
+    children: [
+      /* @__PURE__ */ jsxs("div", {
+        children: [
+          /* @__PURE__ */ jsx("h2", {
+            className: "text-2xl font-semibold tracking-tight",
+            children: "Bookings",
+          }),
+          /* @__PURE__ */ jsx("p", {
+            className: "text-muted-foreground",
+            children: "View and manage all bookings across the platform.",
+          }),
+        ],
+      }),
+      /* @__PURE__ */ jsxs("div", {
+        className:
+          "flex flex-col items-center justify-center rounded-xl border border-dashed py-16 text-center",
+        children: [
+          /* @__PURE__ */ jsx(CalendarCheck, {
+            className: "mb-4 size-10 text-muted-foreground/50",
+          }),
+          /* @__PURE__ */ jsx("p", {
+            className: "text-sm font-medium text-muted-foreground",
+            children: "Booking management coming soon",
+          }),
+        ],
+      }),
+    ],
+  });
+});
+//#endregion
+//#region app/routes/admin/payments.tsx
+var payments_exports = /* @__PURE__ */ __exportAll({
+  default: () => payments_default,
+  meta: () => meta$2,
+});
+function meta$2() {
+  return [{ title: "Payments — Admin | MiniBooking" }];
+}
+var payments_default = UNSAFE_withComponentProps(function AdminPayments() {
+  return /* @__PURE__ */ jsxs("div", {
+    className: "space-y-6",
+    children: [
+      /* @__PURE__ */ jsxs("div", {
+        children: [
+          /* @__PURE__ */ jsx("h2", {
+            className: "text-2xl font-semibold tracking-tight",
+            children: "Payments",
+          }),
+          /* @__PURE__ */ jsx("p", {
+            className: "text-muted-foreground",
+            children: "Monitor payment transactions and revenue.",
+          }),
+        ],
+      }),
+      /* @__PURE__ */ jsxs("div", {
+        className:
+          "flex flex-col items-center justify-center rounded-xl border border-dashed py-16 text-center",
+        children: [
+          /* @__PURE__ */ jsx(CreditCard, {
+            className: "mb-4 size-10 text-muted-foreground/50",
+          }),
+          /* @__PURE__ */ jsx("p", {
+            className: "text-sm font-medium text-muted-foreground",
+            children: "Payment management coming soon",
+          }),
+        ],
+      }),
+    ],
+  });
+});
+//#endregion
+//#region app/routes/admin/health.tsx
+var health_exports = /* @__PURE__ */ __exportAll({
+  default: () => health_default,
+  meta: () => meta$1,
+});
+function meta$1() {
+  return [{ title: "System Health — Admin | MiniBooking" }];
+}
+var health_default = UNSAFE_withComponentProps(function AdminHealth() {
+  return /* @__PURE__ */ jsxs("div", {
+    className: "space-y-6",
+    children: [
+      /* @__PURE__ */ jsxs("div", {
+        children: [
+          /* @__PURE__ */ jsx("h2", {
+            className: "text-2xl font-semibold tracking-tight",
+            children: "System Health",
+          }),
+          /* @__PURE__ */ jsx("p", {
+            className: "text-muted-foreground",
+            children: "Monitor API status and service health.",
+          }),
+        ],
+      }),
+      /* @__PURE__ */ jsx("div", {
+        className: "rounded-xl border bg-card p-6 shadow-sm",
+        children: /* @__PURE__ */ jsxs("div", {
+          className: "flex items-center gap-3",
+          children: [
+            /* @__PURE__ */ jsx(Activity, {
+              className: "size-5 text-muted-foreground",
+            }),
+            /* @__PURE__ */ jsx("span", {
+              className: "text-sm font-medium",
+              children: "API Status",
+            }),
+            /* @__PURE__ */ jsxs("div", {
+              className:
+                "ml-auto flex items-center gap-1.5 text-sm font-medium text-emerald-600",
+              children: [
+                /* @__PURE__ */ jsx(CheckCircle, { className: "size-4" }),
+                "Operational",
+              ],
+            }),
+          ],
+        }),
+      }),
+    ],
+  });
+});
+//#endregion
+//#region app/routes/errors/unauthorized.tsx
+var unauthorized_exports = /* @__PURE__ */ __exportAll({
+  default: () => unauthorized_default,
   meta: () => meta,
 });
+function meta() {
+  return [{ title: "Unauthorized — MiniBooking" }];
+}
+var unauthorized_default = UNSAFE_withComponentProps(
+  function UnauthorizedPage() {
+    return /* @__PURE__ */ jsx("div", {
+      className:
+        "flex min-h-screen items-center justify-center bg-background p-4",
+      children: /* @__PURE__ */ jsxs("div", {
+        className: "w-full max-w-md space-y-6 text-center",
+        children: [
+          /* @__PURE__ */ jsx("div", {
+            className: "flex justify-center",
+            children: /* @__PURE__ */ jsx("div", {
+              className:
+                "flex size-20 items-center justify-center rounded-full bg-destructive/10",
+              children: /* @__PURE__ */ jsx(ShieldX, {
+                className: "size-10 text-destructive",
+              }),
+            }),
+          }),
+          /* @__PURE__ */ jsxs("div", {
+            className: "space-y-2",
+            children: [
+              /* @__PURE__ */ jsx("h1", {
+                className: "text-2xl font-semibold tracking-tight",
+                children: "Access Denied",
+              }),
+              /* @__PURE__ */ jsx("p", {
+                className: "text-muted-foreground",
+                children:
+                  "You don't have permission to view this page. Please contact an administrator if you believe this is a mistake.",
+              }),
+            ],
+          }),
+          /* @__PURE__ */ jsxs("div", {
+            className: "flex flex-col gap-2 sm:flex-row sm:justify-center",
+            children: [
+              /* @__PURE__ */ jsx(Button, {
+                asChild: true,
+                variant: "default",
+                children: /* @__PURE__ */ jsx(Link, {
+                  to: "/",
+                  children: "Go Home",
+                }),
+              }),
+              /* @__PURE__ */ jsx(Button, {
+                asChild: true,
+                variant: "outline",
+                children: /* @__PURE__ */ jsx(Link, {
+                  to: "/login",
+                  children: "Sign In",
+                }),
+              }),
+            ],
+          }),
+        ],
+      }),
+    });
+  },
+);
 //#endregion
 //#region \0virtual:react-router/server-manifest
 var server_manifest_default = {
   entry: {
-    module: "/assets/entry.client-BkgyedHx.js",
+    module: "/assets/entry.client-DE5nelOy.js",
     imports: [
-      "/assets/jsx-runtime-CAzG7qJ5.js",
-      "/assets/chunk-5KNZJZUH-D0Qj9TTb.js",
-      "/assets/react-dom-dMens3Cl.js",
+      "/assets/jsx-runtime-D0R9s8hK.js",
+      "/assets/chunk-5KNZJZUH-C906xdEM.js",
+      "/assets/react-dom-CuViyZo3.js",
     ],
     css: [],
   },
@@ -2314,17 +3803,18 @@ var server_manifest_default = {
       hasClientMiddleware: false,
       hasDefaultExport: true,
       hasErrorBoundary: true,
-      module: "/assets/root-nIC8NSxo.js",
+      module: "/assets/root-N6RJCCuF.js",
       imports: [
-        "/assets/jsx-runtime-CAzG7qJ5.js",
-        "/assets/chunk-5KNZJZUH-D0Qj9TTb.js",
-        "/assets/react-dom-dMens3Cl.js",
-        "/assets/auth.store-vFxwWdJE.js",
-        "/assets/createLucideIcon-DIem-QJH.js",
-        "/assets/circle-check-DIFduJ4p.js",
-        "/assets/loader-circle-CXbg7Cgp.js",
+        "/assets/jsx-runtime-D0R9s8hK.js",
+        "/assets/chunk-5KNZJZUH-C906xdEM.js",
+        "/assets/react-dom-CuViyZo3.js",
+        "/assets/auth.store-U8lf-bmK.js",
+        "/assets/createLucideIcon-CcmGBDAZ.js",
+        "/assets/circle-check-Dw8m6_p6.js",
+        "/assets/loader-circle-bNwxySZM.js",
+        "/assets/dist-BzhCrnqt.js",
       ],
-      css: ["/assets/root-CikxycWZ.css"],
+      css: ["/assets/root-Ag4K7PW2.css"],
       clientActionModule: void 0,
       clientLoaderModule: void 0,
       clientMiddlewareModule: void 0,
@@ -2339,20 +3829,26 @@ var server_manifest_default = {
       hasAction: false,
       hasLoader: false,
       hasClientAction: false,
-      hasClientLoader: false,
+      hasClientLoader: true,
       hasClientMiddleware: false,
       hasDefaultExport: true,
       hasErrorBoundary: false,
-      module: "/assets/_layout-DIhIjZ8o.js",
+      module: "/assets/_layout-CNUUr0Kh.js",
       imports: [
-        "/assets/jsx-runtime-CAzG7qJ5.js",
-        "/assets/chunk-5KNZJZUH-D0Qj9TTb.js",
-        "/assets/button-DXwXqNSz.js",
-        "/assets/separator-8f2NwZMe.js",
-        "/assets/dist-D9HvU-dc.js",
-        "/assets/createLucideIcon-DIem-QJH.js",
-        "/assets/calendar-days-BOHnMUrY.js",
-        "/assets/react-dom-dMens3Cl.js",
+        "/assets/jsx-runtime-D0R9s8hK.js",
+        "/assets/chunk-5KNZJZUH-C906xdEM.js",
+        "/assets/avatar-CDlKaHys.js",
+        "/assets/button-DwAmr52O.js",
+        "/assets/separator-CTbzZobJ.js",
+        "/assets/sheet-CR4o6XAE.js",
+        "/assets/use-auth-B44xwUsB.js",
+        "/assets/auth.service-Bdt1FuOd.js",
+        "/assets/auth.store-U8lf-bmK.js",
+        "/assets/calendar-days-CVX6VkNj.js",
+        "/assets/circle-user-BYgSlSbd.js",
+        "/assets/dist-U9yTH5Ng.js",
+        "/assets/react-dom-CuViyZo3.js",
+        "/assets/createLucideIcon-CcmGBDAZ.js",
       ],
       css: [],
       clientActionModule: void 0,
@@ -2373,16 +3869,19 @@ var server_manifest_default = {
       hasClientMiddleware: false,
       hasDefaultExport: true,
       hasErrorBoundary: false,
-      module: "/assets/home-CkObzHMM.js",
+      module: "/assets/home-CIe3uUyq.js",
       imports: [
-        "/assets/jsx-runtime-CAzG7qJ5.js",
-        "/assets/chunk-5KNZJZUH-D0Qj9TTb.js",
-        "/assets/badge-B7zb_CxP.js",
-        "/assets/button-DXwXqNSz.js",
-        "/assets/separator-8f2NwZMe.js",
-        "/assets/createLucideIcon-DIem-QJH.js",
-        "/assets/circle-check-DIFduJ4p.js",
-        "/assets/react-dom-dMens3Cl.js",
+        "/assets/jsx-runtime-D0R9s8hK.js",
+        "/assets/chunk-5KNZJZUH-C906xdEM.js",
+        "/assets/badge-B6h3YhWd.js",
+        "/assets/button-DwAmr52O.js",
+        "/assets/separator-CTbzZobJ.js",
+        "/assets/createLucideIcon-CcmGBDAZ.js",
+        "/assets/calendar-check-036uFykA.js",
+        "/assets/circle-check-Dw8m6_p6.js",
+        "/assets/users-QJx7Xv8k.js",
+        "/assets/dist-U9yTH5Ng.js",
+        "/assets/react-dom-CuViyZo3.js",
       ],
       css: [],
       clientActionModule: void 0,
@@ -2403,14 +3902,16 @@ var server_manifest_default = {
       hasClientMiddleware: false,
       hasDefaultExport: true,
       hasErrorBoundary: false,
-      module: "/assets/about-D8tBN2dQ.js",
+      module: "/assets/about-0XrJ9hiJ.js",
       imports: [
-        "/assets/jsx-runtime-CAzG7qJ5.js",
-        "/assets/badge-B7zb_CxP.js",
-        "/assets/separator-8f2NwZMe.js",
-        "/assets/dist-D9HvU-dc.js",
-        "/assets/createLucideIcon-DIem-QJH.js",
-        "/assets/react-dom-dMens3Cl.js",
+        "/assets/jsx-runtime-D0R9s8hK.js",
+        "/assets/avatar-CDlKaHys.js",
+        "/assets/badge-B6h3YhWd.js",
+        "/assets/separator-CTbzZobJ.js",
+        "/assets/createLucideIcon-CcmGBDAZ.js",
+        "/assets/users-QJx7Xv8k.js",
+        "/assets/dist-U9yTH5Ng.js",
+        "/assets/react-dom-CuViyZo3.js",
       ],
       css: [],
       clientActionModule: void 0,
@@ -2427,14 +3928,16 @@ var server_manifest_default = {
       hasAction: false,
       hasLoader: false,
       hasClientAction: false,
-      hasClientLoader: false,
+      hasClientLoader: true,
       hasClientMiddleware: false,
       hasDefaultExport: true,
       hasErrorBoundary: false,
-      module: "/assets/_layout-s09XA58U.js",
+      module: "/assets/_layout-Dbnt0gwx.js",
       imports: [
-        "/assets/jsx-runtime-CAzG7qJ5.js",
-        "/assets/chunk-5KNZJZUH-D0Qj9TTb.js",
+        "/assets/jsx-runtime-D0R9s8hK.js",
+        "/assets/chunk-5KNZJZUH-C906xdEM.js",
+        "/assets/require-role-BJYB-2Yk.js",
+        "/assets/auth.store-U8lf-bmK.js",
       ],
       css: [],
       clientActionModule: void 0,
@@ -2455,18 +3958,22 @@ var server_manifest_default = {
       hasClientMiddleware: false,
       hasDefaultExport: true,
       hasErrorBoundary: false,
-      module: "/assets/login-XgYl6byK.js",
+      module: "/assets/login-BJJ-4Zbq.js",
       imports: [
-        "/assets/jsx-runtime-CAzG7qJ5.js",
-        "/assets/chunk-5KNZJZUH-D0Qj9TTb.js",
-        "/assets/schemas-C2PMZ5kw.js",
-        "/assets/button-DXwXqNSz.js",
-        "/assets/auth.store-vFxwWdJE.js",
-        "/assets/loader-circle-CXbg7Cgp.js",
-        "/assets/separator-8f2NwZMe.js",
-        "/assets/createLucideIcon-DIem-QJH.js",
-        "/assets/calendar-days-BOHnMUrY.js",
-        "/assets/react-dom-dMens3Cl.js",
+        "/assets/jsx-runtime-D0R9s8hK.js",
+        "/assets/chunk-5KNZJZUH-C906xdEM.js",
+        "/assets/schemas-CmfKEtqt.js",
+        "/assets/button-DwAmr52O.js",
+        "/assets/api-error-wP_70dsA.js",
+        "/assets/auth.service-Bdt1FuOd.js",
+        "/assets/auth.store-U8lf-bmK.js",
+        "/assets/loader-circle-bNwxySZM.js",
+        "/assets/dist-BzhCrnqt.js",
+        "/assets/separator-CTbzZobJ.js",
+        "/assets/dist-U9yTH5Ng.js",
+        "/assets/createLucideIcon-CcmGBDAZ.js",
+        "/assets/calendar-days-CVX6VkNj.js",
+        "/assets/react-dom-CuViyZo3.js",
       ],
       css: [],
       clientActionModule: void 0,
@@ -2487,17 +3994,627 @@ var server_manifest_default = {
       hasClientMiddleware: false,
       hasDefaultExport: true,
       hasErrorBoundary: false,
-      module: "/assets/register-DOCXcEyd.js",
+      module: "/assets/register-DT88hnyD.js",
       imports: [
-        "/assets/jsx-runtime-CAzG7qJ5.js",
-        "/assets/chunk-5KNZJZUH-D0Qj9TTb.js",
-        "/assets/schemas-C2PMZ5kw.js",
-        "/assets/button-DXwXqNSz.js",
-        "/assets/loader-circle-CXbg7Cgp.js",
-        "/assets/separator-8f2NwZMe.js",
-        "/assets/createLucideIcon-DIem-QJH.js",
-        "/assets/calendar-days-BOHnMUrY.js",
-        "/assets/react-dom-dMens3Cl.js",
+        "/assets/jsx-runtime-D0R9s8hK.js",
+        "/assets/chunk-5KNZJZUH-C906xdEM.js",
+        "/assets/schemas-CmfKEtqt.js",
+        "/assets/button-DwAmr52O.js",
+        "/assets/api-error-wP_70dsA.js",
+        "/assets/auth.service-Bdt1FuOd.js",
+        "/assets/loader-circle-bNwxySZM.js",
+        "/assets/dist-BzhCrnqt.js",
+        "/assets/separator-CTbzZobJ.js",
+        "/assets/dist-U9yTH5Ng.js",
+        "/assets/createLucideIcon-CcmGBDAZ.js",
+        "/assets/calendar-days-CVX6VkNj.js",
+        "/assets/react-dom-CuViyZo3.js",
+      ],
+      css: [],
+      clientActionModule: void 0,
+      clientLoaderModule: void 0,
+      clientMiddlewareModule: void 0,
+      hydrateFallbackModule: void 0,
+    },
+    "routes/user/_layout": {
+      id: "routes/user/_layout",
+      parentId: "root",
+      path: void 0,
+      index: void 0,
+      caseSensitive: void 0,
+      hasAction: false,
+      hasLoader: false,
+      hasClientAction: false,
+      hasClientLoader: true,
+      hasClientMiddleware: false,
+      hasDefaultExport: true,
+      hasErrorBoundary: false,
+      module: "/assets/_layout-Bgx-CXR9.js",
+      imports: [
+        "/assets/jsx-runtime-D0R9s8hK.js",
+        "/assets/chunk-5KNZJZUH-C906xdEM.js",
+        "/assets/nav-config-lz1XTaL7.js",
+        "/assets/require-role-BJYB-2Yk.js",
+        "/assets/avatar-CDlKaHys.js",
+        "/assets/button-DwAmr52O.js",
+        "/assets/separator-CTbzZobJ.js",
+        "/assets/sheet-CR4o6XAE.js",
+        "/assets/auth.service-Bdt1FuOd.js",
+        "/assets/dist-U9yTH5Ng.js",
+        "/assets/auth.store-U8lf-bmK.js",
+        "/assets/activity-DpAHtI9C.js",
+        "/assets/book-open-BWD5Gq0U.js",
+        "/assets/bot-D5Q7sFzH.js",
+        "/assets/calendar-check-036uFykA.js",
+        "/assets/calendar-days-CVX6VkNj.js",
+        "/assets/circle-user-BYgSlSbd.js",
+        "/assets/credit-card-BiPk2xTW.js",
+        "/assets/graduation-cap-C9Li4Dvj.js",
+        "/assets/users-QJx7Xv8k.js",
+        "/assets/dist-BzhCrnqt.js",
+        "/assets/react-dom-CuViyZo3.js",
+        "/assets/createLucideIcon-CcmGBDAZ.js",
+      ],
+      css: [],
+      clientActionModule: void 0,
+      clientLoaderModule: void 0,
+      clientMiddlewareModule: void 0,
+      hydrateFallbackModule: void 0,
+    },
+    "routes/user/dashboard": {
+      id: "routes/user/dashboard",
+      parentId: "routes/user/_layout",
+      path: "user",
+      index: void 0,
+      caseSensitive: void 0,
+      hasAction: false,
+      hasLoader: false,
+      hasClientAction: false,
+      hasClientLoader: false,
+      hasClientMiddleware: false,
+      hasDefaultExport: true,
+      hasErrorBoundary: false,
+      module: "/assets/dashboard-D4aXl35q.js",
+      imports: [
+        "/assets/jsx-runtime-D0R9s8hK.js",
+        "/assets/chunk-5KNZJZUH-C906xdEM.js",
+        "/assets/use-auth-B44xwUsB.js",
+        "/assets/auth.store-U8lf-bmK.js",
+      ],
+      css: [],
+      clientActionModule: void 0,
+      clientLoaderModule: void 0,
+      clientMiddlewareModule: void 0,
+      hydrateFallbackModule: void 0,
+    },
+    "routes/user/bookings": {
+      id: "routes/user/bookings",
+      parentId: "routes/user/_layout",
+      path: "user/bookings",
+      index: void 0,
+      caseSensitive: void 0,
+      hasAction: false,
+      hasLoader: false,
+      hasClientAction: false,
+      hasClientLoader: false,
+      hasClientMiddleware: false,
+      hasDefaultExport: true,
+      hasErrorBoundary: false,
+      module: "/assets/bookings--7Z4GXwk.js",
+      imports: [
+        "/assets/jsx-runtime-D0R9s8hK.js",
+        "/assets/chunk-5KNZJZUH-C906xdEM.js",
+        "/assets/calendar-check-036uFykA.js",
+        "/assets/createLucideIcon-CcmGBDAZ.js",
+      ],
+      css: [],
+      clientActionModule: void 0,
+      clientLoaderModule: void 0,
+      clientMiddlewareModule: void 0,
+      hydrateFallbackModule: void 0,
+    },
+    "routes/user/find-mentors": {
+      id: "routes/user/find-mentors",
+      parentId: "routes/user/_layout",
+      path: "user/mentors",
+      index: void 0,
+      caseSensitive: void 0,
+      hasAction: false,
+      hasLoader: false,
+      hasClientAction: false,
+      hasClientLoader: false,
+      hasClientMiddleware: false,
+      hasDefaultExport: true,
+      hasErrorBoundary: false,
+      module: "/assets/find-mentors-Cajp0lxD.js",
+      imports: [
+        "/assets/jsx-runtime-D0R9s8hK.js",
+        "/assets/chunk-5KNZJZUH-C906xdEM.js",
+        "/assets/users-QJx7Xv8k.js",
+        "/assets/createLucideIcon-CcmGBDAZ.js",
+      ],
+      css: [],
+      clientActionModule: void 0,
+      clientLoaderModule: void 0,
+      clientMiddlewareModule: void 0,
+      hydrateFallbackModule: void 0,
+    },
+    "routes/user/ai-chat": {
+      id: "routes/user/ai-chat",
+      parentId: "routes/user/_layout",
+      path: "user/ai-chat",
+      index: void 0,
+      caseSensitive: void 0,
+      hasAction: false,
+      hasLoader: false,
+      hasClientAction: false,
+      hasClientLoader: false,
+      hasClientMiddleware: false,
+      hasDefaultExport: true,
+      hasErrorBoundary: false,
+      module: "/assets/ai-chat-DSS8ShH2.js",
+      imports: [
+        "/assets/jsx-runtime-D0R9s8hK.js",
+        "/assets/chunk-5KNZJZUH-C906xdEM.js",
+        "/assets/bot-D5Q7sFzH.js",
+        "/assets/createLucideIcon-CcmGBDAZ.js",
+      ],
+      css: [],
+      clientActionModule: void 0,
+      clientLoaderModule: void 0,
+      clientMiddlewareModule: void 0,
+      hydrateFallbackModule: void 0,
+    },
+    "routes/user/payments": {
+      id: "routes/user/payments",
+      parentId: "routes/user/_layout",
+      path: "user/payments",
+      index: void 0,
+      caseSensitive: void 0,
+      hasAction: false,
+      hasLoader: false,
+      hasClientAction: false,
+      hasClientLoader: false,
+      hasClientMiddleware: false,
+      hasDefaultExport: true,
+      hasErrorBoundary: false,
+      module: "/assets/payments-6T423BMr.js",
+      imports: [
+        "/assets/jsx-runtime-D0R9s8hK.js",
+        "/assets/chunk-5KNZJZUH-C906xdEM.js",
+        "/assets/credit-card-BiPk2xTW.js",
+        "/assets/createLucideIcon-CcmGBDAZ.js",
+      ],
+      css: [],
+      clientActionModule: void 0,
+      clientLoaderModule: void 0,
+      clientMiddlewareModule: void 0,
+      hydrateFallbackModule: void 0,
+    },
+    "routes/user/profile": {
+      id: "routes/user/profile",
+      parentId: "routes/user/_layout",
+      path: "user/profile",
+      index: void 0,
+      caseSensitive: void 0,
+      hasAction: false,
+      hasLoader: false,
+      hasClientAction: false,
+      hasClientLoader: false,
+      hasClientMiddleware: false,
+      hasDefaultExport: true,
+      hasErrorBoundary: false,
+      module: "/assets/profile-B40Fw77W.js",
+      imports: [
+        "/assets/jsx-runtime-D0R9s8hK.js",
+        "/assets/chunk-5KNZJZUH-C906xdEM.js",
+        "/assets/use-auth-B44xwUsB.js",
+        "/assets/circle-user-BYgSlSbd.js",
+        "/assets/auth.store-U8lf-bmK.js",
+        "/assets/createLucideIcon-CcmGBDAZ.js",
+      ],
+      css: [],
+      clientActionModule: void 0,
+      clientLoaderModule: void 0,
+      clientMiddlewareModule: void 0,
+      hydrateFallbackModule: void 0,
+    },
+    "routes/mentor/_layout": {
+      id: "routes/mentor/_layout",
+      parentId: "root",
+      path: void 0,
+      index: void 0,
+      caseSensitive: void 0,
+      hasAction: false,
+      hasLoader: false,
+      hasClientAction: false,
+      hasClientLoader: true,
+      hasClientMiddleware: false,
+      hasDefaultExport: true,
+      hasErrorBoundary: false,
+      module: "/assets/_layout-Kpyw5xqT.js",
+      imports: [
+        "/assets/jsx-runtime-D0R9s8hK.js",
+        "/assets/chunk-5KNZJZUH-C906xdEM.js",
+        "/assets/nav-config-lz1XTaL7.js",
+        "/assets/require-role-BJYB-2Yk.js",
+        "/assets/avatar-CDlKaHys.js",
+        "/assets/button-DwAmr52O.js",
+        "/assets/separator-CTbzZobJ.js",
+        "/assets/sheet-CR4o6XAE.js",
+        "/assets/auth.service-Bdt1FuOd.js",
+        "/assets/dist-U9yTH5Ng.js",
+        "/assets/auth.store-U8lf-bmK.js",
+        "/assets/activity-DpAHtI9C.js",
+        "/assets/book-open-BWD5Gq0U.js",
+        "/assets/bot-D5Q7sFzH.js",
+        "/assets/calendar-check-036uFykA.js",
+        "/assets/calendar-days-CVX6VkNj.js",
+        "/assets/circle-user-BYgSlSbd.js",
+        "/assets/credit-card-BiPk2xTW.js",
+        "/assets/graduation-cap-C9Li4Dvj.js",
+        "/assets/users-QJx7Xv8k.js",
+        "/assets/dist-BzhCrnqt.js",
+        "/assets/react-dom-CuViyZo3.js",
+        "/assets/createLucideIcon-CcmGBDAZ.js",
+      ],
+      css: [],
+      clientActionModule: void 0,
+      clientLoaderModule: void 0,
+      clientMiddlewareModule: void 0,
+      hydrateFallbackModule: void 0,
+    },
+    "routes/mentor/dashboard": {
+      id: "routes/mentor/dashboard",
+      parentId: "routes/mentor/_layout",
+      path: "mentor",
+      index: void 0,
+      caseSensitive: void 0,
+      hasAction: false,
+      hasLoader: false,
+      hasClientAction: false,
+      hasClientLoader: false,
+      hasClientMiddleware: false,
+      hasDefaultExport: true,
+      hasErrorBoundary: false,
+      module: "/assets/dashboard-DwQcmc0N.js",
+      imports: [
+        "/assets/jsx-runtime-D0R9s8hK.js",
+        "/assets/chunk-5KNZJZUH-C906xdEM.js",
+        "/assets/use-auth-B44xwUsB.js",
+        "/assets/auth.store-U8lf-bmK.js",
+      ],
+      css: [],
+      clientActionModule: void 0,
+      clientLoaderModule: void 0,
+      clientMiddlewareModule: void 0,
+      hydrateFallbackModule: void 0,
+    },
+    "routes/mentor/schedule": {
+      id: "routes/mentor/schedule",
+      parentId: "routes/mentor/_layout",
+      path: "mentor/schedule",
+      index: void 0,
+      caseSensitive: void 0,
+      hasAction: false,
+      hasLoader: false,
+      hasClientAction: false,
+      hasClientLoader: false,
+      hasClientMiddleware: false,
+      hasDefaultExport: true,
+      hasErrorBoundary: false,
+      module: "/assets/schedule-S7XEnNd-.js",
+      imports: [
+        "/assets/jsx-runtime-D0R9s8hK.js",
+        "/assets/chunk-5KNZJZUH-C906xdEM.js",
+        "/assets/calendar-days-CVX6VkNj.js",
+        "/assets/createLucideIcon-CcmGBDAZ.js",
+      ],
+      css: [],
+      clientActionModule: void 0,
+      clientLoaderModule: void 0,
+      clientMiddlewareModule: void 0,
+      hydrateFallbackModule: void 0,
+    },
+    "routes/mentor/skills": {
+      id: "routes/mentor/skills",
+      parentId: "routes/mentor/_layout",
+      path: "mentor/skills",
+      index: void 0,
+      caseSensitive: void 0,
+      hasAction: false,
+      hasLoader: false,
+      hasClientAction: false,
+      hasClientLoader: false,
+      hasClientMiddleware: false,
+      hasDefaultExport: true,
+      hasErrorBoundary: false,
+      module: "/assets/skills-cNkCd3tw.js",
+      imports: [
+        "/assets/jsx-runtime-D0R9s8hK.js",
+        "/assets/chunk-5KNZJZUH-C906xdEM.js",
+        "/assets/graduation-cap-C9Li4Dvj.js",
+        "/assets/createLucideIcon-CcmGBDAZ.js",
+      ],
+      css: [],
+      clientActionModule: void 0,
+      clientLoaderModule: void 0,
+      clientMiddlewareModule: void 0,
+      hydrateFallbackModule: void 0,
+    },
+    "routes/mentor/bookings": {
+      id: "routes/mentor/bookings",
+      parentId: "routes/mentor/_layout",
+      path: "mentor/bookings",
+      index: void 0,
+      caseSensitive: void 0,
+      hasAction: false,
+      hasLoader: false,
+      hasClientAction: false,
+      hasClientLoader: false,
+      hasClientMiddleware: false,
+      hasDefaultExport: true,
+      hasErrorBoundary: false,
+      module: "/assets/bookings-CMMVUjkF.js",
+      imports: [
+        "/assets/jsx-runtime-D0R9s8hK.js",
+        "/assets/chunk-5KNZJZUH-C906xdEM.js",
+        "/assets/book-open-BWD5Gq0U.js",
+        "/assets/createLucideIcon-CcmGBDAZ.js",
+      ],
+      css: [],
+      clientActionModule: void 0,
+      clientLoaderModule: void 0,
+      clientMiddlewareModule: void 0,
+      hydrateFallbackModule: void 0,
+    },
+    "routes/mentor/ai-chat": {
+      id: "routes/mentor/ai-chat",
+      parentId: "routes/mentor/_layout",
+      path: "mentor/ai-chat",
+      index: void 0,
+      caseSensitive: void 0,
+      hasAction: false,
+      hasLoader: false,
+      hasClientAction: false,
+      hasClientLoader: false,
+      hasClientMiddleware: false,
+      hasDefaultExport: true,
+      hasErrorBoundary: false,
+      module: "/assets/ai-chat-CYkG_eaJ.js",
+      imports: [
+        "/assets/jsx-runtime-D0R9s8hK.js",
+        "/assets/chunk-5KNZJZUH-C906xdEM.js",
+        "/assets/bot-D5Q7sFzH.js",
+        "/assets/createLucideIcon-CcmGBDAZ.js",
+      ],
+      css: [],
+      clientActionModule: void 0,
+      clientLoaderModule: void 0,
+      clientMiddlewareModule: void 0,
+      hydrateFallbackModule: void 0,
+    },
+    "routes/mentor/profile": {
+      id: "routes/mentor/profile",
+      parentId: "routes/mentor/_layout",
+      path: "mentor/profile",
+      index: void 0,
+      caseSensitive: void 0,
+      hasAction: false,
+      hasLoader: false,
+      hasClientAction: false,
+      hasClientLoader: false,
+      hasClientMiddleware: false,
+      hasDefaultExport: true,
+      hasErrorBoundary: false,
+      module: "/assets/profile-B1TSTZWK.js",
+      imports: [
+        "/assets/jsx-runtime-D0R9s8hK.js",
+        "/assets/chunk-5KNZJZUH-C906xdEM.js",
+        "/assets/use-auth-B44xwUsB.js",
+        "/assets/circle-user-BYgSlSbd.js",
+        "/assets/auth.store-U8lf-bmK.js",
+        "/assets/createLucideIcon-CcmGBDAZ.js",
+      ],
+      css: [],
+      clientActionModule: void 0,
+      clientLoaderModule: void 0,
+      clientMiddlewareModule: void 0,
+      hydrateFallbackModule: void 0,
+    },
+    "routes/admin/_layout": {
+      id: "routes/admin/_layout",
+      parentId: "root",
+      path: void 0,
+      index: void 0,
+      caseSensitive: void 0,
+      hasAction: false,
+      hasLoader: false,
+      hasClientAction: false,
+      hasClientLoader: true,
+      hasClientMiddleware: false,
+      hasDefaultExport: true,
+      hasErrorBoundary: false,
+      module: "/assets/_layout-DqFnXIsc.js",
+      imports: [
+        "/assets/jsx-runtime-D0R9s8hK.js",
+        "/assets/chunk-5KNZJZUH-C906xdEM.js",
+        "/assets/nav-config-lz1XTaL7.js",
+        "/assets/require-role-BJYB-2Yk.js",
+        "/assets/avatar-CDlKaHys.js",
+        "/assets/button-DwAmr52O.js",
+        "/assets/separator-CTbzZobJ.js",
+        "/assets/sheet-CR4o6XAE.js",
+        "/assets/auth.service-Bdt1FuOd.js",
+        "/assets/dist-U9yTH5Ng.js",
+        "/assets/auth.store-U8lf-bmK.js",
+        "/assets/activity-DpAHtI9C.js",
+        "/assets/book-open-BWD5Gq0U.js",
+        "/assets/bot-D5Q7sFzH.js",
+        "/assets/calendar-check-036uFykA.js",
+        "/assets/calendar-days-CVX6VkNj.js",
+        "/assets/circle-user-BYgSlSbd.js",
+        "/assets/credit-card-BiPk2xTW.js",
+        "/assets/graduation-cap-C9Li4Dvj.js",
+        "/assets/users-QJx7Xv8k.js",
+        "/assets/dist-BzhCrnqt.js",
+        "/assets/react-dom-CuViyZo3.js",
+        "/assets/createLucideIcon-CcmGBDAZ.js",
+      ],
+      css: [],
+      clientActionModule: void 0,
+      clientLoaderModule: void 0,
+      clientMiddlewareModule: void 0,
+      hydrateFallbackModule: void 0,
+    },
+    "routes/admin/dashboard": {
+      id: "routes/admin/dashboard",
+      parentId: "routes/admin/_layout",
+      path: "admin",
+      index: void 0,
+      caseSensitive: void 0,
+      hasAction: false,
+      hasLoader: false,
+      hasClientAction: false,
+      hasClientLoader: false,
+      hasClientMiddleware: false,
+      hasDefaultExport: true,
+      hasErrorBoundary: false,
+      module: "/assets/dashboard-Cv_iIgEG.js",
+      imports: [
+        "/assets/jsx-runtime-D0R9s8hK.js",
+        "/assets/chunk-5KNZJZUH-C906xdEM.js",
+      ],
+      css: [],
+      clientActionModule: void 0,
+      clientLoaderModule: void 0,
+      clientMiddlewareModule: void 0,
+      hydrateFallbackModule: void 0,
+    },
+    "routes/admin/mentors": {
+      id: "routes/admin/mentors",
+      parentId: "routes/admin/_layout",
+      path: "admin/mentors",
+      index: void 0,
+      caseSensitive: void 0,
+      hasAction: false,
+      hasLoader: false,
+      hasClientAction: false,
+      hasClientLoader: false,
+      hasClientMiddleware: false,
+      hasDefaultExport: true,
+      hasErrorBoundary: false,
+      module: "/assets/mentors-DXHSwT73.js",
+      imports: [
+        "/assets/jsx-runtime-D0R9s8hK.js",
+        "/assets/chunk-5KNZJZUH-C906xdEM.js",
+        "/assets/users-QJx7Xv8k.js",
+        "/assets/createLucideIcon-CcmGBDAZ.js",
+      ],
+      css: [],
+      clientActionModule: void 0,
+      clientLoaderModule: void 0,
+      clientMiddlewareModule: void 0,
+      hydrateFallbackModule: void 0,
+    },
+    "routes/admin/bookings": {
+      id: "routes/admin/bookings",
+      parentId: "routes/admin/_layout",
+      path: "admin/bookings",
+      index: void 0,
+      caseSensitive: void 0,
+      hasAction: false,
+      hasLoader: false,
+      hasClientAction: false,
+      hasClientLoader: false,
+      hasClientMiddleware: false,
+      hasDefaultExport: true,
+      hasErrorBoundary: false,
+      module: "/assets/bookings-uD45shQW.js",
+      imports: [
+        "/assets/jsx-runtime-D0R9s8hK.js",
+        "/assets/chunk-5KNZJZUH-C906xdEM.js",
+        "/assets/calendar-check-036uFykA.js",
+        "/assets/createLucideIcon-CcmGBDAZ.js",
+      ],
+      css: [],
+      clientActionModule: void 0,
+      clientLoaderModule: void 0,
+      clientMiddlewareModule: void 0,
+      hydrateFallbackModule: void 0,
+    },
+    "routes/admin/payments": {
+      id: "routes/admin/payments",
+      parentId: "routes/admin/_layout",
+      path: "admin/payments",
+      index: void 0,
+      caseSensitive: void 0,
+      hasAction: false,
+      hasLoader: false,
+      hasClientAction: false,
+      hasClientLoader: false,
+      hasClientMiddleware: false,
+      hasDefaultExport: true,
+      hasErrorBoundary: false,
+      module: "/assets/payments-CKMgnIx0.js",
+      imports: [
+        "/assets/jsx-runtime-D0R9s8hK.js",
+        "/assets/chunk-5KNZJZUH-C906xdEM.js",
+        "/assets/credit-card-BiPk2xTW.js",
+        "/assets/createLucideIcon-CcmGBDAZ.js",
+      ],
+      css: [],
+      clientActionModule: void 0,
+      clientLoaderModule: void 0,
+      clientMiddlewareModule: void 0,
+      hydrateFallbackModule: void 0,
+    },
+    "routes/admin/health": {
+      id: "routes/admin/health",
+      parentId: "routes/admin/_layout",
+      path: "admin/health",
+      index: void 0,
+      caseSensitive: void 0,
+      hasAction: false,
+      hasLoader: false,
+      hasClientAction: false,
+      hasClientLoader: false,
+      hasClientMiddleware: false,
+      hasDefaultExport: true,
+      hasErrorBoundary: false,
+      module: "/assets/health-CjM6MaDA.js",
+      imports: [
+        "/assets/jsx-runtime-D0R9s8hK.js",
+        "/assets/chunk-5KNZJZUH-C906xdEM.js",
+        "/assets/createLucideIcon-CcmGBDAZ.js",
+        "/assets/activity-DpAHtI9C.js",
+      ],
+      css: [],
+      clientActionModule: void 0,
+      clientLoaderModule: void 0,
+      clientMiddlewareModule: void 0,
+      hydrateFallbackModule: void 0,
+    },
+    "routes/errors/unauthorized": {
+      id: "routes/errors/unauthorized",
+      parentId: "root",
+      path: "unauthorized",
+      index: void 0,
+      caseSensitive: void 0,
+      hasAction: false,
+      hasLoader: false,
+      hasClientAction: false,
+      hasClientLoader: false,
+      hasClientMiddleware: false,
+      hasDefaultExport: true,
+      hasErrorBoundary: false,
+      module: "/assets/unauthorized-Ds6IihRR.js",
+      imports: [
+        "/assets/jsx-runtime-D0R9s8hK.js",
+        "/assets/chunk-5KNZJZUH-C906xdEM.js",
+        "/assets/button-DwAmr52O.js",
+        "/assets/createLucideIcon-CcmGBDAZ.js",
+        "/assets/dist-U9yTH5Ng.js",
       ],
       css: [],
       clientActionModule: void 0,
@@ -2506,8 +4623,8 @@ var server_manifest_default = {
       hydrateFallbackModule: void 0,
     },
   },
-  url: "/assets/manifest-f90c6546.js",
-  version: "f90c6546",
+  url: "/assets/manifest-8dfcf08e.js",
+  version: "8dfcf08e",
   sri: void 0,
 };
 //#endregion
@@ -2547,7 +4664,7 @@ var routes = {
     path: void 0,
     index: void 0,
     caseSensitive: void 0,
-    module: _layout_exports$1,
+    module: _layout_exports$4,
   },
   "routes/public/home": {
     id: "routes/public/home",
@@ -2571,7 +4688,7 @@ var routes = {
     path: void 0,
     index: void 0,
     caseSensitive: void 0,
-    module: _layout_exports,
+    module: _layout_exports$3,
   },
   "routes/auth/login": {
     id: "routes/auth/login",
@@ -2588,6 +4705,174 @@ var routes = {
     index: void 0,
     caseSensitive: void 0,
     module: register_exports,
+  },
+  "routes/user/_layout": {
+    id: "routes/user/_layout",
+    parentId: "root",
+    path: void 0,
+    index: void 0,
+    caseSensitive: void 0,
+    module: _layout_exports$2,
+  },
+  "routes/user/dashboard": {
+    id: "routes/user/dashboard",
+    parentId: "routes/user/_layout",
+    path: "user",
+    index: void 0,
+    caseSensitive: void 0,
+    module: dashboard_exports$2,
+  },
+  "routes/user/bookings": {
+    id: "routes/user/bookings",
+    parentId: "routes/user/_layout",
+    path: "user/bookings",
+    index: void 0,
+    caseSensitive: void 0,
+    module: bookings_exports$2,
+  },
+  "routes/user/find-mentors": {
+    id: "routes/user/find-mentors",
+    parentId: "routes/user/_layout",
+    path: "user/mentors",
+    index: void 0,
+    caseSensitive: void 0,
+    module: find_mentors_exports,
+  },
+  "routes/user/ai-chat": {
+    id: "routes/user/ai-chat",
+    parentId: "routes/user/_layout",
+    path: "user/ai-chat",
+    index: void 0,
+    caseSensitive: void 0,
+    module: ai_chat_exports$1,
+  },
+  "routes/user/payments": {
+    id: "routes/user/payments",
+    parentId: "routes/user/_layout",
+    path: "user/payments",
+    index: void 0,
+    caseSensitive: void 0,
+    module: payments_exports$1,
+  },
+  "routes/user/profile": {
+    id: "routes/user/profile",
+    parentId: "routes/user/_layout",
+    path: "user/profile",
+    index: void 0,
+    caseSensitive: void 0,
+    module: profile_exports$1,
+  },
+  "routes/mentor/_layout": {
+    id: "routes/mentor/_layout",
+    parentId: "root",
+    path: void 0,
+    index: void 0,
+    caseSensitive: void 0,
+    module: _layout_exports$1,
+  },
+  "routes/mentor/dashboard": {
+    id: "routes/mentor/dashboard",
+    parentId: "routes/mentor/_layout",
+    path: "mentor",
+    index: void 0,
+    caseSensitive: void 0,
+    module: dashboard_exports$1,
+  },
+  "routes/mentor/schedule": {
+    id: "routes/mentor/schedule",
+    parentId: "routes/mentor/_layout",
+    path: "mentor/schedule",
+    index: void 0,
+    caseSensitive: void 0,
+    module: schedule_exports,
+  },
+  "routes/mentor/skills": {
+    id: "routes/mentor/skills",
+    parentId: "routes/mentor/_layout",
+    path: "mentor/skills",
+    index: void 0,
+    caseSensitive: void 0,
+    module: skills_exports,
+  },
+  "routes/mentor/bookings": {
+    id: "routes/mentor/bookings",
+    parentId: "routes/mentor/_layout",
+    path: "mentor/bookings",
+    index: void 0,
+    caseSensitive: void 0,
+    module: bookings_exports$1,
+  },
+  "routes/mentor/ai-chat": {
+    id: "routes/mentor/ai-chat",
+    parentId: "routes/mentor/_layout",
+    path: "mentor/ai-chat",
+    index: void 0,
+    caseSensitive: void 0,
+    module: ai_chat_exports,
+  },
+  "routes/mentor/profile": {
+    id: "routes/mentor/profile",
+    parentId: "routes/mentor/_layout",
+    path: "mentor/profile",
+    index: void 0,
+    caseSensitive: void 0,
+    module: profile_exports,
+  },
+  "routes/admin/_layout": {
+    id: "routes/admin/_layout",
+    parentId: "root",
+    path: void 0,
+    index: void 0,
+    caseSensitive: void 0,
+    module: _layout_exports,
+  },
+  "routes/admin/dashboard": {
+    id: "routes/admin/dashboard",
+    parentId: "routes/admin/_layout",
+    path: "admin",
+    index: void 0,
+    caseSensitive: void 0,
+    module: dashboard_exports,
+  },
+  "routes/admin/mentors": {
+    id: "routes/admin/mentors",
+    parentId: "routes/admin/_layout",
+    path: "admin/mentors",
+    index: void 0,
+    caseSensitive: void 0,
+    module: mentors_exports,
+  },
+  "routes/admin/bookings": {
+    id: "routes/admin/bookings",
+    parentId: "routes/admin/_layout",
+    path: "admin/bookings",
+    index: void 0,
+    caseSensitive: void 0,
+    module: bookings_exports,
+  },
+  "routes/admin/payments": {
+    id: "routes/admin/payments",
+    parentId: "routes/admin/_layout",
+    path: "admin/payments",
+    index: void 0,
+    caseSensitive: void 0,
+    module: payments_exports,
+  },
+  "routes/admin/health": {
+    id: "routes/admin/health",
+    parentId: "routes/admin/_layout",
+    path: "admin/health",
+    index: void 0,
+    caseSensitive: void 0,
+    module: health_exports,
+  },
+  "routes/errors/unauthorized": {
+    id: "routes/errors/unauthorized",
+    parentId: "root",
+    path: "unauthorized",
+    index: void 0,
+    caseSensitive: void 0,
+    module: unauthorized_exports,
   },
 };
 var allowedActionOrigins = false;

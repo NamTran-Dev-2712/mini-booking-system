@@ -1,5 +1,12 @@
-﻿import { Link, NavLink } from "react-router";
-import { CalendarDays, Menu } from "lucide-react";
+﻿import { Link, NavLink, useNavigate } from "react-router";
+import {
+  CalendarDays,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  UserCircle,
+} from "lucide-react";
+import { Avatar, AvatarFallback } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 import {
   Sheet,
@@ -8,6 +15,16 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "~/components/ui/sheet";
+import { Separator } from "~/components/ui/separator";
+import { authService } from "~/services/auth/auth.service";
+import { useAuthStore } from "~/stores/auth.store";
+import { useCurrentUser, usePrimaryRole } from "~/hooks/use-auth";
+
+const ROLE_DASHBOARD: Record<string, string> = {
+  Admin: "/admin",
+  Mentor: "/mentor",
+  User: "/user",
+};
 
 const navLinks = [
   { to: "/", label: "Home" },
@@ -15,6 +32,31 @@ const navLinks = [
 ];
 
 export default function PublicHeader() {
+  const navigate = useNavigate();
+  const user = useCurrentUser();
+  const primaryRole = usePrimaryRole();
+  const clearUser = useAuthStore((s) => s.clearUser);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+
+  const dashboardHref = ROLE_DASHBOARD[primaryRole ?? ""] ?? "/";
+  const initials = (user?.fullName ?? "?")
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  async function handleLogout() {
+    try {
+      await authService.logout();
+    } catch {
+      // clear client state regardless
+    } finally {
+      clearUser();
+      navigate("/login");
+    }
+  }
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/95 backdrop-blur-sm">
       <div className="container mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
@@ -47,14 +89,48 @@ export default function PublicHeader() {
           ))}
         </nav>
 
-        {/* Desktop CTA */}
+        {/* Desktop CTA — switches based on auth state */}
         <div className="hidden md:flex items-center gap-2">
-          <Button variant="ghost" size="sm" asChild>
-            <Link to="/login">Sign In</Link>
-          </Button>
-          <Button size="sm" asChild>
-            <Link to="/register">Sign Up</Link>
-          </Button>
+          {isAuthenticated ? (
+            <>
+              <Button variant="ghost" size="sm" asChild>
+                <Link to={dashboardHref} className="flex items-center gap-1.5">
+                  <LayoutDashboard className="size-3.5" />
+                  Dashboard
+                </Link>
+              </Button>
+
+              <div className="flex items-center gap-2 pl-1">
+                <Avatar className="size-8">
+                  <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-sm font-medium leading-tight max-w-[120px] truncate">
+                  {user?.fullName}
+                </span>
+              </div>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleLogout}
+                className="text-muted-foreground hover:text-destructive"
+              >
+                <LogOut className="size-3.5" />
+                Sign Out
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/login">Sign In</Link>
+              </Button>
+              <Button size="sm" asChild>
+                <Link to="/register">Sign Up</Link>
+              </Button>
+            </>
+          )}
         </div>
 
         {/* Mobile menu */}
@@ -90,14 +166,64 @@ export default function PublicHeader() {
                 </NavLink>
               ))}
             </div>
-            <div className="mt-6 flex flex-col gap-2 px-1">
-              <Button variant="outline" asChild>
-                <Link to="/login">Sign In</Link>
-              </Button>
-              <Button asChild>
-                <Link to="/register">Sign Up</Link>
-              </Button>
-            </div>
+
+            <Separator className="my-4" />
+
+            {isAuthenticated ? (
+              <div className="flex flex-col gap-2 px-1">
+                {/* User info */}
+                <div className="flex items-center gap-3 rounded-lg bg-muted px-3 py-2.5">
+                  <Avatar className="size-8 shrink-0">
+                    <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary">
+                      {initials}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium">
+                      {user?.fullName}
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {user?.email}
+                    </p>
+                  </div>
+                </div>
+
+                <Button variant="outline" asChild>
+                  <Link to={dashboardHref} className="flex items-center gap-2">
+                    <LayoutDashboard className="size-4" />
+                    Go to Dashboard
+                  </Link>
+                </Button>
+
+                <Button asChild variant="ghost">
+                  <Link
+                    to={`/${primaryRole?.toLowerCase()}/profile`}
+                    className="flex items-center gap-2"
+                  >
+                    <UserCircle className="size-4" />
+                    My Profile
+                  </Link>
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  onClick={handleLogout}
+                  className="justify-start text-muted-foreground hover:text-destructive"
+                >
+                  <LogOut className="size-4" />
+                  Sign Out
+                </Button>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2 px-1">
+                <Button variant="outline" asChild>
+                  <Link to="/login">Sign In</Link>
+                </Button>
+                <Button asChild>
+                  <Link to="/register">Sign Up</Link>
+                </Button>
+              </div>
+            )}
           </SheetContent>
         </Sheet>
       </div>

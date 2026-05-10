@@ -7,6 +7,12 @@ import { authService } from "~/services/auth/auth.service";
 import { useAuthStore } from "~/stores/auth.store";
 import { loginSchema, type LoginFormData } from "./login.schema";
 
+const ROLE_REDIRECT: Record<string, string> = {
+  Admin: "/admin",
+  Mentor: "/mentor",
+  User: "/user",
+};
+
 export function useLoginForm() {
   const navigate = useNavigate();
   const setUser = useAuthStore((state) => state.setUser);
@@ -30,10 +36,12 @@ export function useLoginForm() {
         fullName: result.fullName,
         email: result.email,
         phoneNumber: result.phoneNumber,
+        roles: result.roles,
         expiresIn: result.expiresIn,
         createdAt: result.createdAt,
       });
-      navigate("/");
+      const primaryRole = result.roles[0] ?? "User";
+      navigate(ROLE_REDIRECT[primaryRole] ?? "/");
     } catch (error) {
       toast.error(getApiErrorMessage(error));
     }

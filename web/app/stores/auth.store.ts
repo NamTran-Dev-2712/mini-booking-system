@@ -7,6 +7,7 @@ export interface AuthUser {
   fullName: string;
   email: string;
   phoneNumber: string;
+  roles: string[];
   expiresIn: string; // ISO string — access token expiry (for client-side UX hints)
   createdAt: string;
 }

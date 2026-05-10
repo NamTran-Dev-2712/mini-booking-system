@@ -90,13 +90,14 @@ public class IdentityService : IIdentityService
             throw new UnauthorizedException("Invalid email or password.");
 
         // Generate tokens
+        var roles = await _userManager.GetRolesAsync(user);
         var tokenResult = await _tokenService.GenerateTokensAsync(
             new UserTokenData
             {
                 UserId = user.Id,
                 Email = user.Email ?? string.Empty,
                 FullName = user.FullName,
-                Roles = await _userManager.GetRolesAsync(user),
+                Roles = roles,
             }
         );
 
@@ -116,7 +117,8 @@ public class IdentityService : IIdentityService
             RefreshToken: tokenResult.RefreshToken,
             ExpiresIn: _tokenService.GetAccessTokenExpiry(),
             RefreshTokenExpiresAt: tokenResult.RefreshTokenExpiry,
-            CreatedAt: user.CreatedAt
+            CreatedAt: user.CreatedAt,
+            Roles: roles
         );
     }
 
@@ -140,19 +142,21 @@ public class IdentityService : IIdentityService
     {
         var user = await _userManager
             .Users.Where(u => u.Id == userId)
-            .Select(u => new UserDTO(
-                Id: u.Id,
-                FullName: u.FullName,
-                Email: u.Email ?? string.Empty,
-                PhoneNumber: u.PhoneNumber ?? string.Empty,
-                CreatedAt: u.CreatedAt
-            ))
             .FirstOrDefaultAsync(cancellationToken);
 
         if (user is null)
             throw new NotFoundException("User", userId);
 
-        return user;
+        var roles = await _userManager.GetRolesAsync(user);
+
+        return new UserDTO(
+            Id: user.Id,
+            FullName: user.FullName,
+            Email: user.Email ?? string.Empty,
+            PhoneNumber: user.PhoneNumber ?? string.Empty,
+            CreatedAt: user.CreatedAt,
+            Roles: roles
+        );
     }
 
     public async Task<AuthResult> RefreshTokenAsync(
@@ -172,13 +176,14 @@ public class IdentityService : IIdentityService
             throw new UnauthorizedException("User not found for the provided refresh token.");
 
         // Generate new tokens
+        var roles = await _userManager.GetRolesAsync(user);
         var tokenResult = await _tokenService.GenerateTokensAsync(
             new UserTokenData
             {
                 UserId = user.Id,
                 Email = user.Email ?? string.Empty,
                 FullName = user.FullName,
-                Roles = await _userManager.GetRolesAsync(user),
+                Roles = roles,
             }
         );
 
@@ -198,7 +203,8 @@ public class IdentityService : IIdentityService
             RefreshToken: tokenResult.RefreshToken,
             ExpiresIn: _tokenService.GetAccessTokenExpiry(),
             RefreshTokenExpiresAt: tokenResult.RefreshTokenExpiry,
-            CreatedAt: user.CreatedAt
+            CreatedAt: user.CreatedAt,
+            Roles: roles
         );
     }
 }

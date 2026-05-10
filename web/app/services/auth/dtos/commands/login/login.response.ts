@@ -4,6 +4,7 @@ export interface LoginResponse {
   fullName: string;
   email: string;
   phoneNumber: string;
+  roles: string[];
   expiresIn: string; // ISO datetime — access token expiry
   refreshTokenExpiresAt: string;
   createdAt: string;

@@ -3,5 +3,6 @@ public record UserDTO(
     string FullName,
     string Email,
     string PhoneNumber,
-    DateTime CreatedAt
+    DateTime CreatedAt,
+    IEnumerable<string> Roles
 );

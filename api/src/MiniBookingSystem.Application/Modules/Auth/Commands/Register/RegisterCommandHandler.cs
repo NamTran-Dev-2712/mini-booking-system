@@ -20,11 +20,12 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, UserDTO>
         );
 
         return new UserDTO(
-            userId,
-            request.FullName,
-            request.Email,
-            request.PhoneNumber,
-            DateTime.UtcNow
+            Id: userId,
+            FullName: request.FullName,
+            Email: request.Email,
+            PhoneNumber: request.PhoneNumber,
+            CreatedAt: DateTime.UtcNow,
+            Roles: ["User"]
         );
     }
 }
