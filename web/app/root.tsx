@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import {
   isRouteErrorResponse,
   Links,
@@ -8,6 +9,8 @@ import {
 } from "react-router";
 
 import type { Route } from "./+types/root";
+import { Toaster } from "~/components/ui/sonner";
+import { useAuthStore } from "~/stores/auth.store";
 import "./app.css";
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -29,7 +32,18 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  return <Outlet />;
+  // Rehydrate the Zustand store from localStorage on the client.
+  // skipHydration: true prevents this running during SSR.
+  useEffect(() => {
+    useAuthStore.persist.rehydrate();
+  }, []);
+
+  return (
+    <>
+      <Outlet />
+      <Toaster richColors position="top-right" />
+    </>
+  );
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {

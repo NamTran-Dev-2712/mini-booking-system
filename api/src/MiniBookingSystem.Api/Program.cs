@@ -46,14 +46,20 @@ try
 
     app.UseExceptionHandler();
 
+    // Must be first so that Connection.RemoteIpAddress is already the real
+    // client IP before CORS, Auth, and RateLimiter middleware run.
+    app.UseForwardedHeaders();
+
     app.UseHttpsRedirection();
 
     app.UseCors("DefaultCors");
 
-    app.UseRateLimiter();
-
     app.UseAuthentication();
     app.UseAuthorization();
+
+    // UseRateLimiter must run AFTER UseAuthentication/UseAuthorization so that
+    // user-based rate limit policies (Booking, AI) can read HttpContext.User claims.
+    app.UseRateLimiter();
 
     app.UseOutputCache();
 

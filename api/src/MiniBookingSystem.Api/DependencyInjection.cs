@@ -1,8 +1,11 @@
+using System.Net;
 using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Serilog;
 
 public static class DependencyInjection
 {
@@ -13,6 +16,32 @@ public static class DependencyInjection
     {
         // Add controller
         services.AddControllers();
+
+        // Configure forwarded headers so the real client IP is available behind
+        // nginx/Traefik/Caddy in production. Works transparently in local dev
+        // (no proxy → no X-Forwarded-For header → middleware does nothing).
+        services.Configure<ForwardedHeadersOptions>(options =>
+        {
+            options.ForwardedHeaders =
+                ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+
+            // Only trust explicitly listed proxy IPs (from config).
+            // Clear defaults so unknown proxies cannot spoof X-Forwarded-For.
+            options.KnownIPNetworks.Clear();
+            options.KnownProxies.Clear();
+
+            var trustedProxies =
+                configuration
+                    .GetSection(ConfigurationValue.ReverseProxyTrustedProxies)
+                    .Get<string[]>()
+                ?? [];
+
+            foreach (var proxy in trustedProxies)
+            {
+                if (IPAddress.TryParse(proxy, out var ip))
+                    options.KnownProxies.Add(ip);
+            }
+        });
 
         // Add docs API
         services.AddOpenApi(options =>
@@ -125,7 +154,9 @@ public static class DependencyInjection
                 CacheKeys.AuthRateLimitPolicy,
                 httpContext =>
                 {
-                    var ip = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+                    var ip = NormalizeIp(httpContext.Connection.RemoteIpAddress);
+
+                    Log.Information("Client IP for rate limiting: {Ip}", ip);
 
                     return RateLimitPartition.GetFixedWindowLimiter(
                         partitionKey: ip,
@@ -146,8 +177,7 @@ public static class DependencyInjection
                 {
                     var userId =
                         httpContext.User.FindFirst("sub")?.Value
-                        ?? httpContext.Connection.RemoteIpAddress?.ToString()
-                        ?? "anonymous";
+                        ?? NormalizeIp(httpContext.Connection.RemoteIpAddress);
 
                     return RateLimitPartition.GetSlidingWindowLimiter(
                         partitionKey: userId,
@@ -167,7 +197,9 @@ public static class DependencyInjection
                 CacheKeys.AiRateLimitPolicy,
                 httpContext =>
                 {
-                    var userId = httpContext.User.FindFirst("sub")?.Value ?? "anonymous";
+                    var userId =
+                        httpContext.User.FindFirst("sub")?.Value
+                        ?? NormalizeIp(httpContext.Connection.RemoteIpAddress);
 
                     return RateLimitPartition.GetTokenBucketLimiter(
                         partitionKey: userId,
@@ -185,5 +217,22 @@ public static class DependencyInjection
         });
 
         return services;
+    }
+
+    /// <summary>
+    /// Normalizes loopback IPv6 variants to IPv4 so that browser (::1) and
+    /// Postman/curl (127.0.0.1) share the same rate-limit partition.
+    /// ::1               → 127.0.0.1
+    /// ::ffff:127.0.0.1  → 127.0.0.1
+    /// </summary>
+    private static string NormalizeIp(System.Net.IPAddress? ip)
+    {
+        if (ip == null)
+            return "unknown";
+        if (ip.IsIPv4MappedToIPv6)
+            ip = ip.MapToIPv4();
+        if (ip.Equals(System.Net.IPAddress.IPv6Loopback))
+            return System.Net.IPAddress.Loopback.ToString();
+        return ip.ToString();
     }
 }
