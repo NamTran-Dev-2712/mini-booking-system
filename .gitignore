@@ -660,3 +660,4 @@ appsettings.*.json
 .vscode/
 postgres_data/
 redis_data/
+.react-router
