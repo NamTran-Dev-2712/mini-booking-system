@@ -29,6 +29,7 @@ const ROLE_DASHBOARD: Record<string, string> = {
 const navLinks = [
   { to: "/", label: "Home" },
   { to: "/about", label: "About" },
+  { to: "/mentors", label: "Mentors" },
 ];
 
 export default function PublicHeader() {

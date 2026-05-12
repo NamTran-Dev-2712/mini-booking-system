@@ -1,4 +1,4 @@
-import { Users } from "lucide-react";
+import { MentorListContainer } from "~/components/shared/mentor/mentor-list-container";
 
 export function meta() {
   return [{ title: "Find Mentors — MiniBooking" }];
@@ -14,12 +14,7 @@ export default function UserFindMentors() {
         </p>
       </div>
 
-      <div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-16 text-center">
-        <Users className="mb-4 size-10 text-muted-foreground/50" />
-        <p className="text-sm font-medium text-muted-foreground">
-          Mentor directory coming soon
-        </p>
-      </div>
+      <MentorListContainer detailBasePath="/user/mentors" defaultPageSize={9} />
     </div>
   );
 }

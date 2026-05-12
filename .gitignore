@@ -663,3 +663,4 @@ redis_data/
 .react-router
 .kiro
 build
+.claude

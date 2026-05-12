@@ -6,17 +6,16 @@ import {
 } from "@tanstack/react-table";
 import { useQueryClient } from "@tanstack/react-query";
 import { RefreshCw, UserPlus } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { useHotkeys } from "react-hotkeys-hook";
-import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
 import { Kbd } from "~/components/ui/kbd";
 import { DataTable } from "~/components/shared/data-table/data-table";
 import { DataTablePagination } from "~/components/shared/data-table/data-table-pagination";
 import { DataTableViewOptions } from "~/components/shared/data-table/data-table-view-options";
 import { CommandPalette } from "~/components/shared/command-palette";
+import { MentorFilterPanel } from "~/components/shared/mentor/mentor-filter-panel";
 import { useCommandPalette } from "~/hooks/use-command-palette";
 import { useMentorsQuery } from "~/hooks/mentor/use-mentors-query";
 import { HotkeyScopes } from "~/lib/hotkeys/hotkey-scopes";
@@ -37,7 +36,6 @@ export function MentorListPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const qc = useQueryClient();
-  const searchRef = useRef<HTMLInputElement>(null);
 
   // ── URL-driven filter state ──────────────────────────────────────────────
   const filters = parseMentorFilters(searchParams);
@@ -48,7 +46,6 @@ export function MentorListPage() {
   const [deleteMentor, setDeleteMentor] = useState<Mentor | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
   const [highlightedId, setHighlightedId] = useState<string | undefined>();
-  const [searchInput, setSearchInput] = useState(filters.searchTerm ?? "");
   const commandPalette = useCommandPalette();
 
   // ── Data ─────────────────────────────────────────────────────────────────
@@ -95,29 +92,8 @@ export function MentorListPage() {
     setSearchParams(next, { replace: true });
   }
 
-  // Debounced search
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (searchInput !== (filters.searchTerm ?? "")) {
-        updateFilters({ searchTerm: searchInput || undefined, pageNumber: 1 });
-      }
-    }, 350);
-    return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchInput]);
-
   // ── Keyboard navigation ──────────────────────────────────────────────────
   const isFormOpen = createOpen || !!editMentor || !!deleteMentor;
-
-  // Focus search
-  useHotkeys(
-    "slash",
-    (e) => {
-      e.preventDefault();
-      searchRef.current?.focus();
-    },
-    { scopes: HotkeyScopes.MentorList, enabled: !isFormOpen },
-  );
 
   // New mentor
   useHotkeys("n", () => setCreateOpen(true), {
@@ -226,31 +202,7 @@ export function MentorListPage() {
             Create and manage mentor accounts.
           </p>
         </div>
-        <Button
-          onClick={() => setCreateOpen(true)}
-          className="gap-2 self-start sm:self-auto"
-        >
-          <UserPlus className="size-4" />
-          New Mentor
-          <Kbd className="ml-1">N</Kbd>
-        </Button>
-      </div>
-
-      {/* Toolbar */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="relative flex-1">
-          <Input
-            ref={searchRef}
-            placeholder="Search mentors..."
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            className="h-9 pr-8"
-            aria-label="Search mentors"
-          />
-          <Kbd className="absolute right-2 top-1/2 -translate-y-1/2">/</Kbd>
-        </div>
-
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 self-start sm:self-auto">
           {/* Refresh button */}
           <Button
             variant="outline"
@@ -271,33 +223,17 @@ export function MentorListPage() {
 
           {/* Column visibility */}
           <DataTableViewOptions table={table} />
+
+          <Button onClick={() => setCreateOpen(true)} className="gap-2">
+            <UserPlus className="size-4" />
+            New Mentor
+            <Kbd className="ml-1">N</Kbd>
+          </Button>
         </div>
       </div>
 
-      {/* Active filters summary */}
-      {(filters.searchTerm ||
-        filters.minBasePrice != null ||
-        filters.maxBasePrice != null ||
-        filters.minExperienceYears != null ||
-        filters.maxExperienceYears != null) && (
-        <div className="flex flex-wrap gap-2">
-          {filters.searchTerm && (
-            <Badge variant="secondary" className="gap-1 text-xs">
-              Search: {filters.searchTerm}
-              <button
-                onClick={() => {
-                  setSearchInput("");
-                  updateFilters({ searchTerm: undefined, pageNumber: 1 });
-                }}
-                className="ml-1 hover:text-foreground"
-                aria-label="Clear search"
-              >
-                ×
-              </button>
-            </Badge>
-          )}
-        </div>
-      )}
+      {/* Filter panel — shared component with search + advanced filters */}
+      <MentorFilterPanel filters={filters} onFilterChange={updateFilters} />
 
       {/* Table — desktop */}
       <div className="hidden md:block">

@@ -55,7 +55,7 @@ export function AppHeader({ navItems }: AppHeaderProps) {
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
         <SheetContent
           side="left"
-          className="w-[260px] p-0"
+          className="w-[260px] p-0 gap-0"
           showCloseButton={false}
         >
           <AppSidebar

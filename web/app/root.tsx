@@ -52,9 +52,10 @@ export default function App() {
           <Toaster richColors position="top-right" />
         </TooltipProvider>
       </HydrationBoundary>
-      {import.meta.env.DEV && (
+      {/* TanStack Query Devtools — để bật lại, uncomment block dưới đây */}
+      {/* {import.meta.env.DEV && (
         <ReactQueryDevtools buttonPosition="bottom-left" />
-      )}
+      )} */}
     </QueryClientProvider>
   );
 }
