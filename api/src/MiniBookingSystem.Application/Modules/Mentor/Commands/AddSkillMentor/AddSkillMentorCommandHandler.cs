@@ -4,10 +4,12 @@ using MediatR;
 public class AddSkillMentorCommandHandler : IRequestHandler<AddSkillMentorCommand, Guid>
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ICacheService _cacheService;
 
-    public AddSkillMentorCommandHandler(IUnitOfWork unitOfWork)
+    public AddSkillMentorCommandHandler(IUnitOfWork unitOfWork, ICacheService cacheService)
     {
         _unitOfWork = unitOfWork;
+        _cacheService = cacheService;
     }
 
     public async Task<Guid> Handle(
@@ -38,6 +40,10 @@ public class AddSkillMentorCommandHandler : IRequestHandler<AddSkillMentorComman
         await _unitOfWork.MentorSkill.AddAsync(mentorSkill, cancellationToken);
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await _cacheService.RemoveAsync(
+            CacheKeys.MentorDetail(request.MentorId),
+            cancellationToken
+        );
         return request.MentorId;
     }
 }

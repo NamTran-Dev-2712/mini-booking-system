@@ -4,6 +4,7 @@ public class MentorDto
     public Guid UserId { get; init; }
     public string DisplayName { get; init; } = default!;
     public string Email { get; init; } = default!;
+    public string? PhoneNumber { get; init; }
     public string? Bio { get; init; }
     public string? Specialization { get; init; }
     public int ExperienceYears { get; init; }

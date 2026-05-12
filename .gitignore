@@ -661,3 +661,5 @@ appsettings.*.json
 postgres_data/
 redis_data/
 .react-router
+.kiro
+build

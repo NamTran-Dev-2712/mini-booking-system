@@ -62,6 +62,35 @@ public class MentorController : BaseApiController
         return CreatedResponse(result, "Skill added to mentor successfully");
     }
 
+    [HttpDelete("{id:guid}/skills/{skillId:guid}")]
+    [Authorize(Roles = "Admin, Mentor")]
+    public async Task<IActionResult> RemoveSkillFromMentor(
+        Guid id,
+        Guid skillId,
+        CancellationToken cancellationToken
+    )
+    {
+        // check if user is mentor and trying to remove skill from other mentor
+        if (User.IsInRole(Roles.Mentor.ToString()))
+        {
+            var userIdClaim = User.Claims.FirstOrDefault(c =>
+                c.Type == JwtRegisteredClaimNames.Sub
+            );
+            if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
+                return FailureResponse<Guid>(401, "Invalid user ID in token.");
+
+            if (userId != id)
+                return FailureResponse<Guid>(
+                    403,
+                    "You can only remove skills from your own profile."
+                );
+        }
+
+        var command = new RemoveSkillMentorCommand(id, skillId);
+        await _mediator.Send(command, cancellationToken);
+        return NoContentResponse("Skill removed from mentor successfully");
+    }
+
     [HttpPost("{id:guid}/slots")]
     [Authorize(Roles = "Admin, Mentor")]
     public async Task<IActionResult> CreateSlot(

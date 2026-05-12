@@ -1,15 +1,20 @@
-using FluentValidation;
 using MediatR;
 
 public class GetMentorDetailHandler : IRequestHandler<GetMentorDetailQuery, MentorDetailDTO>
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICacheService _cacheService;
+    private readonly IIdentityService _identityService;
 
-    public GetMentorDetailHandler(IUnitOfWork unitOfWork, ICacheService cacheService)
+    public GetMentorDetailHandler(
+        IUnitOfWork unitOfWork,
+        ICacheService cacheService,
+        IIdentityService identityService
+    )
     {
         _unitOfWork = unitOfWork;
         _cacheService = cacheService;
+        _identityService = identityService;
     }
 
     public async Task<MentorDetailDTO> Handle(
@@ -26,6 +31,11 @@ public class GetMentorDetailHandler : IRequestHandler<GetMentorDetailQuery, Ment
         if (mentor == null)
             throw new NotFoundException($"Mentor", request.MentorId.ToString());
 
+        // Fetch the linked user profile to get PhoneNumber.
+        // IIdentityService.GetProfileAsync reads from ASP.NET Identity (ApplicationUser),
+        // which is the authoritative source for phone number.
+        var userProfile = await _identityService.GetProfileAsync(mentor.UserId, cancellationToken);
+
         var mentorSkills = await _unitOfWork.MentorSkill.GetAllAsync(ms =>
             ms.MentorId == request.MentorId
         );
@@ -38,7 +48,17 @@ public class GetMentorDetailHandler : IRequestHandler<GetMentorDetailQuery, Ment
         {
             Id = mentor.Id,
             UserId = mentor.UserId,
+            DisplayName = mentor.DisplayName,
+            Email = mentor.Email,
+            PhoneNumber = userProfile.PhoneNumber,
             Bio = mentor.Bio,
+            Specialization = mentor.Specialization,
+            ExperienceYears = mentor.ExperienceYears,
+            BasePrice = mentor.BasePrice,
+            AvatarUrl = mentor.AvatarUrl,
+            IsActive = mentor.IsActive,
+            // Guard against legacy rows that have DateTime.MinValue (0001-01-01) stored in DB.
+            CreatedAt = mentor.CreatedAt == default ? DateTime.UtcNow : mentor.CreatedAt,
             Skills = mentorSkills
                 .Select(ms => new MentorSkillDTO { Id = ms.Id, SkillName = ms.SkillName })
                 .ToList(),
@@ -50,6 +70,8 @@ public class GetMentorDetailHandler : IRequestHandler<GetMentorDetailQuery, Ment
                     EndTime = ms.EndTime,
                     Status = ms.Status,
                     Price = ms.Price,
+                    MaxBookings = ms.MaxBookings,
+                    CurrentBookings = ms.CurrentBookings,
                 })
                 .ToList(),
         };

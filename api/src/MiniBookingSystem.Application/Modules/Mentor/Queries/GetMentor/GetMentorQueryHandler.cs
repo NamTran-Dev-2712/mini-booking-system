@@ -11,7 +11,8 @@ public class GetMentorQueryHandler : BaseGetQueryHandler<GetMentorQuery, Mentor,
         var keyword = searchTerm.Trim().ToLower();
 
         return query.Where(m =>
-            m.DisplayName.ToLower().StartsWith(keyword)
+            m.DisplayName.ToLower().Contains(keyword)
+            || m.Email.ToLower().Contains(keyword)
             || (m.Specialization != null && m.Specialization.ToLower().Contains(keyword))
         );
     }

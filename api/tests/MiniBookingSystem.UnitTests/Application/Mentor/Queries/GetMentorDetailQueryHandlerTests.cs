@@ -7,6 +7,7 @@ public sealed class GetMentorDetailQueryHandlerTests
     private readonly Mock<IMentorSkillRepository> _mentorSkillRepo;
     private readonly Mock<IMentorSlotRepository> _mentorSlotRepo;
     private readonly Mock<ICacheService> _cacheService;
+    private readonly Mock<IIdentityService> _identityService;
     private readonly GetMentorDetailHandler _sut;
 
     public GetMentorDetailQueryHandlerTests()
@@ -16,12 +17,31 @@ public sealed class GetMentorDetailQueryHandlerTests
         _mentorSkillRepo = new Mock<IMentorSkillRepository>(MockBehavior.Strict);
         _mentorSlotRepo = new Mock<IMentorSlotRepository>(MockBehavior.Strict);
         _cacheService = new Mock<ICacheService>(MockBehavior.Strict);
+        _identityService = new Mock<IIdentityService>(MockBehavior.Strict);
 
         _unitOfWork.Setup(u => u.Mentor).Returns(_mentorRepo.Object);
         _unitOfWork.Setup(u => u.MentorSkill).Returns(_mentorSkillRepo.Object);
         _unitOfWork.Setup(u => u.MentorSlot).Returns(_mentorSlotRepo.Object);
 
-        _sut = new GetMentorDetailHandler(_unitOfWork.Object, _cacheService.Object);
+        // Default: identity service returns a UserDTO with the canonical phone number
+        _identityService
+            .Setup(s => s.GetProfileAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                new UserDTO(
+                    MentorTestData.Valid.UserId,
+                    MentorTestData.Valid.FullName,
+                    MentorTestData.Valid.Email,
+                    MentorTestData.Valid.PhoneNumber,
+                    DateTime.UtcNow,
+                    new[] { "Mentor" }
+                )
+            );
+
+        _sut = new GetMentorDetailHandler(
+            _unitOfWork.Object,
+            _cacheService.Object,
+            _identityService.Object
+        );
     }
 
     private void SetupDbPath(

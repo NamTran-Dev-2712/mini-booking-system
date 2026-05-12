@@ -17,4 +17,6 @@ public class MentorSlotDTO
     public DateTime EndTime { get; init; }
     public MentorSlotStatus Status { get; init; }
     public decimal Price { get; init; }
+    public int MaxBookings { get; init; }
+    public int CurrentBookings { get; init; }
 }

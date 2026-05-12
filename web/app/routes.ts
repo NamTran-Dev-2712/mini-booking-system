@@ -42,6 +42,7 @@ export default [
   layout("routes/admin/_layout.tsx", [
     route("admin", "routes/admin/dashboard.tsx"),
     route("admin/mentors", "routes/admin/mentors.tsx"),
+    route("admin/mentors/:id", "routes/admin/mentors.$id.tsx"),
     route("admin/bookings", "routes/admin/bookings.tsx"),
     route("admin/payments", "routes/admin/payments.tsx"),
     route("admin/health", "routes/admin/health.tsx"),

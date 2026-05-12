@@ -1,10 +1,15 @@
-import axios, { AxiosError, type AxiosResponse } from "axios";
+import axios, {
+  AxiosError,
+  type AxiosInstance,
+  type AxiosRequestConfig,
+  type AxiosResponse,
+} from "axios";
 import type { ApiError, ApiResponse } from "~/types/global/api.response";
 
 // ---------------------------------------------------------------------------
 // Base instance
 // ---------------------------------------------------------------------------
-const apiClient = axios.create({
+const apiClient: AxiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   withCredentials: true, // send/receive httpOnly auth cookies
   headers: {
@@ -14,10 +19,26 @@ const apiClient = axios.create({
 });
 
 // ---------------------------------------------------------------------------
+// Token refresh state
+// Ensures only ONE refresh call is in-flight at a time.
+// All concurrent 401 requests queue up and retry after the refresh resolves.
+// ---------------------------------------------------------------------------
+let isRefreshing = false;
+let refreshQueue: Array<{
+  resolve: () => void;
+  reject: (err: unknown) => void;
+}> = [];
+
+function processQueue(error: unknown) {
+  refreshQueue.forEach((p) => (error ? p.reject(error) : p.resolve()));
+  refreshQueue = [];
+}
+
+// ---------------------------------------------------------------------------
 // Response interceptor
-// Unwraps ApiResponse<T> → returns T directly, or throws ApiError
 // ---------------------------------------------------------------------------
 apiClient.interceptors.response.use(
+  // ── Success path ──────────────────────────────────────────────────────────
   (response: AxiosResponse<ApiResponse>) => {
     const body = response.data;
 
@@ -32,11 +53,16 @@ apiClient.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    // Return the raw response so callers can access .data, .message, etc.
     return response;
   },
-  (axiosError: AxiosError<ApiResponse>) => {
-    // Network / CORS / timeout errors
+
+  // ── Error path ────────────────────────────────────────────────────────────
+  async (axiosError: AxiosError<ApiResponse>) => {
+    const originalRequest = axiosError.config as AxiosRequestConfig & {
+      _retry?: boolean;
+    };
+
+    // Network / CORS / timeout — no response at all
     if (!axiosError.response) {
       const error: ApiError = {
         message: "Network error. Please check your connection.",
@@ -46,13 +72,70 @@ apiClient.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    const body = axiosError.response.data;
+    const status = axiosError.response.status;
 
-    // Normalize BE error envelope into ApiError
+    // ── 401 → attempt token refresh ────────────────────────────────────────
+    // Skip refresh for the refresh endpoint itself to avoid infinite loops.
+    const isRefreshEndpoint =
+      originalRequest.url?.includes("/api/auth/refresh");
+    const isLoginEndpoint = originalRequest.url?.includes("/api/auth/login");
+
+    if (
+      status === 401 &&
+      !originalRequest._retry &&
+      !isRefreshEndpoint &&
+      !isLoginEndpoint
+    ) {
+      if (isRefreshing) {
+        // Another refresh is already in-flight — queue this request
+        return new Promise<AxiosResponse>((resolve, reject) => {
+          refreshQueue.push({
+            resolve: () => resolve(apiClient(originalRequest)),
+            reject,
+          });
+        });
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        // Call refresh — BE reads the httpOnly refresh_token cookie automatically
+        await apiClient.post("/api/auth/refresh");
+
+        // Refresh succeeded — drain the queue and retry the original request
+        processQueue(null);
+        return apiClient(originalRequest);
+      } catch (refreshError) {
+        // Refresh failed (e.g. refresh token also expired)
+        processQueue(refreshError);
+
+        // Clear client-side auth state and redirect to login
+        // Dynamic import avoids circular dependency with the store
+        const { useAuthStore } = await import("~/stores/auth.store");
+        useAuthStore.getState().clearUser();
+
+        if (typeof window !== "undefined") {
+          window.location.href = "/login";
+        }
+
+        const error: ApiError = {
+          message: "Session expired. Please log in again.",
+          errors: [],
+          statusCode: 401,
+        };
+        return Promise.reject(error);
+      } finally {
+        isRefreshing = false;
+      }
+    }
+
+    // ── All other errors — normalize to ApiError ───────────────────────────
+    const body = axiosError.response.data;
     const error: ApiError = {
       message: body?.message ?? axiosError.message,
       errors: body?.errors ?? [],
-      statusCode: body?.statusCode ?? axiosError.response.status,
+      statusCode: body?.statusCode ?? status,
       traceId: body?.traceId,
     };
 

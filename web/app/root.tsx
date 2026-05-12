@@ -1,3 +1,5 @@
+import { HydrationBoundary, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { useEffect } from "react";
 import {
   isRouteErrorResponse,
@@ -7,9 +9,11 @@ import {
   Scripts,
   ScrollRestoration,
 } from "react-router";
+import { TooltipProvider } from "~/components/ui/tooltip";
 
 import type { Route } from "./+types/root";
 import { Toaster } from "~/components/ui/sonner";
+import { getQueryClient } from "~/lib/query-client";
 import { useAuthStore } from "~/stores/auth.store";
 import "./app.css";
 
@@ -38,11 +42,20 @@ export default function App() {
     useAuthStore.persist.rehydrate();
   }, []);
 
+  const queryClient = getQueryClient();
+
   return (
-    <>
-      <Outlet />
-      <Toaster richColors position="top-right" />
-    </>
+    <QueryClientProvider client={queryClient}>
+      <HydrationBoundary state={undefined}>
+        <TooltipProvider>
+          <Outlet />
+          <Toaster richColors position="top-right" />
+        </TooltipProvider>
+      </HydrationBoundary>
+      {import.meta.env.DEV && (
+        <ReactQueryDevtools buttonPosition="bottom-left" />
+      )}
+    </QueryClientProvider>
   );
 }
 

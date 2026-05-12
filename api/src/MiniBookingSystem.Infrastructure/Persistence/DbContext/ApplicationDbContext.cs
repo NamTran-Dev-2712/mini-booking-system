@@ -51,6 +51,17 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
     {
         foreach (var entry in ChangeTracker.Entries<BaseEntity>())
         {
+            if (entry.State == EntityState.Added)
+            {
+                // Ensure CreatedAt is always set to UTC now on insert.
+                // Guards against entities whose CreatedAt was left as DateTime.MinValue
+                // (e.g. seeded directly into the DB or created without going through code).
+                if (entry.Entity.CreatedAt == default)
+                    entry.Entity.CreatedAt = DateTime.UtcNow;
+
+                entry.Entity.UpdatedAt = DateTime.UtcNow;
+            }
+
             if (entry.State == EntityState.Modified)
             {
                 entry.Entity.MarkUpdated();

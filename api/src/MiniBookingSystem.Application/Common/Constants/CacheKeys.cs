@@ -2,6 +2,9 @@ public static class CacheKeys
 {
     private const string App = "booking";
 
+    // Schema version — bump this when DTO shapes change to auto-invalidate stale cache entries
+    private const string SchemaVersion = "v2";
+
     // output cache policy names
     public const string PublicMentorListPolicy = "PublicMentorListPolicy";
     public const string BookingUserListPolicy = "BookingUserListPolicy";
@@ -17,7 +20,8 @@ public static class CacheKeys
     public const string BookingRateLimitPolicy = "BookingPolicy";
     public const string AiRateLimitPolicy = "AiPolicy";
 
-    public static string MentorDetail(Guid mentorId) => $"{App}:mentors:{mentorId}:detail";
+    public static string MentorDetail(Guid mentorId) =>
+        $"{App}:{SchemaVersion}:mentors:{mentorId}:detail";
 
     public static string MentorSlots(Guid mentorId) => $"{App}:mentors:{mentorId}:slots";
 

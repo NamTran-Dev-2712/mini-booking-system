@@ -5,6 +5,7 @@ public sealed class AddSkillMentorCommandHandlerTests
     private readonly Mock<IUnitOfWork> _unitOfWork;
     private readonly Mock<IMentorRepository> _mentorRepo;
     private readonly Mock<IMentorSkillRepository> _mentorSkillRepo;
+    private readonly Mock<ICacheService> _cacheService;
     private readonly AddSkillMentorCommandHandler _sut;
 
     public AddSkillMentorCommandHandlerTests()
@@ -12,11 +13,16 @@ public sealed class AddSkillMentorCommandHandlerTests
         _unitOfWork = new Mock<IUnitOfWork>(MockBehavior.Strict);
         _mentorRepo = new Mock<IMentorRepository>(MockBehavior.Strict);
         _mentorSkillRepo = new Mock<IMentorSkillRepository>(MockBehavior.Strict);
+        _cacheService = new Mock<ICacheService>(MockBehavior.Strict);
 
         _unitOfWork.Setup(u => u.Mentor).Returns(_mentorRepo.Object);
         _unitOfWork.Setup(u => u.MentorSkill).Returns(_mentorSkillRepo.Object);
 
-        _sut = new AddSkillMentorCommandHandler(_unitOfWork.Object);
+        _cacheService
+            .Setup(c => c.RemoveAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        _sut = new AddSkillMentorCommandHandler(_unitOfWork.Object, _cacheService.Object);
     }
 
     private void SetupHappyPath(Guid mentorId, string skillName)
