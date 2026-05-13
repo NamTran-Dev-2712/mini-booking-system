@@ -12,6 +12,7 @@
  */
 
 import type { GetMentorsRequest } from "~/services/mentor/dtos/queries/get-mentors/request";
+import type { GetUserBookingsRequest } from "~/types/booking/booking";
 
 export const queryKeys = {
   mentors: {
@@ -29,5 +30,18 @@ export const queryKeys = {
 
     /** Specific mentor detail */
     detail: (id: string) => ["mentors", "detail", id] as const,
+  },
+
+  bookings: {
+    all: () => ["bookings"] as const,
+    lists: () => ["bookings", "list"] as const,
+    list: (filters: GetUserBookingsRequest) =>
+      ["bookings", "list", filters] as const,
+    details: () => ["bookings", "detail"] as const,
+    detail: (id: string) => ["bookings", "detail", id] as const,
+  },
+
+  payments: {
+    status: (bookingId: string) => ["payments", "status", bookingId] as const,
   },
 } as const;

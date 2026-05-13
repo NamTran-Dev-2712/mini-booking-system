@@ -8,6 +8,7 @@ import {
   Phone,
   User,
 } from "lucide-react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Badge } from "~/components/ui/badge";
@@ -15,7 +16,10 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Separator } from "~/components/ui/separator";
 import { Skeleton } from "~/components/ui/skeleton";
+import { cn } from "~/lib/utils";
 import { useMentorDetailQuery } from "~/hooks/mentor/use-mentor-detail-query";
+import { BookingConfirmDialog } from "~/components/shared/booking/booking-confirm-dialog";
+import { SLOT_STATUS, SLOT_STATUS_LABEL } from "~/types/mentor/mentor";
 import type { MentorSlot } from "~/types/mentor/mentor";
 
 interface MentorDetailViewProps {
@@ -44,15 +48,34 @@ function formatSlotTime(iso: string) {
 function SlotCard({
   slot,
   context,
+  onBook,
 }: {
   slot: MentorSlot;
   context: "public" | "user";
+  onBook?: (slot: MentorSlot) => void;
 }) {
+  const isAvailable = slot.status === SLOT_STATUS.Available;
   const isFull = slot.currentBookings >= slot.maxBookings;
   const spotsLeft = slot.maxBookings - slot.currentBookings;
 
+  const statusVariant: Record<
+    number,
+    "default" | "secondary" | "destructive" | "outline"
+  > = {
+    [SLOT_STATUS.Available]: "default",
+    [SLOT_STATUS.FullyBooked]: "secondary",
+    [SLOT_STATUS.Blocked]: "outline",
+    [SLOT_STATUS.Cancelled]: "destructive",
+    [SLOT_STATUS.Completed]: "outline",
+  };
+
   return (
-    <div className="flex flex-col gap-2 rounded-lg border p-4 transition-colors hover:bg-muted/50 sm:flex-row sm:items-center sm:justify-between">
+    <div
+      className={cn(
+        "flex flex-col gap-2 rounded-lg border p-4 transition-colors sm:flex-row sm:items-center sm:justify-between",
+        isAvailable ? "hover:bg-muted/50" : "opacity-60",
+      )}
+    >
       <div className="space-y-1">
         <div className="flex items-center gap-2 text-sm font-medium">
           <Clock className="size-3.5 text-muted-foreground" />
@@ -67,21 +90,33 @@ function SlotCard({
           <span className="font-medium text-foreground">
             {formatPrice(slot.price)}
           </span>
-          <span>
-            {isFull ? (
-              <Badge variant="secondary" className="text-xs">
-                Full
-              </Badge>
-            ) : (
-              <span>
-                {spotsLeft} spot{spotsLeft !== 1 ? "s" : ""} left
-              </span>
-            )}
-          </span>
+          <Badge
+            variant={statusVariant[slot.status] ?? "secondary"}
+            className="text-xs"
+          >
+            {SLOT_STATUS_LABEL[slot.status] ?? "Unknown"}
+          </Badge>
+          {isAvailable && (
+            <span>
+              {isFull ? (
+                <Badge variant="secondary" className="text-xs">
+                  Full
+                </Badge>
+              ) : (
+                <span>
+                  {spotsLeft} spot{spotsLeft !== 1 ? "s" : ""} left
+                </span>
+              )}
+            </span>
+          )}
         </div>
       </div>
-      {context === "user" && !isFull && (
-        <Button size="sm" className="shrink-0 self-end sm:self-auto">
+      {context === "user" && isAvailable && !isFull && (
+        <Button
+          size="sm"
+          className="shrink-0 self-end sm:self-auto"
+          onClick={() => onBook?.(slot)}
+        >
           Book
         </Button>
       )}
@@ -118,6 +153,7 @@ function DetailSkeleton() {
 export function MentorDetailView({ mentorId, context }: MentorDetailViewProps) {
   const navigate = useNavigate();
   const { data: mentor, isPending, isError } = useMentorDetailQuery(mentorId);
+  const [bookingSlot, setBookingSlot] = useState<MentorSlot | null>(null);
 
   const backPath = context === "user" ? "/user/mentors" : "/mentors";
 
@@ -151,7 +187,10 @@ export function MentorDetailView({ mentorId, context }: MentorDetailViewProps) {
       .slice(0, 2)
       .toUpperCase() || "?";
 
-  const availableSlots = mentor.slots.filter((s) => s.status === "Available");
+  const availableSlots = mentor.slots.filter(
+    (s) => s.status === SLOT_STATUS.Available,
+  );
+  const allSlots = mentor.slots;
 
   return (
     <div className="space-y-6">
@@ -273,21 +312,26 @@ export function MentorDetailView({ mentorId, context }: MentorDetailViewProps) {
           )}
         </div>
 
-        {/* Right column — Available slots */}
+        {/* Right column — Slots */}
         <div className="w-full lg:w-96">
           <Card className="sticky top-24">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base">
                 <Calendar className="size-4" />
-                Available Slots
+                Sessions
+                {availableSlots.length > 0 && (
+                  <Badge variant="default" className="text-xs">
+                    {availableSlots.length} available
+                  </Badge>
+                )}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {availableSlots.length === 0 ? (
+              {allSlots.length === 0 ? (
                 <div className="py-8 text-center">
                   <Calendar className="mx-auto mb-3 size-8 text-muted-foreground/50" />
                   <p className="text-sm text-muted-foreground">
-                    No available slots at the moment.
+                    No sessions scheduled yet.
                   </p>
                   <p className="mt-1 text-xs text-muted-foreground/70">
                     Check back later for new openings.
@@ -295,8 +339,13 @@ export function MentorDetailView({ mentorId, context }: MentorDetailViewProps) {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {availableSlots.map((slot) => (
-                    <SlotCard key={slot.id} slot={slot} context={context} />
+                  {allSlots.map((slot) => (
+                    <SlotCard
+                      key={slot.id}
+                      slot={slot}
+                      context={context}
+                      onBook={(s) => setBookingSlot(s)}
+                    />
                   ))}
                 </div>
               )}
@@ -313,6 +362,16 @@ export function MentorDetailView({ mentorId, context }: MentorDetailViewProps) {
           </Card>
         </div>
       </div>
+
+      {/* Booking confirmation dialog */}
+      {context === "user" && bookingSlot && (
+        <BookingConfirmDialog
+          open={!!bookingSlot}
+          onOpenChange={(open) => !open && setBookingSlot(null)}
+          slot={bookingSlot}
+          mentorName={mentor.displayName}
+        />
+      )}
     </div>
   );
 }

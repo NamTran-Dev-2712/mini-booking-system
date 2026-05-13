@@ -17,17 +17,19 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "~/components/ui/tooltip";
-import type { MentorSlot, SlotStatus } from "~/types/mentor/mentor";
+import type { MentorSlot } from "~/types/mentor/mentor";
+import { SLOT_STATUS_LABEL } from "~/types/mentor/mentor";
 import { MentorSlotForm } from "./mentor-slot-form";
 
 const STATUS_VARIANT: Record<
-  SlotStatus,
+  number,
   "default" | "secondary" | "destructive" | "outline"
 > = {
-  Available: "default",
-  Booked: "secondary",
-  Cancelled: "destructive",
-  Completed: "outline",
+  1: "default",
+  2: "secondary",
+  3: "outline",
+  4: "destructive",
+  5: "outline",
 };
 
 interface MentorSlotsTabProps {
@@ -140,7 +142,7 @@ export function MentorSlotsTab({
                             variant={STATUS_VARIANT[slot.status]}
                             className="text-xs"
                           >
-                            {slot.status}
+                            {SLOT_STATUS_LABEL[slot.status] ?? "Unknown"}
                           </Badge>
                           <span className="text-xs font-medium">
                             {new Intl.NumberFormat("vi-VN", {

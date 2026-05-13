@@ -101,6 +101,7 @@ import {
   OctagonXIcon,
   Phone,
   Plus,
+  QrCode,
   RefreshCw,
   Search,
   SearchIcon,
@@ -111,12 +112,14 @@ import {
   Star,
   Target,
   Trash2,
+  TrendingUp,
   TriangleAlertIcon,
   User,
   UserCircle,
   UserPlus,
   Users,
   X,
+  XCircle,
   XIcon,
   Zap,
 } from "lucide-react";
@@ -130,6 +133,7 @@ import {
 } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { format, isSameDay } from "date-fns";
 import {
   flexRender,
   getCoreRowModel,
@@ -138,7 +142,6 @@ import {
 } from "@tanstack/react-table";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Command } from "cmdk";
-import { format, isSameDay } from "date-fns";
 //#region \0rolldown/runtime.js
 var __defProp = Object.defineProperty;
 var __exportAll = (all, no_symbols) => {
@@ -380,20 +383,23 @@ var root_default = UNSAFE_withComponentProps(function App() {
   useEffect(() => {
     useAuthStore.persist.rehydrate();
   }, []);
-  return /* @__PURE__ */ jsx(QueryClientProvider, {
+  return /* @__PURE__ */ jsxs(QueryClientProvider, {
     client: getQueryClient(),
-    children: /* @__PURE__ */ jsx(HydrationBoundary, {
-      state: void 0,
-      children: /* @__PURE__ */ jsxs(TooltipProvider, {
-        children: [
-          /* @__PURE__ */ jsx(Outlet, {}),
-          /* @__PURE__ */ jsx(Toaster$1, {
-            richColors: true,
-            position: "top-right",
-          }),
-        ],
+    children: [
+      /* @__PURE__ */ jsx(HydrationBoundary, {
+        state: void 0,
+        children: /* @__PURE__ */ jsxs(TooltipProvider, {
+          children: [
+            /* @__PURE__ */ jsx(Outlet, {}),
+            /* @__PURE__ */ jsx(Toaster$1, {
+              richColors: true,
+              position: "top-right",
+            }),
+          ],
+        }),
       }),
-    }),
+      false,
+    ],
   });
 });
 var ErrorBoundary = UNSAFE_withErrorBoundaryProps(function ErrorBoundary({
@@ -1269,7 +1275,7 @@ function Badge({ className, variant = "default", asChild = false, ...props }) {
 }
 //#endregion
 //#region app/features/public/home/home.page.tsx
-function meta$25() {
+function meta$27() {
   return [
     { title: "MiniBooking — Smart Mentor Scheduling" },
     {
@@ -1590,11 +1596,11 @@ function HomePage() {
 //#region app/routes/public/home.tsx
 var home_exports = /* @__PURE__ */ __exportAll({
   default: () => HomePage,
-  meta: () => meta$25,
+  meta: () => meta$27,
 });
 //#endregion
 //#region app/features/public/about/about.page.tsx
-function meta$24() {
+function meta$26() {
   return [
     { title: "About Us — MiniBooking" },
     {
@@ -1890,7 +1896,7 @@ function AboutPage() {
 //#region app/routes/public/about.tsx
 var about_exports = /* @__PURE__ */ __exportAll({
   default: () => AboutPage,
-  meta: () => meta$24,
+  meta: () => meta$26,
 });
 //#endregion
 //#region app/components/ui/select.tsx
@@ -2135,6 +2141,14 @@ var queryKeys = {
     /** Specific mentor detail */
     detail: (id) => ["mentors", "detail", id],
   },
+  bookings: {
+    all: () => ["bookings"],
+    lists: () => ["bookings", "list"],
+    list: (filters) => ["bookings", "list", filters],
+    details: () => ["bookings", "detail"],
+    detail: (id) => ["bookings", "detail", id],
+  },
+  payments: { status: (bookingId) => ["payments", "status", bookingId] },
 };
 //#endregion
 //#region app/services/mentor/mentor.service.ts
@@ -2319,9 +2333,49 @@ function MentorFilterPanel({ filters, onFilterChange, className }) {
   const searchRef = useRef(null);
   const [searchInput, setSearchInput] = useState(filters.searchTerm ?? "");
   const [isExpanded, setIsExpanded] = useState(false);
+  const [minPriceInput, setMinPriceInput] = useState(
+    filters.minBasePrice != null ? String(filters.minBasePrice) : "",
+  );
+  const [maxPriceInput, setMaxPriceInput] = useState(
+    filters.maxBasePrice != null ? String(filters.maxBasePrice) : "",
+  );
+  const [minExpInput, setMinExpInput] = useState(
+    filters.minExperienceYears != null
+      ? String(filters.minExperienceYears)
+      : "",
+  );
+  const [maxExpInput, setMaxExpInput] = useState(
+    filters.maxExperienceYears != null
+      ? String(filters.maxExperienceYears)
+      : "",
+  );
   useEffect(() => {
     setSearchInput(filters.searchTerm ?? "");
   }, [filters.searchTerm]);
+  useEffect(() => {
+    setMinPriceInput(
+      filters.minBasePrice != null ? String(filters.minBasePrice) : "",
+    );
+  }, [filters.minBasePrice]);
+  useEffect(() => {
+    setMaxPriceInput(
+      filters.maxBasePrice != null ? String(filters.maxBasePrice) : "",
+    );
+  }, [filters.maxBasePrice]);
+  useEffect(() => {
+    setMinExpInput(
+      filters.minExperienceYears != null
+        ? String(filters.minExperienceYears)
+        : "",
+    );
+  }, [filters.minExperienceYears]);
+  useEffect(() => {
+    setMaxExpInput(
+      filters.maxExperienceYears != null
+        ? String(filters.maxExperienceYears)
+        : "",
+    );
+  }, [filters.maxExperienceYears]);
   useEffect(() => {
     const timer = setTimeout(() => {
       if (searchInput !== (filters.searchTerm ?? ""))
@@ -2332,6 +2386,50 @@ function MentorFilterPanel({ filters, onFilterChange, className }) {
     }, 350);
     return () => clearTimeout(timer);
   }, [searchInput]);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const val = minPriceInput ? Number(minPriceInput) : void 0;
+      if (val !== filters.minBasePrice)
+        onFilterChange({
+          minBasePrice: val,
+          pageNumber: 1,
+        });
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [minPriceInput]);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const val = maxPriceInput ? Number(maxPriceInput) : void 0;
+      if (val !== filters.maxBasePrice)
+        onFilterChange({
+          maxBasePrice: val,
+          pageNumber: 1,
+        });
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [maxPriceInput]);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const val = minExpInput ? Number(minExpInput) : void 0;
+      if (val !== filters.minExperienceYears)
+        onFilterChange({
+          minExperienceYears: val,
+          pageNumber: 1,
+        });
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [minExpInput]);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const val = maxExpInput ? Number(maxExpInput) : void 0;
+      if (val !== filters.maxExperienceYears)
+        onFilterChange({
+          maxExperienceYears: val,
+          pageNumber: 1,
+        });
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [maxExpInput]);
   const activeFilterCount = [
     filters.minBasePrice != null,
     filters.maxBasePrice != null,
@@ -2341,6 +2439,10 @@ function MentorFilterPanel({ filters, onFilterChange, className }) {
   ].filter(Boolean).length;
   function clearAllFilters() {
     setSearchInput("");
+    setMinPriceInput("");
+    setMaxPriceInput("");
+    setMinExpInput("");
+    setMaxExpInput("");
     onFilterChange({
       searchTerm: void 0,
       minBasePrice: void 0,
@@ -2435,14 +2537,8 @@ function MentorFilterPanel({ filters, onFilterChange, className }) {
                       type: "number",
                       min: 0,
                       placeholder: "0",
-                      value: filters.minBasePrice ?? "",
-                      onChange: (e) =>
-                        onFilterChange({
-                          minBasePrice: e.target.value
-                            ? Number(e.target.value)
-                            : void 0,
-                          pageNumber: 1,
-                        }),
+                      value: minPriceInput,
+                      onChange: (e) => setMinPriceInput(e.target.value),
                       className: "h-9",
                     }),
                   ],
@@ -2460,14 +2556,8 @@ function MentorFilterPanel({ filters, onFilterChange, className }) {
                       type: "number",
                       min: 0,
                       placeholder: "Any",
-                      value: filters.maxBasePrice ?? "",
-                      onChange: (e) =>
-                        onFilterChange({
-                          maxBasePrice: e.target.value
-                            ? Number(e.target.value)
-                            : void 0,
-                          pageNumber: 1,
-                        }),
+                      value: maxPriceInput,
+                      onChange: (e) => setMaxPriceInput(e.target.value),
                       className: "h-9",
                     }),
                   ],
@@ -2485,14 +2575,8 @@ function MentorFilterPanel({ filters, onFilterChange, className }) {
                       type: "number",
                       min: 0,
                       placeholder: "0",
-                      value: filters.minExperienceYears ?? "",
-                      onChange: (e) =>
-                        onFilterChange({
-                          minExperienceYears: e.target.value
-                            ? Number(e.target.value)
-                            : void 0,
-                          pageNumber: 1,
-                        }),
+                      value: minExpInput,
+                      onChange: (e) => setMinExpInput(e.target.value),
                       className: "h-9",
                     }),
                   ],
@@ -2510,14 +2594,8 @@ function MentorFilterPanel({ filters, onFilterChange, className }) {
                       type: "number",
                       min: 0,
                       placeholder: "Any",
-                      value: filters.maxExperienceYears ?? "",
-                      onChange: (e) =>
-                        onFilterChange({
-                          maxExperienceYears: e.target.value
-                            ? Number(e.target.value)
-                            : void 0,
-                          pageNumber: 1,
-                        }),
+                      value: maxExpInput,
+                      onChange: (e) => setMaxExpInput(e.target.value),
                       className: "h-9",
                     }),
                   ],
@@ -3096,9 +3174,9 @@ function MentorListContainer({ detailBasePath, defaultPageSize = 9 }) {
 //#region app/routes/public/mentors.tsx
 var mentors_exports$1 = /* @__PURE__ */ __exportAll({
   default: () => mentors_default$1,
-  meta: () => meta$23,
+  meta: () => meta$25,
 });
-function meta$23() {
+function meta$25() {
   return [
     { title: "Find Mentors — MiniBooking" },
     {
@@ -3149,15 +3227,391 @@ function useMentorDetailQuery(id) {
   });
 }
 //#endregion
-//#region app/components/shared/mentor/mentor-detail-view.tsx
-function formatPrice(price) {
+//#region app/components/ui/dialog.tsx
+function Dialog$1({ ...props }) {
+  return /* @__PURE__ */ jsx(Dialog.Root, {
+    "data-slot": "dialog",
+    ...props,
+  });
+}
+function DialogPortal({ ...props }) {
+  return /* @__PURE__ */ jsx(Dialog.Portal, {
+    "data-slot": "dialog-portal",
+    ...props,
+  });
+}
+function DialogOverlay({ className, ...props }) {
+  return /* @__PURE__ */ jsx(Dialog.Overlay, {
+    "data-slot": "dialog-overlay",
+    className: cn(
+      "fixed inset-0 isolate z-50 bg-black/10 duration-100 supports-backdrop-filter:backdrop-blur-xs data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
+      className,
+    ),
+    ...props,
+  });
+}
+function DialogContent({
+  className,
+  children,
+  showCloseButton = true,
+  ...props
+}) {
+  return /* @__PURE__ */ jsxs(DialogPortal, {
+    children: [
+      /* @__PURE__ */ jsx(DialogOverlay, {}),
+      /* @__PURE__ */ jsxs(Dialog.Content, {
+        "data-slot": "dialog-content",
+        className: cn(
+          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl bg-popover p-4 text-sm text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+          className,
+        ),
+        ...props,
+        children: [
+          children,
+          showCloseButton &&
+            /* @__PURE__ */ jsx(Dialog.Close, {
+              "data-slot": "dialog-close",
+              asChild: true,
+              children: /* @__PURE__ */ jsxs(Button, {
+                variant: "ghost",
+                className: "absolute top-2 right-2",
+                size: "icon-sm",
+                children: [
+                  /* @__PURE__ */ jsx(XIcon, {}),
+                  /* @__PURE__ */ jsx("span", {
+                    className: "sr-only",
+                    children: "Close",
+                  }),
+                ],
+              }),
+            }),
+        ],
+      }),
+    ],
+  });
+}
+function DialogHeader({ className, ...props }) {
+  return /* @__PURE__ */ jsx("div", {
+    "data-slot": "dialog-header",
+    className: cn("flex flex-col gap-2", className),
+    ...props,
+  });
+}
+function DialogFooter({
+  className,
+  showCloseButton = false,
+  children,
+  ...props
+}) {
+  return /* @__PURE__ */ jsxs("div", {
+    "data-slot": "dialog-footer",
+    className: cn(
+      "-mx-4 -mb-4 flex flex-col-reverse gap-2 rounded-b-xl border-t bg-muted/50 p-4 sm:flex-row sm:justify-end",
+      className,
+    ),
+    ...props,
+    children: [
+      children,
+      showCloseButton &&
+        /* @__PURE__ */ jsx(Dialog.Close, {
+          asChild: true,
+          children: /* @__PURE__ */ jsx(Button, {
+            variant: "outline",
+            children: "Close",
+          }),
+        }),
+    ],
+  });
+}
+function DialogTitle({ className, ...props }) {
+  return /* @__PURE__ */ jsx(Dialog.Title, {
+    "data-slot": "dialog-title",
+    className: cn("font-heading text-base leading-none font-medium", className),
+    ...props,
+  });
+}
+function DialogDescription({ className, ...props }) {
+  return /* @__PURE__ */ jsx(Dialog.Description, {
+    "data-slot": "dialog-description",
+    className: cn(
+      "text-sm text-muted-foreground *:[a]:underline *:[a]:underline-offset-3 *:[a]:hover:text-foreground",
+      className,
+    ),
+    ...props,
+  });
+}
+//#endregion
+//#region app/components/ui/textarea.tsx
+function Textarea({ className, ...props }) {
+  return /* @__PURE__ */ jsx("textarea", {
+    "data-slot": "textarea",
+    className: cn(
+      "flex field-sizing-content min-h-16 w-full rounded-lg border border-input bg-transparent px-2.5 py-2 text-base transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
+      className,
+    ),
+    ...props,
+  });
+}
+//#endregion
+//#region app/services/booking/booking.service.ts
+var bookingService = {
+  async createBooking(params) {
+    return (
+      await apiClient.post(
+        "/api/Booking",
+        {
+          userId: params.userId,
+          mentorSlotId: params.mentorSlotId,
+          notes: params.notes,
+        },
+        {
+          headers: params.idempotencyKey
+            ? { "Idempotency-Key": params.idempotencyKey }
+            : void 0,
+        },
+      )
+    ).data.data;
+  },
+  async getUserBookings(userId, params = {}) {
+    return (await apiClient.get(`/api/Booking/${userId}`, { params })).data
+      .data;
+  },
+  async getBookingDetail(bookingId) {
+    return (await apiClient.get(`/api/Booking/${bookingId}/detail`)).data.data;
+  },
+  async cancelBooking(params) {
+    return (await apiClient.post("/api/Booking/cancel", params)).data.data;
+  },
+};
+//#endregion
+//#region app/hooks/booking/use-create-booking-mutation.ts
+function useCreateBookingMutation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (params) => bookingService.createBooking(params),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.mentors.details() });
+      qc.invalidateQueries({ queryKey: queryKeys.bookings.all() });
+    },
+  });
+}
+//#endregion
+//#region app/hooks/booking/use-user-bookings-query.ts
+function useUserBookingsQuery(userId, filters = {}) {
+  return useQuery({
+    queryKey: queryKeys.bookings.list({ ...filters }),
+    queryFn: () => bookingService.getUserBookings(userId, filters),
+    placeholderData: keepPreviousData,
+    enabled: !!userId,
+  });
+}
+//#endregion
+//#region app/components/shared/booking/booking-confirm-dialog.tsx
+function formatSlotTime$4(iso) {
+  return new Date(iso).toLocaleString("vi-VN", {
+    weekday: "long",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+function formatPrice$8(price) {
   return new Intl.NumberFormat("vi-VN", {
     style: "currency",
     currency: "VND",
     maximumFractionDigits: 0,
   }).format(price);
 }
-function formatSlotTime(iso) {
+function BookingConfirmDialog({ open, onOpenChange, slot, mentorName }) {
+  const navigate = useNavigate();
+  const [notes, setNotes] = useState("");
+  const user = useAuthStore((s) => s.user);
+  const createBooking = useCreateBookingMutation();
+  function handleConfirm() {
+    if (!user) {
+      toast.error("Please sign in to book a session.");
+      return;
+    }
+    const idempotencyKey = `${user.userId}:${slot.id}`;
+    createBooking.mutate(
+      {
+        userId: user.userId,
+        mentorSlotId: slot.id,
+        notes: notes.trim() || void 0,
+        idempotencyKey,
+      },
+      {
+        onSuccess: (bookingId) => {
+          toast.success("Booking created! Redirecting to payment...");
+          onOpenChange(false);
+          setNotes("");
+          navigate(`/user/bookings/${bookingId}/payment`);
+        },
+        onError: (error) => {
+          const apiError = error;
+          if (
+            apiError?.statusCode === 409 ||
+            apiError?.message
+              ?.toLowerCase()
+              .includes("already have an active booking")
+          ) {
+            toast.info(
+              "You already have a pending booking for this slot. Redirecting to payment...",
+            );
+            onOpenChange(false);
+            navigate("/user/bookings?status=pending");
+          } else toast.error(getApiErrorMessage(error));
+        },
+      },
+    );
+  }
+  return /* @__PURE__ */ jsx(Dialog$1, {
+    open,
+    onOpenChange,
+    children: /* @__PURE__ */ jsxs(DialogContent, {
+      className: "sm:max-w-md",
+      children: [
+        /* @__PURE__ */ jsxs(DialogHeader, {
+          children: [
+            /* @__PURE__ */ jsx(DialogTitle, { children: "Confirm Booking" }),
+            /* @__PURE__ */ jsxs(DialogDescription, {
+              children: [
+                "You are about to book a session with ",
+                mentorName,
+                ".",
+              ],
+            }),
+          ],
+        }),
+        /* @__PURE__ */ jsxs("div", {
+          className: "space-y-4 py-2",
+          children: [
+            /* @__PURE__ */ jsxs("div", {
+              className: "rounded-lg border bg-muted/50 p-4 space-y-3",
+              children: [
+                /* @__PURE__ */ jsxs("div", {
+                  className: "flex items-center gap-2 text-sm",
+                  children: [
+                    /* @__PURE__ */ jsx(CalendarDays, {
+                      className: "size-4 text-muted-foreground",
+                    }),
+                    /* @__PURE__ */ jsx("span", {
+                      className: "font-medium",
+                      children: "Session Time",
+                    }),
+                  ],
+                }),
+                /* @__PURE__ */ jsxs("div", {
+                  className: "pl-6 space-y-1 text-sm text-muted-foreground",
+                  children: [
+                    /* @__PURE__ */ jsxs("div", {
+                      className: "flex items-center gap-2",
+                      children: [
+                        /* @__PURE__ */ jsx(Clock, { className: "size-3.5" }),
+                        /* @__PURE__ */ jsx("span", {
+                          children: formatSlotTime$4(slot.startTime),
+                        }),
+                      ],
+                    }),
+                    /* @__PURE__ */ jsxs("div", {
+                      className: "flex items-center gap-2",
+                      children: [
+                        /* @__PURE__ */ jsx(Clock, { className: "size-3.5" }),
+                        /* @__PURE__ */ jsx("span", {
+                          children: formatSlotTime$4(slot.endTime),
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                /* @__PURE__ */ jsxs("div", {
+                  className: "flex items-center gap-2 pl-6 text-sm font-medium",
+                  children: [
+                    /* @__PURE__ */ jsx(DollarSign, {
+                      className: "size-3.5 text-muted-foreground",
+                    }),
+                    /* @__PURE__ */ jsx("span", {
+                      children: formatPrice$8(slot.price),
+                    }),
+                  ],
+                }),
+              ],
+            }),
+            /* @__PURE__ */ jsxs("div", {
+              className: "space-y-2",
+              children: [
+                /* @__PURE__ */ jsx(Label$1, {
+                  htmlFor: "booking-notes",
+                  className: "text-sm",
+                  children: "Notes (optional)",
+                }),
+                /* @__PURE__ */ jsx(Textarea, {
+                  id: "booking-notes",
+                  placeholder:
+                    "Any specific topics or questions you'd like to discuss...",
+                  value: notes,
+                  onChange: (e) => setNotes(e.target.value),
+                  rows: 3,
+                  className: "resize-none",
+                }),
+              ],
+            }),
+          ],
+        }),
+        /* @__PURE__ */ jsxs(DialogFooter, {
+          className: "gap-2 sm:gap-0",
+          children: [
+            /* @__PURE__ */ jsx(Button, {
+              variant: "outline",
+              onClick: () => onOpenChange(false),
+              disabled: createBooking.isPending,
+              children: "Cancel",
+            }),
+            /* @__PURE__ */ jsxs(Button, {
+              onClick: handleConfirm,
+              disabled: createBooking.isPending,
+              children: [
+                createBooking.isPending &&
+                  /* @__PURE__ */ jsx(Loader2, {
+                    className: "size-4 animate-spin",
+                  }),
+                "Confirm Booking",
+              ],
+            }),
+          ],
+        }),
+      ],
+    }),
+  });
+}
+//#endregion
+//#region app/types/mentor/mentor.ts
+var SLOT_STATUS = {
+  Available: 1,
+  FullyBooked: 2,
+  Blocked: 3,
+  Cancelled: 4,
+  Completed: 5,
+};
+var SLOT_STATUS_LABEL = {
+  1: "Available",
+  2: "Fully Booked",
+  3: "Blocked",
+  4: "Cancelled",
+  5: "Completed",
+};
+//#endregion
+//#region app/components/shared/mentor/mentor-detail-view.tsx
+function formatPrice$7(price) {
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+    maximumFractionDigits: 0,
+  }).format(price);
+}
+function formatSlotTime$3(iso) {
   return new Date(iso).toLocaleString("vi-VN", {
     weekday: "short",
     day: "2-digit",
@@ -3166,12 +3620,22 @@ function formatSlotTime(iso) {
     minute: "2-digit",
   });
 }
-function SlotCard({ slot, context }) {
+function SlotCard({ slot, context, onBook }) {
+  const isAvailable = slot.status === SLOT_STATUS.Available;
   const isFull = slot.currentBookings >= slot.maxBookings;
   const spotsLeft = slot.maxBookings - slot.currentBookings;
+  const statusVariant = {
+    [SLOT_STATUS.Available]: "default",
+    [SLOT_STATUS.FullyBooked]: "secondary",
+    [SLOT_STATUS.Blocked]: "outline",
+    [SLOT_STATUS.Cancelled]: "destructive",
+    [SLOT_STATUS.Completed]: "outline",
+  };
   return /* @__PURE__ */ jsxs("div", {
-    className:
-      "flex flex-col gap-2 rounded-lg border p-4 transition-colors hover:bg-muted/50 sm:flex-row sm:items-center sm:justify-between",
+    className: cn(
+      "flex flex-col gap-2 rounded-lg border p-4 transition-colors sm:flex-row sm:items-center sm:justify-between",
+      isAvailable ? "hover:bg-muted/50" : "opacity-60",
+    ),
     children: [
       /* @__PURE__ */ jsxs("div", {
         className: "space-y-1",
@@ -3183,14 +3647,14 @@ function SlotCard({ slot, context }) {
                 className: "size-3.5 text-muted-foreground",
               }),
               /* @__PURE__ */ jsx("span", {
-                children: formatSlotTime(slot.startTime),
+                children: formatSlotTime$3(slot.startTime),
               }),
               /* @__PURE__ */ jsx("span", {
                 className: "text-muted-foreground",
                 children: "—",
               }),
               /* @__PURE__ */ jsx("span", {
-                children: formatSlotTime(slot.endTime),
+                children: formatSlotTime$3(slot.endTime),
               }),
             ],
           }),
@@ -3204,33 +3668,41 @@ function SlotCard({ slot, context }) {
             children: [
               /* @__PURE__ */ jsx("span", {
                 className: "font-medium text-foreground",
-                children: formatPrice(slot.price),
+                children: formatPrice$7(slot.price),
               }),
-              /* @__PURE__ */ jsx("span", {
-                children: isFull
-                  ? /* @__PURE__ */ jsx(Badge, {
-                      variant: "secondary",
-                      className: "text-xs",
-                      children: "Full",
-                    })
-                  : /* @__PURE__ */ jsxs("span", {
-                      children: [
-                        spotsLeft,
-                        " spot",
-                        spotsLeft !== 1 ? "s" : "",
-                        " left",
-                      ],
-                    }),
+              /* @__PURE__ */ jsx(Badge, {
+                variant: statusVariant[slot.status] ?? "secondary",
+                className: "text-xs",
+                children: SLOT_STATUS_LABEL[slot.status] ?? "Unknown",
               }),
+              isAvailable &&
+                /* @__PURE__ */ jsx("span", {
+                  children: isFull
+                    ? /* @__PURE__ */ jsx(Badge, {
+                        variant: "secondary",
+                        className: "text-xs",
+                        children: "Full",
+                      })
+                    : /* @__PURE__ */ jsxs("span", {
+                        children: [
+                          spotsLeft,
+                          " spot",
+                          spotsLeft !== 1 ? "s" : "",
+                          " left",
+                        ],
+                      }),
+                }),
             ],
           }),
         ],
       }),
       context === "user" &&
+        isAvailable &&
         !isFull &&
         /* @__PURE__ */ jsx(Button, {
           size: "sm",
           className: "shrink-0 self-end sm:self-auto",
+          onClick: () => onBook?.(slot),
           children: "Book",
         }),
     ],
@@ -3282,6 +3754,7 @@ function DetailSkeleton() {
 function MentorDetailView({ mentorId, context }) {
   const navigate = useNavigate();
   const { data: mentor, isPending, isError } = useMentorDetailQuery(mentorId);
+  const [bookingSlot, setBookingSlot] = useState(null);
   const backPath = context === "user" ? "/user/mentors" : "/mentors";
   if (isPending) return /* @__PURE__ */ jsx(DetailSkeleton, {});
   if (isError || !mentor)
@@ -3312,7 +3785,10 @@ function MentorDetailView({ mentorId, context }) {
       .join("")
       .slice(0, 2)
       .toUpperCase() || "?";
-  const availableSlots = mentor.slots.filter((s) => s.status === "Available");
+  const availableSlots = mentor.slots.filter(
+    (s) => s.status === SLOT_STATUS.Available,
+  );
+  const allSlots = mentor.slots;
   return /* @__PURE__ */ jsxs("div", {
     className: "space-y-6",
     children: [
@@ -3418,7 +3894,7 @@ function MentorDetailView({ mentorId, context }) {
                                     className: "size-3.5 text-muted-foreground",
                                   }),
                                   /* @__PURE__ */ jsx("span", {
-                                    children: formatPrice(mentor.basePrice),
+                                    children: formatPrice$7(mentor.basePrice),
                                   }),
                                 ],
                               }),
@@ -3519,13 +3995,19 @@ function MentorDetailView({ mentorId, context }) {
                     className: "flex items-center gap-2 text-base",
                     children: [
                       /* @__PURE__ */ jsx(Calendar, { className: "size-4" }),
-                      "Available Slots",
+                      "Sessions",
+                      availableSlots.length > 0 &&
+                        /* @__PURE__ */ jsxs(Badge, {
+                          variant: "default",
+                          className: "text-xs",
+                          children: [availableSlots.length, " available"],
+                        }),
                     ],
                   }),
                 }),
                 /* @__PURE__ */ jsxs(CardContent, {
                   children: [
-                    availableSlots.length === 0
+                    allSlots.length === 0
                       ? /* @__PURE__ */ jsxs("div", {
                           className: "py-8 text-center",
                           children: [
@@ -3535,7 +4017,7 @@ function MentorDetailView({ mentorId, context }) {
                             }),
                             /* @__PURE__ */ jsx("p", {
                               className: "text-sm text-muted-foreground",
-                              children: "No available slots at the moment.",
+                              children: "No sessions scheduled yet.",
                             }),
                             /* @__PURE__ */ jsx("p", {
                               className:
@@ -3546,12 +4028,13 @@ function MentorDetailView({ mentorId, context }) {
                         })
                       : /* @__PURE__ */ jsx("div", {
                           className: "space-y-3",
-                          children: availableSlots.map((slot) =>
+                          children: allSlots.map((slot) =>
                             /* @__PURE__ */ jsx(
                               SlotCard,
                               {
                                 slot,
                                 context,
+                                onBook: (s) => setBookingSlot(s),
                               },
                               slot.id,
                             ),
@@ -3581,6 +4064,14 @@ function MentorDetailView({ mentorId, context }) {
           }),
         ],
       }),
+      context === "user" &&
+        bookingSlot &&
+        /* @__PURE__ */ jsx(BookingConfirmDialog, {
+          open: !!bookingSlot,
+          onOpenChange: (open) => !open && setBookingSlot(null),
+          slot: bookingSlot,
+          mentorName: mentor.displayName,
+        }),
     ],
   });
 }
@@ -3588,9 +4079,9 @@ function MentorDetailView({ mentorId, context }) {
 //#region app/routes/public/mentor-detail.tsx
 var mentor_detail_exports$1 = /* @__PURE__ */ __exportAll({
   default: () => mentor_detail_default$1,
-  meta: () => meta$22,
+  meta: () => meta$24,
 });
-function meta$22() {
+function meta$24() {
   return [{ title: "Mentor Profile — MiniBooking" }];
 }
 var mentor_detail_default$1 = UNSAFE_withComponentProps(
@@ -4058,7 +4549,7 @@ function LoginForm() {
 }
 //#endregion
 //#region app/features/auth/login/login.page.tsx
-function meta$21() {
+function meta$23() {
   return [
     { title: "Sign In — MiniBooking" },
     {
@@ -4078,7 +4569,7 @@ function LoginPage() {
 //#region app/routes/auth/login.tsx
 var login_exports = /* @__PURE__ */ __exportAll({
   default: () => LoginPage,
-  meta: () => meta$21,
+  meta: () => meta$23,
 });
 var registerSchema = z
   .object({
@@ -4358,7 +4849,7 @@ function RegisterForm() {
 }
 //#endregion
 //#region app/features/auth/register/register.page.tsx
-function meta$20() {
+function meta$22() {
   return [
     { title: "Sign Up — MiniBooking" },
     {
@@ -4378,7 +4869,7 @@ function RegisterPage() {
 //#region app/routes/auth/register.tsx
 var register_exports = /* @__PURE__ */ __exportAll({
   default: () => RegisterPage,
-  meta: () => meta$20,
+  meta: () => meta$22,
 });
 //#endregion
 //#region app/components/layouts/shared/app-sidebar.tsx
@@ -4705,9 +5196,9 @@ var _layout_default$2 = UNSAFE_withComponentProps(function UserLayout() {
 //#region app/routes/user/dashboard.tsx
 var dashboard_exports$2 = /* @__PURE__ */ __exportAll({
   default: () => dashboard_default$2,
-  meta: () => meta$19,
+  meta: () => meta$21,
 });
-function meta$19() {
+function meta$21() {
   return [{ title: "Dashboard — MiniBooking" }];
 }
 var dashboard_default$2 = UNSAFE_withComponentProps(function UserDashboard() {
@@ -4765,15 +5256,293 @@ var dashboard_default$2 = UNSAFE_withComponentProps(function UserDashboard() {
   });
 });
 //#endregion
+//#region app/components/ui/tabs.tsx
+function Tabs$1({ className, orientation = "horizontal", ...props }) {
+  return /* @__PURE__ */ jsx(Tabs.Root, {
+    "data-slot": "tabs",
+    "data-orientation": orientation,
+    className: cn("group/tabs flex gap-2 data-horizontal:flex-col", className),
+    ...props,
+  });
+}
+var tabsListVariants = cva(
+  "group/tabs-list inline-flex w-fit items-center justify-center rounded-lg p-[3px] text-muted-foreground group-data-horizontal/tabs:h-8 group-data-vertical/tabs:h-fit group-data-vertical/tabs:flex-col data-[variant=line]:rounded-none",
+  {
+    variants: {
+      variant: {
+        default: "bg-muted",
+        line: "gap-1 bg-transparent",
+      },
+    },
+    defaultVariants: { variant: "default" },
+  },
+);
+function TabsList({ className, variant = "default", ...props }) {
+  return /* @__PURE__ */ jsx(Tabs.List, {
+    "data-slot": "tabs-list",
+    "data-variant": variant,
+    className: cn(tabsListVariants({ variant }), className),
+    ...props,
+  });
+}
+function TabsTrigger({ className, ...props }) {
+  return /* @__PURE__ */ jsx(Tabs.Trigger, {
+    "data-slot": "tabs-trigger",
+    className: cn(
+      "relative inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 rounded-md border border-transparent px-1.5 py-0.5 text-sm font-medium whitespace-nowrap text-foreground/60 transition-all group-data-vertical/tabs:w-full group-data-vertical/tabs:justify-start hover:text-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50 has-data-[icon=inline-end]:pr-1 has-data-[icon=inline-start]:pl-1 dark:text-muted-foreground dark:hover:text-foreground group-data-[variant=default]/tabs-list:data-active:shadow-sm group-data-[variant=line]/tabs-list:data-active:shadow-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+      "group-data-[variant=line]/tabs-list:bg-transparent group-data-[variant=line]/tabs-list:data-active:bg-transparent dark:group-data-[variant=line]/tabs-list:data-active:border-transparent dark:group-data-[variant=line]/tabs-list:data-active:bg-transparent",
+      "data-active:bg-background data-active:text-foreground dark:data-active:border-input dark:data-active:bg-input/30 dark:data-active:text-foreground",
+      "after:absolute after:bg-foreground after:opacity-0 after:transition-opacity group-data-horizontal/tabs:after:inset-x-0 group-data-horizontal/tabs:after:bottom-[-5px] group-data-horizontal/tabs:after:h-0.5 group-data-vertical/tabs:after:inset-y-0 group-data-vertical/tabs:after:-right-1 group-data-vertical/tabs:after:w-0.5 group-data-[variant=line]/tabs-list:data-active:after:opacity-100",
+      className,
+    ),
+    ...props,
+  });
+}
+function TabsContent({ className, ...props }) {
+  return /* @__PURE__ */ jsx(Tabs.Content, {
+    "data-slot": "tabs-content",
+    className: cn("flex-1 text-sm outline-none", className),
+    ...props,
+  });
+}
+//#endregion
+//#region app/types/booking/booking.ts
+var BookingStatus = {
+  PendingPayment: 1,
+  Confirmed: 2,
+  Cancelled: 3,
+  Completed: 4,
+  Expired: 5,
+};
+var BOOKING_STATUS_LABEL = {
+  [BookingStatus.PendingPayment]: "Pending Payment",
+  [BookingStatus.Confirmed]: "Confirmed",
+  [BookingStatus.Cancelled]: "Cancelled",
+  [BookingStatus.Completed]: "Completed",
+  [BookingStatus.Expired]: "Expired",
+};
+//#endregion
 //#region app/routes/user/bookings.tsx
 var bookings_exports$2 = /* @__PURE__ */ __exportAll({
   default: () => bookings_default$2,
-  meta: () => meta$18,
+  meta: () => meta$20,
 });
-function meta$18() {
+function meta$20() {
   return [{ title: "My Bookings — MiniBooking" }];
 }
+var STATUS_TABS = [
+  {
+    label: "All",
+    value: "all",
+  },
+  {
+    label: "Pending",
+    value: "pending",
+    filter: BookingStatus.PendingPayment,
+  },
+  {
+    label: "Confirmed",
+    value: "confirmed",
+    filter: BookingStatus.Confirmed,
+  },
+  {
+    label: "Completed",
+    value: "completed",
+    filter: BookingStatus.Completed,
+  },
+  {
+    label: "Cancelled",
+    value: "cancelled",
+    filter: BookingStatus.Cancelled,
+  },
+  {
+    label: "Expired",
+    value: "expired",
+    filter: BookingStatus.Expired,
+  },
+];
+var STATUS_VARIANT$3 = {
+  [BookingStatus.PendingPayment]: "outline",
+  [BookingStatus.Confirmed]: "default",
+  [BookingStatus.Completed]: "secondary",
+  [BookingStatus.Cancelled]: "destructive",
+  [BookingStatus.Expired]: "secondary",
+};
+function formatSlotTime$2(iso) {
+  return new Date(iso).toLocaleString("vi-VN", {
+    weekday: "short",
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+function formatPrice$6(price) {
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+    maximumFractionDigits: 0,
+  }).format(price);
+}
+function BookingCardSkeleton() {
+  return /* @__PURE__ */ jsx(Card, {
+    children: /* @__PURE__ */ jsx(CardContent, {
+      className: "p-4",
+      children: /* @__PURE__ */ jsxs("div", {
+        className: "flex items-center gap-4",
+        children: [
+          /* @__PURE__ */ jsx(Skeleton, { className: "size-12 rounded-full" }),
+          /* @__PURE__ */ jsxs("div", {
+            className: "flex-1 space-y-2",
+            children: [
+              /* @__PURE__ */ jsx(Skeleton, { className: "h-4 w-40" }),
+              /* @__PURE__ */ jsx(Skeleton, { className: "h-3 w-56" }),
+              /* @__PURE__ */ jsx(Skeleton, { className: "h-3 w-24" }),
+            ],
+          }),
+          /* @__PURE__ */ jsx(Skeleton, { className: "h-6 w-20" }),
+        ],
+      }),
+    }),
+  });
+}
+function BookingCard({ booking, onClick }) {
+  const navigate = useNavigate();
+  const initials =
+    (booking.mentor.displayName ?? "")
+      .split(" ")
+      .filter(Boolean)
+      .map((n) => n[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase() || "?";
+  const isPending = booking.status === BookingStatus.PendingPayment;
+  return /* @__PURE__ */ jsx(Card, {
+    className:
+      "cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5",
+    onClick,
+    role: "button",
+    tabIndex: 0,
+    onKeyDown: (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        onClick();
+      }
+    },
+    children: /* @__PURE__ */ jsx(CardContent, {
+      className: "p-4",
+      children: /* @__PURE__ */ jsxs("div", {
+        className: "flex items-center gap-4",
+        children: [
+          /* @__PURE__ */ jsxs(Avatar$1, {
+            className: "size-12 shrink-0",
+            children: [
+              /* @__PURE__ */ jsx(AvatarImage, {
+                src: booking.mentor.avatarUrl ?? void 0,
+                alt: booking.mentor.displayName,
+              }),
+              /* @__PURE__ */ jsx(AvatarFallback, {
+                className: "text-sm font-semibold",
+                children: initials,
+              }),
+            ],
+          }),
+          /* @__PURE__ */ jsxs("div", {
+            className: "min-w-0 flex-1 space-y-1",
+            children: [
+              /* @__PURE__ */ jsxs("div", {
+                className: "flex items-center gap-2",
+                children: [
+                  /* @__PURE__ */ jsx("p", {
+                    className: "text-sm font-medium truncate",
+                    children: booking.mentor.displayName,
+                  }),
+                  /* @__PURE__ */ jsx(Badge, {
+                    variant: STATUS_VARIANT$3[booking.status] ?? "secondary",
+                    className: "text-xs shrink-0",
+                    children: BOOKING_STATUS_LABEL[booking.status] ?? "Unknown",
+                  }),
+                ],
+              }),
+              /* @__PURE__ */ jsxs("div", {
+                className:
+                  "flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground",
+                children: [
+                  /* @__PURE__ */ jsxs("span", {
+                    className: "flex items-center gap-1",
+                    children: [
+                      /* @__PURE__ */ jsx(Clock, { className: "size-3" }),
+                      formatSlotTime$2(booking.mentorSlot.startTime),
+                    ],
+                  }),
+                  /* @__PURE__ */ jsxs("span", {
+                    className: "flex items-center gap-1",
+                    children: [
+                      /* @__PURE__ */ jsx(DollarSign, { className: "size-3" }),
+                      formatPrice$6(booking.mentorSlot.price),
+                    ],
+                  }),
+                ],
+              }),
+              /* @__PURE__ */ jsxs("p", {
+                className: "text-xs text-muted-foreground",
+                children: ["Code: ", booking.bookingCode],
+              }),
+            ],
+          }),
+          /* @__PURE__ */ jsxs("div", {
+            className: "flex items-center gap-2 shrink-0",
+            children: [
+              isPending &&
+                /* @__PURE__ */ jsxs(Button, {
+                  size: "sm",
+                  variant: "default",
+                  className: "gap-1.5",
+                  onClick: (e) => {
+                    e.stopPropagation();
+                    navigate(`/user/bookings/${booking.id}/payment`);
+                  },
+                  children: [
+                    /* @__PURE__ */ jsx(CreditCard, { className: "size-3.5" }),
+                    "Pay",
+                  ],
+                }),
+              /* @__PURE__ */ jsx(ChevronRight, {
+                className: "size-4 text-muted-foreground",
+              }),
+            ],
+          }),
+        ],
+      }),
+    }),
+  });
+}
 var bookings_default$2 = UNSAFE_withComponentProps(function UserBookings() {
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const user = useAuthStore((s) => s.user);
+  const activeTab = searchParams.get("status") ?? "all";
+  const page = Number(searchParams.get("page") ?? "1");
+  const statusFilter = STATUS_TABS.find((t) => t.value === activeTab)?.filter;
+  const { data, isPending } = useUserBookingsQuery(user?.userId ?? "", {
+    pageNumber: page,
+    pageSize: 10,
+    status: statusFilter,
+    sortBy: "CreatedAt",
+    sortOrder: "desc",
+  });
+  const bookings = data?.items ?? [];
+  function handleTabChange(value) {
+    const params = new URLSearchParams();
+    if (value !== "all") params.set("status", value);
+    setSearchParams(params, { replace: true });
+  }
+  function handlePageChange(p) {
+    const params = new URLSearchParams(searchParams);
+    if (p > 1) params.set("page", String(p));
+    else params.delete("page");
+    setSearchParams(params, { replace: true });
+  }
   return /* @__PURE__ */ jsxs("div", {
     className: "space-y-6",
     children: [
@@ -4789,26 +5558,941 @@ var bookings_default$2 = UNSAFE_withComponentProps(function UserBookings() {
           }),
         ],
       }),
-      /* @__PURE__ */ jsxs("div", {
-        className:
-          "flex flex-col items-center justify-center rounded-xl border border-dashed py-16 text-center",
+      /* @__PURE__ */ jsx(Tabs$1, {
+        value: activeTab,
+        onValueChange: handleTabChange,
+        children: /* @__PURE__ */ jsx(TabsList, {
+          className: "w-full justify-start overflow-x-auto",
+          children: STATUS_TABS.map((tab) =>
+            /* @__PURE__ */ jsx(
+              TabsTrigger,
+              {
+                value: tab.value,
+                className: "text-xs sm:text-sm",
+                children: tab.label,
+              },
+              tab.value,
+            ),
+          ),
+        }),
+      }),
+      isPending
+        ? /* @__PURE__ */ jsx("div", {
+            className: "space-y-3",
+            children: Array.from({ length: 5 }).map((_, i) =>
+              /* @__PURE__ */ jsx(BookingCardSkeleton, {}, i),
+            ),
+          })
+        : bookings.length === 0
+          ? /* @__PURE__ */ jsxs("div", {
+              className:
+                "flex flex-col items-center justify-center rounded-xl border border-dashed py-16 text-center",
+              children: [
+                /* @__PURE__ */ jsx(CalendarCheck, {
+                  className: "mb-4 size-10 text-muted-foreground/50",
+                }),
+                /* @__PURE__ */ jsx("p", {
+                  className: "text-sm font-medium text-muted-foreground",
+                  children: "No bookings found",
+                }),
+                /* @__PURE__ */ jsx("p", {
+                  className: "mt-1 text-xs text-muted-foreground/70",
+                  children:
+                    activeTab === "all"
+                      ? "Book a session with a mentor to get started."
+                      : "No bookings with this status.",
+                }),
+                /* @__PURE__ */ jsx(Button, {
+                  variant: "outline",
+                  size: "sm",
+                  className: "mt-4",
+                  onClick: () => navigate("/user/mentors"),
+                  children: "Find Mentors",
+                }),
+              ],
+            })
+          : /* @__PURE__ */ jsx("div", {
+              className: "space-y-3",
+              children: bookings.map((booking) =>
+                /* @__PURE__ */ jsx(
+                  BookingCard,
+                  {
+                    booking,
+                    onClick: () => navigate(`/user/bookings/${booking.id}`),
+                  },
+                  booking.id,
+                ),
+              ),
+            }),
+      data &&
+        data.totalPages > 1 &&
+        /* @__PURE__ */ jsx(DataTablePagination, {
+          pageNumber: data.pageNumber,
+          pageSize: data.pageSize,
+          totalPages: data.totalPages,
+          totalCount: data.totalCount,
+          hasPreviousPage: data.hasPreviousPage,
+          hasNextPage: data.hasNextPage,
+          onPageChange: handlePageChange,
+          onPageSizeChange: () => {},
+        }),
+    ],
+  });
+});
+//#endregion
+//#region app/hooks/booking/use-booking-detail-query.ts
+function useBookingDetailQuery(bookingId) {
+  return useQuery({
+    queryKey: queryKeys.bookings.detail(bookingId),
+    queryFn: () => bookingService.getBookingDetail(bookingId),
+    staleTime: 6e4,
+    enabled: !!bookingId,
+  });
+}
+//#endregion
+//#region app/hooks/booking/use-cancel-booking-mutation.ts
+function useCancelBookingMutation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (params) => bookingService.cancelBooking(params),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.bookings.all() });
+      qc.invalidateQueries({ queryKey: queryKeys.mentors.details() });
+    },
+  });
+}
+//#endregion
+//#region app/routes/user/booking-detail.tsx
+var booking_detail_exports = /* @__PURE__ */ __exportAll({
+  default: () => booking_detail_default,
+  meta: () => meta$19,
+});
+function meta$19() {
+  return [{ title: "Booking Detail — MiniBooking" }];
+}
+var STATUS_VARIANT$2 = {
+  [BookingStatus.PendingPayment]: "outline",
+  [BookingStatus.Confirmed]: "default",
+  [BookingStatus.Completed]: "secondary",
+  [BookingStatus.Cancelled]: "destructive",
+  [BookingStatus.Expired]: "secondary",
+};
+function formatDateTime(iso) {
+  return new Date(iso).toLocaleString("vi-VN", {
+    weekday: "long",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+function formatPrice$5(price) {
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+    maximumFractionDigits: 0,
+  }).format(price);
+}
+function CancelDialog({ open, onOpenChange, bookingId }) {
+  const [reason, setReason] = useState("");
+  const user = useAuthStore((s) => s.user);
+  const cancelBooking = useCancelBookingMutation();
+  function handleCancel() {
+    if (!user) return;
+    cancelBooking.mutate(
+      {
+        userId: user.userId,
+        bookingId,
+        cancellationReason: reason.trim() || void 0,
+      },
+      {
+        onSuccess: () => {
+          toast.success("Booking cancelled.");
+          onOpenChange(false);
+        },
+        onError: (error) => {
+          toast.error(getApiErrorMessage(error));
+        },
+      },
+    );
+  }
+  return /* @__PURE__ */ jsx(Dialog$1, {
+    open,
+    onOpenChange,
+    children: /* @__PURE__ */ jsxs(DialogContent, {
+      className: "sm:max-w-md",
+      children: [
+        /* @__PURE__ */ jsxs(DialogHeader, {
+          children: [
+            /* @__PURE__ */ jsx(DialogTitle, { children: "Cancel Booking" }),
+            /* @__PURE__ */ jsx(DialogDescription, {
+              children:
+                "Are you sure you want to cancel this booking? This action cannot be undone.",
+            }),
+          ],
+        }),
+        /* @__PURE__ */ jsxs("div", {
+          className: "space-y-2 py-2",
+          children: [
+            /* @__PURE__ */ jsx(Label$1, {
+              htmlFor: "cancel-reason",
+              className: "text-sm",
+              children: "Reason (optional)",
+            }),
+            /* @__PURE__ */ jsx(Textarea, {
+              id: "cancel-reason",
+              placeholder: "Why are you cancelling?",
+              value: reason,
+              onChange: (e) => setReason(e.target.value),
+              rows: 3,
+              className: "resize-none",
+            }),
+          ],
+        }),
+        /* @__PURE__ */ jsxs(DialogFooter, {
+          className: "gap-2 sm:gap-0",
+          children: [
+            /* @__PURE__ */ jsx(Button, {
+              variant: "outline",
+              onClick: () => onOpenChange(false),
+              disabled: cancelBooking.isPending,
+              children: "Keep Booking",
+            }),
+            /* @__PURE__ */ jsxs(Button, {
+              variant: "destructive",
+              onClick: handleCancel,
+              disabled: cancelBooking.isPending,
+              children: [
+                cancelBooking.isPending &&
+                  /* @__PURE__ */ jsx(Loader2, {
+                    className: "size-4 animate-spin",
+                  }),
+                "Cancel Booking",
+              ],
+            }),
+          ],
+        }),
+      ],
+    }),
+  });
+}
+var booking_detail_default = UNSAFE_withComponentProps(
+  function BookingDetailPage({ params }) {
+    const navigate = useNavigate();
+    const bookingId = params.id;
+    const {
+      data: booking,
+      isPending,
+      isError,
+    } = useBookingDetailQuery(bookingId);
+    const [cancelOpen, setCancelOpen] = useState(false);
+    if (isPending)
+      return /* @__PURE__ */ jsxs("div", {
+        className: "space-y-6",
         children: [
-          /* @__PURE__ */ jsx(CalendarCheck, {
+          /* @__PURE__ */ jsx(Skeleton, { className: "h-8 w-32" }),
+          /* @__PURE__ */ jsx(Skeleton, { className: "h-48 w-full" }),
+          /* @__PURE__ */ jsx(Skeleton, { className: "h-32 w-full" }),
+        ],
+      });
+    if (isError || !booking)
+      return /* @__PURE__ */ jsxs("div", {
+        className:
+          "flex flex-col items-center justify-center py-16 text-center",
+        children: [
+          /* @__PURE__ */ jsx(XCircle, {
             className: "mb-4 size-10 text-muted-foreground/50",
           }),
           /* @__PURE__ */ jsx("p", {
             className: "text-sm font-medium text-muted-foreground",
-            children: "No bookings yet",
+            children: "Booking not found or failed to load.",
+          }),
+          /* @__PURE__ */ jsx(Button, {
+            variant: "outline",
+            size: "sm",
+            className: "mt-4",
+            onClick: () => navigate("/user/bookings"),
+            children: "Back to Bookings",
+          }),
+        ],
+      });
+    const initials =
+      (booking.mentor.displayName ?? "")
+        .split(" ")
+        .filter(Boolean)
+        .map((n) => n[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase() || "?";
+    const isPending_ = booking.status === BookingStatus.PendingPayment;
+    return /* @__PURE__ */ jsxs("div", {
+      className: "space-y-6",
+      children: [
+        /* @__PURE__ */ jsxs(Button, {
+          variant: "ghost",
+          size: "sm",
+          className: "gap-1.5 text-muted-foreground hover:text-foreground",
+          onClick: () => navigate("/user/bookings"),
+          children: [
+            /* @__PURE__ */ jsx(ArrowLeft, { className: "size-4" }),
+            "Back to Bookings",
+          ],
+        }),
+        /* @__PURE__ */ jsxs("div", {
+          className:
+            "flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between",
+          children: [
+            /* @__PURE__ */ jsxs("div", {
+              className: "space-y-1",
+              children: [
+                /* @__PURE__ */ jsxs("div", {
+                  className: "flex items-center gap-3",
+                  children: [
+                    /* @__PURE__ */ jsx("h2", {
+                      className: "text-xl font-semibold",
+                      children: "Booking Detail",
+                    }),
+                    /* @__PURE__ */ jsx(Badge, {
+                      variant: STATUS_VARIANT$2[booking.status] ?? "secondary",
+                      className: "text-xs",
+                      children:
+                        BOOKING_STATUS_LABEL[booking.status] ?? "Unknown",
+                    }),
+                  ],
+                }),
+                /* @__PURE__ */ jsxs("p", {
+                  className: "text-sm text-muted-foreground",
+                  children: [
+                    "Code: ",
+                    /* @__PURE__ */ jsx("span", {
+                      className: "font-mono",
+                      children: booking.bookingCode,
+                    }),
+                  ],
+                }),
+              ],
+            }),
+            /* @__PURE__ */ jsx("div", {
+              className: "flex items-center gap-2",
+              children:
+                isPending_ &&
+                /* @__PURE__ */ jsxs(Fragment, {
+                  children: [
+                    /* @__PURE__ */ jsxs(Button, {
+                      size: "sm",
+                      onClick: () =>
+                        navigate(`/user/bookings/${bookingId}/payment`),
+                      className: "gap-1.5",
+                      children: [
+                        /* @__PURE__ */ jsx(CreditCard, {
+                          className: "size-4",
+                        }),
+                        "Pay Now",
+                      ],
+                    }),
+                    /* @__PURE__ */ jsx(Button, {
+                      variant: "destructive",
+                      size: "sm",
+                      onClick: () => setCancelOpen(true),
+                      children: "Cancel",
+                    }),
+                  ],
+                }),
+            }),
+          ],
+        }),
+        /* @__PURE__ */ jsxs("div", {
+          className: "grid gap-6 lg:grid-cols-2",
+          children: [
+            /* @__PURE__ */ jsxs(Card, {
+              children: [
+                /* @__PURE__ */ jsx(CardHeader, {
+                  className: "pb-3",
+                  children: /* @__PURE__ */ jsx(CardTitle, {
+                    className: "text-base",
+                    children: "Mentor",
+                  }),
+                }),
+                /* @__PURE__ */ jsx(CardContent, {
+                  children: /* @__PURE__ */ jsxs("div", {
+                    className: "flex items-center gap-4",
+                    children: [
+                      /* @__PURE__ */ jsxs(Avatar$1, {
+                        className: "size-14 shrink-0",
+                        children: [
+                          /* @__PURE__ */ jsx(AvatarImage, {
+                            src: booking.mentor.avatarUrl ?? void 0,
+                            alt: booking.mentor.displayName,
+                          }),
+                          /* @__PURE__ */ jsx(AvatarFallback, {
+                            className: "text-sm font-semibold",
+                            children: initials,
+                          }),
+                        ],
+                      }),
+                      /* @__PURE__ */ jsxs("div", {
+                        className: "min-w-0",
+                        children: [
+                          /* @__PURE__ */ jsx("p", {
+                            className: "font-medium",
+                            children: booking.mentor.displayName,
+                          }),
+                          booking.mentor.specialization &&
+                            /* @__PURE__ */ jsx("p", {
+                              className: "text-sm text-muted-foreground",
+                              children: booking.mentor.specialization,
+                            }),
+                          /* @__PURE__ */ jsx("p", {
+                            className: "text-xs text-muted-foreground",
+                            children: booking.mentor.email,
+                          }),
+                        ],
+                      }),
+                    ],
+                  }),
+                }),
+              ],
+            }),
+            /* @__PURE__ */ jsxs(Card, {
+              children: [
+                /* @__PURE__ */ jsx(CardHeader, {
+                  className: "pb-3",
+                  children: /* @__PURE__ */ jsx(CardTitle, {
+                    className: "text-base",
+                    children: "Session Details",
+                  }),
+                }),
+                /* @__PURE__ */ jsxs(CardContent, {
+                  className: "space-y-3",
+                  children: [
+                    /* @__PURE__ */ jsxs("div", {
+                      className: "flex items-center gap-3 text-sm",
+                      children: [
+                        /* @__PURE__ */ jsx(Calendar, {
+                          className: "size-4 text-muted-foreground",
+                        }),
+                        /* @__PURE__ */ jsxs("div", {
+                          children: [
+                            /* @__PURE__ */ jsx("p", {
+                              className: "font-medium",
+                              children: formatDateTime(
+                                booking.mentorSlot.startTime,
+                              ),
+                            }),
+                            /* @__PURE__ */ jsxs("p", {
+                              className: "text-muted-foreground",
+                              children: [
+                                "to ",
+                                formatDateTime(booking.mentorSlot.endTime),
+                              ],
+                            }),
+                          ],
+                        }),
+                      ],
+                    }),
+                    /* @__PURE__ */ jsx(Separator$1, {}),
+                    /* @__PURE__ */ jsxs("div", {
+                      className: "flex items-center gap-3 text-sm",
+                      children: [
+                        /* @__PURE__ */ jsx(DollarSign, {
+                          className: "size-4 text-muted-foreground",
+                        }),
+                        /* @__PURE__ */ jsx("span", {
+                          className: "font-medium",
+                          children: formatPrice$5(booking.mentorSlot.price),
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            }),
+          ],
+        }),
+        /* @__PURE__ */ jsxs(Card, {
+          children: [
+            /* @__PURE__ */ jsx(CardHeader, {
+              className: "pb-3",
+              children: /* @__PURE__ */ jsx(CardTitle, {
+                className: "text-base",
+                children: "Timeline",
+              }),
+            }),
+            /* @__PURE__ */ jsx(CardContent, {
+              children: /* @__PURE__ */ jsxs("div", {
+                className: "space-y-4",
+                children: [
+                  /* @__PURE__ */ jsx(TimelineItem, {
+                    icon: /* @__PURE__ */ jsx(Clock, { className: "size-3.5" }),
+                    label: "Booking Created",
+                    time: booking.createdAt,
+                    active: true,
+                  }),
+                  booking.status === BookingStatus.Confirmed &&
+                    /* @__PURE__ */ jsx(TimelineItem, {
+                      icon: /* @__PURE__ */ jsx(CheckCircle2, {
+                        className: "size-3.5 text-green-600",
+                      }),
+                      label: "Payment Confirmed",
+                      time: booking.updatedAt ?? booking.createdAt,
+                      active: true,
+                    }),
+                  booking.status === BookingStatus.Cancelled &&
+                    /* @__PURE__ */ jsx(TimelineItem, {
+                      icon: /* @__PURE__ */ jsx(XCircle, {
+                        className: "size-3.5 text-destructive",
+                      }),
+                      label: `Cancelled${booking.cancellationReason ? `: ${booking.cancellationReason}` : ""}`,
+                      time: booking.updatedAt ?? booking.createdAt,
+                      active: true,
+                    }),
+                  booking.status === BookingStatus.Expired &&
+                    /* @__PURE__ */ jsx(TimelineItem, {
+                      icon: /* @__PURE__ */ jsx(Clock, {
+                        className: "size-3.5 text-orange-500",
+                      }),
+                      label: "Booking Expired",
+                      time: booking.updatedAt ?? booking.createdAt,
+                      active: true,
+                    }),
+                  booking.status === BookingStatus.Completed &&
+                    /* @__PURE__ */ jsx(TimelineItem, {
+                      icon: /* @__PURE__ */ jsx(CheckCircle2, {
+                        className: "size-3.5 text-green-600",
+                      }),
+                      label: "Session Completed",
+                      time: booking.updatedAt ?? booking.createdAt,
+                      active: true,
+                    }),
+                ],
+              }),
+            }),
+          ],
+        }),
+        /* @__PURE__ */ jsx(CancelDialog, {
+          open: cancelOpen,
+          onOpenChange: setCancelOpen,
+          bookingId,
+        }),
+      ],
+    });
+  },
+);
+function TimelineItem({ icon, label, time, active }) {
+  return /* @__PURE__ */ jsxs("div", {
+    className: "flex items-start gap-3",
+    children: [
+      /* @__PURE__ */ jsx("div", {
+        className:
+          "mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full border bg-background",
+        children: icon,
+      }),
+      /* @__PURE__ */ jsxs("div", {
+        className: "min-w-0 flex-1",
+        children: [
+          /* @__PURE__ */ jsx("p", {
+            className: "text-sm font-medium",
+            children: label,
           }),
           /* @__PURE__ */ jsx("p", {
-            className: "mt-1 text-xs text-muted-foreground/70",
-            children: "Book a session with a mentor to get started.",
+            className: "text-xs text-muted-foreground",
+            children: formatDateTime(time),
           }),
         ],
       }),
     ],
   });
+}
+//#endregion
+//#region app/services/payment/payment.service.ts
+var paymentService = {
+  async createPayment(bookingId) {
+    return (await apiClient.post("/api/Payment", { bookingId })).data.data;
+  },
+  async getPaymentStatus(bookingId) {
+    return (await apiClient.get(`/api/Payment/${bookingId}/status`)).data.data;
+  },
+};
+//#endregion
+//#region app/hooks/payment/use-create-payment-mutation.ts
+function useCreatePaymentMutation() {
+  return useMutation({
+    mutationFn: (bookingId) => paymentService.createPayment(bookingId),
+  });
+}
+//#endregion
+//#region app/types/payment/payment.ts
+var PaymentStatus = {
+  Pending: 1,
+  Succeeded: 2,
+  Failed: 3,
+  Expired: 4,
+  Cancelled: 5,
+};
+(PaymentStatus.Pending,
+  PaymentStatus.Succeeded,
+  PaymentStatus.Failed,
+  PaymentStatus.Expired,
+  PaymentStatus.Cancelled);
+//#endregion
+//#region app/hooks/payment/use-payment-status-query.ts
+function usePaymentStatusQuery(bookingId, options) {
+  return useQuery({
+    queryKey: queryKeys.payments.status(bookingId),
+    queryFn: () => paymentService.getPaymentStatus(bookingId),
+    enabled: options?.enabled !== false && !!bookingId,
+    staleTime: 0,
+    gcTime: 0,
+    refetchInterval: (query) => {
+      const data = query.state.data;
+      if (!data) return 3e3;
+      if (data.status === PaymentStatus.Pending) return 3e3;
+      return false;
+    },
+    refetchIntervalInBackground: true,
+  });
+}
+//#endregion
+//#region app/routes/user/booking-payment.tsx
+var booking_payment_exports = /* @__PURE__ */ __exportAll({
+  default: () => booking_payment_default,
+  meta: () => meta$18,
 });
+function meta$18() {
+  return [{ title: "Payment — MiniBooking" }];
+}
+function formatPrice$4(price) {
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+    maximumFractionDigits: 0,
+  }).format(price);
+}
+function CountdownTimer({ expiredAt }) {
+  const [remaining, setRemaining] = useState(() =>
+    Math.max(0, Math.floor((new Date(expiredAt).getTime() - Date.now()) / 1e3)),
+  );
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const diff = Math.max(
+        0,
+        Math.floor((new Date(expiredAt).getTime() - Date.now()) / 1e3),
+      );
+      setRemaining(diff);
+      if (diff <= 0) clearInterval(interval);
+    }, 1e3);
+    return () => clearInterval(interval);
+  }, [expiredAt]);
+  const minutes = Math.floor(remaining / 60);
+  const seconds = remaining % 60;
+  if (remaining <= 0)
+    return /* @__PURE__ */ jsx("span", {
+      className: "text-destructive font-medium",
+      children: "Expired",
+    });
+  return /* @__PURE__ */ jsxs("span", {
+    className: remaining < 60 ? "text-destructive font-medium" : "font-medium",
+    children: [
+      String(minutes).padStart(2, "0"),
+      ":",
+      String(seconds).padStart(2, "0"),
+    ],
+  });
+}
+function PaymentSuccess({ bookingId }) {
+  const navigate = useNavigate();
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      navigate(`/user/bookings/${bookingId}`);
+    }, 3e3);
+    return () => clearTimeout(timer);
+  }, [navigate, bookingId]);
+  return /* @__PURE__ */ jsxs("div", {
+    className: "flex flex-col items-center gap-4 py-8 text-center",
+    children: [
+      /* @__PURE__ */ jsx("div", {
+        className:
+          "flex size-16 items-center justify-center rounded-full bg-green-100",
+        children: /* @__PURE__ */ jsx(CheckCircle2, {
+          className: "size-8 text-green-600",
+        }),
+      }),
+      /* @__PURE__ */ jsxs("div", {
+        className: "space-y-1",
+        children: [
+          /* @__PURE__ */ jsx("h3", {
+            className: "text-lg font-semibold",
+            children: "Payment Successful!",
+          }),
+          /* @__PURE__ */ jsx("p", {
+            className: "text-sm text-muted-foreground",
+            children: "Your booking has been confirmed. Redirecting...",
+          }),
+        ],
+      }),
+    ],
+  });
+}
+function PaymentExpired({ bookingId, mentorId }) {
+  const navigate = useNavigate();
+  return /* @__PURE__ */ jsxs("div", {
+    className: "flex flex-col items-center gap-4 py-8 text-center",
+    children: [
+      /* @__PURE__ */ jsx("div", {
+        className:
+          "flex size-16 items-center justify-center rounded-full bg-orange-100",
+        children: /* @__PURE__ */ jsx(Clock, {
+          className: "size-8 text-orange-600",
+        }),
+      }),
+      /* @__PURE__ */ jsxs("div", {
+        className: "space-y-1",
+        children: [
+          /* @__PURE__ */ jsx("h3", {
+            className: "text-lg font-semibold",
+            children: "Payment Expired",
+          }),
+          /* @__PURE__ */ jsx("p", {
+            className: "text-sm text-muted-foreground",
+            children:
+              "The payment window has closed. Please create a new booking.",
+          }),
+        ],
+      }),
+      /* @__PURE__ */ jsxs("div", {
+        className: "flex gap-2",
+        children: [
+          mentorId &&
+            /* @__PURE__ */ jsx(Button, {
+              variant: "outline",
+              onClick: () => navigate(`/user/mentors/${mentorId}`),
+              children: "Back to Mentor",
+            }),
+          /* @__PURE__ */ jsx(Button, {
+            onClick: () => navigate("/user/bookings"),
+            children: "My Bookings",
+          }),
+        ],
+      }),
+    ],
+  });
+}
+function PaymentFailed({ reason }) {
+  const navigate = useNavigate();
+  return /* @__PURE__ */ jsxs("div", {
+    className: "flex flex-col items-center gap-4 py-8 text-center",
+    children: [
+      /* @__PURE__ */ jsx("div", {
+        className:
+          "flex size-16 items-center justify-center rounded-full bg-red-100",
+        children: /* @__PURE__ */ jsx(XCircle, {
+          className: "size-8 text-red-600",
+        }),
+      }),
+      /* @__PURE__ */ jsxs("div", {
+        className: "space-y-1",
+        children: [
+          /* @__PURE__ */ jsx("h3", {
+            className: "text-lg font-semibold",
+            children: "Payment Failed",
+          }),
+          /* @__PURE__ */ jsx("p", {
+            className: "text-sm text-muted-foreground",
+            children: reason || "Something went wrong with your payment.",
+          }),
+        ],
+      }),
+      /* @__PURE__ */ jsx(Button, {
+        onClick: () => navigate("/user/bookings"),
+        children: "My Bookings",
+      }),
+    ],
+  });
+}
+function QrPaymentView({ payment, bookingId }) {
+  const { data: status } = usePaymentStatusQuery(bookingId);
+  const mentorId = useBookingDetailQuery(bookingId).data?.mentor?.id;
+  if (status?.status === PaymentStatus.Succeeded)
+    return /* @__PURE__ */ jsx(PaymentSuccess, { bookingId });
+  if (status?.status === PaymentStatus.Expired)
+    return /* @__PURE__ */ jsx(PaymentExpired, {
+      bookingId,
+      mentorId,
+    });
+  if (status?.status === PaymentStatus.Failed)
+    return /* @__PURE__ */ jsx(PaymentFailed, { reason: status.failureReason });
+  return /* @__PURE__ */ jsxs("div", {
+    className: "space-y-6",
+    children: [
+      /* @__PURE__ */ jsxs("div", {
+        className: "flex flex-col items-center gap-4",
+        children: [
+          /* @__PURE__ */ jsx("div", {
+            className: "rounded-xl border-2 border-dashed p-4 bg-white",
+            children: /* @__PURE__ */ jsx("img", {
+              src: payment.qrCodeUrl,
+              alt: "Payment QR Code",
+              className: "size-56 sm:size-64",
+            }),
+          }),
+          /* @__PURE__ */ jsxs("div", {
+            className: "flex items-center gap-2 text-sm text-muted-foreground",
+            children: [
+              /* @__PURE__ */ jsx(Loader2, {
+                className: "size-4 animate-spin",
+              }),
+              /* @__PURE__ */ jsx("span", {
+                children: "Waiting for payment...",
+              }),
+            ],
+          }),
+        ],
+      }),
+      /* @__PURE__ */ jsxs("div", {
+        className: "space-y-3 rounded-lg border bg-muted/50 p-4",
+        children: [
+          /* @__PURE__ */ jsxs("div", {
+            className: "flex items-center justify-between text-sm",
+            children: [
+              /* @__PURE__ */ jsx("span", {
+                className: "text-muted-foreground",
+                children: "Amount",
+              }),
+              /* @__PURE__ */ jsx("span", {
+                className: "text-lg font-semibold",
+                children: formatPrice$4(payment.amount),
+              }),
+            ],
+          }),
+          /* @__PURE__ */ jsxs("div", {
+            className: "flex items-center justify-between text-sm",
+            children: [
+              /* @__PURE__ */ jsx("span", {
+                className: "text-muted-foreground",
+                children: "Order Code",
+              }),
+              /* @__PURE__ */ jsx(Badge, {
+                variant: "outline",
+                className: "font-mono text-xs",
+                children: payment.providerOrderCode,
+              }),
+            ],
+          }),
+          /* @__PURE__ */ jsxs("div", {
+            className: "flex items-center justify-between text-sm",
+            children: [
+              /* @__PURE__ */ jsx("span", {
+                className: "text-muted-foreground",
+                children: "Time Remaining",
+              }),
+              /* @__PURE__ */ jsx(CountdownTimer, {
+                expiredAt: payment.expiredAt,
+              }),
+            ],
+          }),
+        ],
+      }),
+      /* @__PURE__ */ jsxs("div", {
+        className: "rounded-lg border p-4 space-y-2",
+        children: [
+          /* @__PURE__ */ jsx("p", {
+            className: "text-sm font-medium",
+            children: "How to pay:",
+          }),
+          /* @__PURE__ */ jsxs("ol", {
+            className:
+              "list-decimal list-inside space-y-1 text-sm text-muted-foreground",
+            children: [
+              /* @__PURE__ */ jsx("li", { children: "Open your banking app" }),
+              /* @__PURE__ */ jsx("li", { children: "Scan the QR code above" }),
+              /* @__PURE__ */ jsx("li", {
+                children: "Verify the amount and transfer",
+              }),
+              /* @__PURE__ */ jsx("li", {
+                children: "Wait for confirmation (auto-detected)",
+              }),
+            ],
+          }),
+        ],
+      }),
+    ],
+  });
+}
+var booking_payment_default = UNSAFE_withComponentProps(
+  function BookingPaymentPage({ params }) {
+    const bookingId = params.id;
+    const navigate = useNavigate();
+    const createPayment = useCreatePaymentMutation();
+    const [payment, setPayment] = useState(null);
+    useEffect(() => {
+      if (!bookingId) return;
+      createPayment.mutate(bookingId, {
+        onSuccess: (data) => setPayment(data),
+      });
+    }, [bookingId]);
+    return /* @__PURE__ */ jsx("div", {
+      className: "flex items-start justify-center py-6",
+      children: /* @__PURE__ */ jsxs(Card, {
+        className: "w-full max-w-md",
+        children: [
+          /* @__PURE__ */ jsx(CardHeader, {
+            className: "text-center",
+            children: /* @__PURE__ */ jsxs(CardTitle, {
+              className: "flex items-center justify-center gap-2",
+              children: [
+                /* @__PURE__ */ jsx(QrCode, { className: "size-5" }),
+                "Payment",
+              ],
+            }),
+          }),
+          /* @__PURE__ */ jsxs(CardContent, {
+            children: [
+              createPayment.isPending &&
+                !payment &&
+                /* @__PURE__ */ jsxs("div", {
+                  className: "flex flex-col items-center gap-4 py-8",
+                  children: [
+                    /* @__PURE__ */ jsx(Skeleton, {
+                      className: "size-56 rounded-xl",
+                    }),
+                    /* @__PURE__ */ jsx(Skeleton, { className: "h-4 w-40" }),
+                    /* @__PURE__ */ jsx(Skeleton, { className: "h-20 w-full" }),
+                  ],
+                }),
+              createPayment.isError &&
+                !payment &&
+                /* @__PURE__ */ jsxs("div", {
+                  className:
+                    "flex flex-col items-center gap-4 py-8 text-center",
+                  children: [
+                    /* @__PURE__ */ jsx(XCircle, {
+                      className: "size-10 text-destructive",
+                    }),
+                    /* @__PURE__ */ jsx("p", {
+                      className: "text-sm text-muted-foreground",
+                      children:
+                        "Failed to create payment. The booking may have expired.",
+                    }),
+                    /* @__PURE__ */ jsx(Button, {
+                      variant: "outline",
+                      onClick: () => navigate("/user/bookings"),
+                      children: "Back to Bookings",
+                    }),
+                  ],
+                }),
+              payment &&
+                /* @__PURE__ */ jsx(QrPaymentView, {
+                  payment,
+                  bookingId,
+                }),
+            ],
+          }),
+        ],
+      }),
+    });
+  },
+);
 //#endregion
 //#region app/routes/user/find-mentors.tsx
 var find_mentors_exports = /* @__PURE__ */ __exportAll({
@@ -5027,6 +6711,41 @@ var _layout_default$1 = UNSAFE_withComponentProps(function MentorLayout() {
   });
 });
 //#endregion
+//#region app/hooks/mentor/use-my-mentor-profile.ts
+/**
+ * Resolves the current user's Mentor profile.
+ * Searches mentors by the user's email to find their mentorId,
+ * then fetches the full mentor detail (profile + skills + slots).
+ */
+function useMyMentorProfile() {
+  const user = useAuthStore((s) => s.user);
+  const mentorListQuery = useQuery({
+    queryKey: ["mentors", "my-profile-resolve", user?.email],
+    queryFn: () =>
+      mentorService.getMentors({
+        searchTerm: user.email,
+        pageSize: 1,
+      }),
+    enabled: !!user?.email,
+    staleTime: Infinity,
+  });
+  const mentorId = mentorListQuery.data?.items[0]?.id;
+  const detailQuery = useQuery({
+    queryKey: queryKeys.mentors.detail(mentorId ?? ""),
+    queryFn: () => mentorService.getMentorDetail(mentorId),
+    enabled: !!mentorId,
+    staleTime: 6e4,
+  });
+  return {
+    mentorId,
+    mentor: detailQuery.data,
+    isPending:
+      mentorListQuery.isPending || (!!mentorId && detailQuery.isPending),
+    isError: mentorListQuery.isError || detailQuery.isError,
+    refetch: detailQuery.refetch,
+  };
+}
+//#endregion
 //#region app/routes/mentor/dashboard.tsx
 var dashboard_exports$1 = /* @__PURE__ */ __exportAll({
   default: () => dashboard_default$1,
@@ -5035,7 +6754,87 @@ var dashboard_exports$1 = /* @__PURE__ */ __exportAll({
 function meta$12() {
   return [{ title: "Mentor Dashboard — MiniBooking" }];
 }
+function formatPrice$3(price) {
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+    maximumFractionDigits: 0,
+  }).format(price);
+}
+function formatSlotTime$1(iso) {
+  return new Date(iso).toLocaleString("vi-VN", {
+    weekday: "short",
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+function StatCard({ icon: Icon, label, value }) {
+  return /* @__PURE__ */ jsx(Card, {
+    children: /* @__PURE__ */ jsxs(CardContent, {
+      className: "flex items-center gap-4 p-5",
+      children: [
+        /* @__PURE__ */ jsx("div", {
+          className:
+            "flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10",
+          children: /* @__PURE__ */ jsx(Icon, {
+            className: "size-5 text-primary",
+          }),
+        }),
+        /* @__PURE__ */ jsxs("div", {
+          children: [
+            /* @__PURE__ */ jsx("p", {
+              className: "text-sm text-muted-foreground",
+              children: label,
+            }),
+            /* @__PURE__ */ jsx("p", {
+              className: "text-2xl font-bold",
+              children: value,
+            }),
+          ],
+        }),
+      ],
+    }),
+  });
+}
+function DashboardSkeleton() {
+  return /* @__PURE__ */ jsxs("div", {
+    className: "space-y-6",
+    children: [
+      /* @__PURE__ */ jsx(Skeleton, { className: "h-8 w-64" }),
+      /* @__PURE__ */ jsxs("div", {
+        className: "grid gap-4 sm:grid-cols-2 lg:grid-cols-3",
+        children: [
+          /* @__PURE__ */ jsx(Skeleton, { className: "h-24" }),
+          /* @__PURE__ */ jsx(Skeleton, { className: "h-24" }),
+          /* @__PURE__ */ jsx(Skeleton, { className: "h-24" }),
+        ],
+      }),
+      /* @__PURE__ */ jsx(Skeleton, { className: "h-48" }),
+    ],
+  });
+}
 var dashboard_default$1 = UNSAFE_withComponentProps(function MentorDashboard() {
+  const user = useCurrentUser();
+  const navigate = useNavigate();
+  const { mentor, isPending } = useMyMentorProfile();
+  if (isPending) return /* @__PURE__ */ jsx(DashboardSkeleton, {});
+  const now = /* @__PURE__ */ new Date();
+  const upcomingSlots = (mentor?.slots ?? [])
+    .filter(
+      (s) => s.status === SLOT_STATUS.Available && new Date(s.startTime) > now,
+    )
+    .sort(
+      (a, b) =>
+        new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
+    )
+    .slice(0, 5);
+  const totalBookedSlots = (mentor?.slots ?? []).reduce(
+    (sum, s) => sum + s.currentBookings,
+    0,
+  );
+  const skillsCount = mentor?.skills.length ?? 0;
   return /* @__PURE__ */ jsxs("div", {
     className: "space-y-6",
     children: [
@@ -5043,7 +6842,7 @@ var dashboard_default$1 = UNSAFE_withComponentProps(function MentorDashboard() {
         children: [
           /* @__PURE__ */ jsxs("h2", {
             className: "text-2xl font-semibold tracking-tight",
-            children: ["Welcome, ", useCurrentUser()?.fullName, " 👋"],
+            children: ["Welcome, ", user?.fullName],
           }),
           /* @__PURE__ */ jsx("p", {
             className: "text-muted-foreground",
@@ -5051,44 +6850,476 @@ var dashboard_default$1 = UNSAFE_withComponentProps(function MentorDashboard() {
           }),
         ],
       }),
-      /* @__PURE__ */ jsx("div", {
+      /* @__PURE__ */ jsxs("div", {
         className: "grid gap-4 sm:grid-cols-2 lg:grid-cols-3",
         children: [
-          {
+          /* @__PURE__ */ jsx(StatCard, {
+            icon: CalendarDays,
             label: "Upcoming Sessions",
-            value: "—",
-          },
-          {
-            label: "Sessions This Month",
-            value: "—",
-          },
-          {
-            label: "Total Students",
-            value: "—",
-          },
-        ].map((stat) =>
-          /* @__PURE__ */ jsxs(
-            "div",
-            {
-              className: "rounded-xl border bg-card p-6 shadow-sm",
+            value: upcomingSlots.length,
+          }),
+          /* @__PURE__ */ jsx(StatCard, {
+            icon: Users,
+            label: "Total Bookings",
+            value: totalBookedSlots,
+          }),
+          /* @__PURE__ */ jsx(StatCard, {
+            icon: GraduationCap,
+            label: "Active Skills",
+            value: skillsCount,
+          }),
+        ],
+      }),
+      /* @__PURE__ */ jsxs(Card, {
+        children: [
+          /* @__PURE__ */ jsxs(CardHeader, {
+            className: "flex flex-row items-center justify-between pb-3",
+            children: [
+              /* @__PURE__ */ jsx(CardTitle, {
+                className: "text-base",
+                children: "Upcoming Sessions",
+              }),
+              /* @__PURE__ */ jsx(Button, {
+                variant: "ghost",
+                size: "sm",
+                onClick: () => navigate("/mentor/schedule"),
+                children: "View all",
+              }),
+            ],
+          }),
+          /* @__PURE__ */ jsx(CardContent, {
+            children:
+              upcomingSlots.length === 0
+                ? /* @__PURE__ */ jsxs("div", {
+                    className: "flex flex-col items-center py-8 text-center",
+                    children: [
+                      /* @__PURE__ */ jsx(CalendarDays, {
+                        className: "mb-3 size-8 text-muted-foreground/50",
+                      }),
+                      /* @__PURE__ */ jsx("p", {
+                        className: "text-sm text-muted-foreground",
+                        children:
+                          "No upcoming sessions. Create a slot to get started.",
+                      }),
+                      /* @__PURE__ */ jsx(Button, {
+                        variant: "outline",
+                        size: "sm",
+                        className: "mt-3",
+                        onClick: () => navigate("/mentor/schedule"),
+                        children: "Manage Schedule",
+                      }),
+                    ],
+                  })
+                : /* @__PURE__ */ jsx("div", {
+                    className: "space-y-3",
+                    children: upcomingSlots.map((slot) =>
+                      /* @__PURE__ */ jsxs(
+                        "div",
+                        {
+                          className:
+                            "flex items-center justify-between rounded-lg border p-3",
+                          children: [
+                            /* @__PURE__ */ jsxs("div", {
+                              className: "space-y-1",
+                              children: [
+                                /* @__PURE__ */ jsxs("div", {
+                                  className:
+                                    "flex items-center gap-2 text-sm font-medium",
+                                  children: [
+                                    /* @__PURE__ */ jsx(Clock, {
+                                      className:
+                                        "size-3.5 text-muted-foreground",
+                                    }),
+                                    /* @__PURE__ */ jsx("span", {
+                                      children: formatSlotTime$1(
+                                        slot.startTime,
+                                      ),
+                                    }),
+                                    /* @__PURE__ */ jsx("span", {
+                                      className: "text-muted-foreground",
+                                      children: "—",
+                                    }),
+                                    /* @__PURE__ */ jsx("span", {
+                                      children: formatSlotTime$1(slot.endTime),
+                                    }),
+                                  ],
+                                }),
+                                /* @__PURE__ */ jsxs("div", {
+                                  className:
+                                    "flex items-center gap-3 text-xs text-muted-foreground",
+                                  children: [
+                                    /* @__PURE__ */ jsxs("span", {
+                                      className: "flex items-center gap-1",
+                                      children: [
+                                        /* @__PURE__ */ jsx(DollarSign, {
+                                          className: "size-3",
+                                        }),
+                                        formatPrice$3(slot.price),
+                                      ],
+                                    }),
+                                    /* @__PURE__ */ jsxs("span", {
+                                      children: [
+                                        slot.currentBookings,
+                                        "/",
+                                        slot.maxBookings,
+                                        " booked",
+                                      ],
+                                    }),
+                                  ],
+                                }),
+                              ],
+                            }),
+                            /* @__PURE__ */ jsx(Badge, {
+                              variant: "default",
+                              className: "text-xs",
+                              children: SLOT_STATUS_LABEL[slot.status],
+                            }),
+                          ],
+                        },
+                        slot.id,
+                      ),
+                    ),
+                  }),
+          }),
+        ],
+      }),
+      /* @__PURE__ */ jsxs(Card, {
+        children: [
+          /* @__PURE__ */ jsx(CardHeader, {
+            className: "pb-3",
+            children: /* @__PURE__ */ jsx(CardTitle, {
+              className: "text-base",
+              children: "Quick Actions",
+            }),
+          }),
+          /* @__PURE__ */ jsx(CardContent, {
+            children: /* @__PURE__ */ jsxs("div", {
+              className: "flex flex-wrap gap-3",
               children: [
-                /* @__PURE__ */ jsx("p", {
-                  className: "text-sm text-muted-foreground",
-                  children: stat.label,
+                /* @__PURE__ */ jsxs(Button, {
+                  variant: "outline",
+                  size: "sm",
+                  className: "gap-1.5",
+                  onClick: () => navigate("/mentor/schedule"),
+                  children: [
+                    /* @__PURE__ */ jsx(CalendarDays, { className: "size-4" }),
+                    "Create Slot",
+                  ],
                 }),
-                /* @__PURE__ */ jsx("p", {
-                  className: "mt-1 text-3xl font-bold",
-                  children: stat.value,
+                /* @__PURE__ */ jsxs(Button, {
+                  variant: "outline",
+                  size: "sm",
+                  className: "gap-1.5",
+                  onClick: () => navigate("/mentor/skills"),
+                  children: [
+                    /* @__PURE__ */ jsx(GraduationCap, { className: "size-4" }),
+                    "Manage Skills",
+                  ],
+                }),
+                /* @__PURE__ */ jsxs(Button, {
+                  variant: "outline",
+                  size: "sm",
+                  className: "gap-1.5",
+                  onClick: () => navigate("/mentor/profile"),
+                  children: [
+                    /* @__PURE__ */ jsx(TrendingUp, { className: "size-4" }),
+                    "View Profile",
+                  ],
                 }),
               ],
-            },
-            stat.label,
-          ),
-        ),
+            }),
+          }),
+        ],
       }),
     ],
   });
 });
+//#endregion
+//#region app/hooks/mentor/use-create-mentor-slot-mutation.ts
+function useCreateMentorSlotMutation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ mentorId, ...body }) =>
+      mentorService.createSlot(mentorId, body),
+    onSuccess: (_data, { mentorId }) => {
+      qc.invalidateQueries({ queryKey: queryKeys.mentors.detail(mentorId) });
+      toast.success("Slot created successfully");
+    },
+    onError: (err) => {
+      toast.error(getApiErrorMessage(err));
+    },
+  });
+}
+//#endregion
+//#region app/hooks/mentor/use-update-mentor-slot-mutation.ts
+function useUpdateMentorSlotMutation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ mentorId, slotId, ...body }) =>
+      mentorService.updateSlot(mentorId, slotId, body),
+    onSuccess: (_data, { mentorId }) => {
+      qc.invalidateQueries({ queryKey: queryKeys.mentors.detail(mentorId) });
+      toast.success("Slot updated successfully");
+    },
+    onError: (err) => {
+      toast.error(getApiErrorMessage(err));
+    },
+  });
+}
+//#endregion
+//#region app/features/admin/mentor/schemas/mentor-slot.schema.ts
+var mentorSlotSchema = z
+  .object({
+    startTime: z.string().min(1, "Start time is required"),
+    endTime: z.string().min(1, "End time is required"),
+    price: z
+      .number({ error: "Price must be a number" })
+      .min(0, "Price must not be negative"),
+    maxBookings: z
+      .number({ error: "Max bookings must be a number" })
+      .int("Max bookings must be an integer")
+      .min(1, "Max bookings must be at least 1"),
+    description: z
+      .string()
+      .max(1e3, "Description must not exceed 1000 characters")
+      .optional()
+      .or(z.literal("")),
+  })
+  .superRefine((data, ctx) => {
+    const start = new Date(data.startTime);
+    const end = new Date(data.endTime);
+    const now = /* @__PURE__ */ new Date();
+    if (isNaN(start.getTime())) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Invalid start time",
+        path: ["startTime"],
+      });
+      return;
+    }
+    if (isNaN(end.getTime())) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Invalid end time",
+        path: ["endTime"],
+      });
+      return;
+    }
+    if (start <= now)
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Start time must be in the future",
+        path: ["startTime"],
+      });
+    if (end <= start) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "End time must be after start time",
+        path: ["endTime"],
+      });
+      return;
+    }
+    const durationMinutes = (end.getTime() - start.getTime()) / 6e4;
+    if (durationMinutes < 30)
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Slot duration must be at least 30 minutes",
+        path: ["endTime"],
+      });
+    if (durationMinutes > 720)
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Slot duration must not exceed 12 hours",
+        path: ["endTime"],
+      });
+  });
+//#endregion
+//#region app/features/admin/mentor/components/mentor-slot-form.tsx
+function toDatetimeLocal(iso) {
+  const d = new Date(iso);
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+function fromDatetimeLocal(local) {
+  return new Date(local).toISOString();
+}
+function MentorSlotForm({ mentorId, slot, onSuccess }) {
+  const isEdit = !!slot;
+  const createMutation = useCreateMentorSlotMutation();
+  const updateMutation = useUpdateMentorSlotMutation();
+  const isPending = createMutation.isPending || updateMutation.isPending;
+  const form = useForm({
+    resolver: zodResolver(mentorSlotSchema),
+    defaultValues: slot
+      ? {
+          startTime: toDatetimeLocal(slot.startTime),
+          endTime: toDatetimeLocal(slot.endTime),
+          price: slot.price,
+          maxBookings: slot.maxBookings ?? 1,
+          description: slot.description ?? "",
+        }
+      : {
+          startTime: "",
+          endTime: "",
+          price: 0,
+          maxBookings: 1,
+          description: "",
+        },
+  });
+  async function onSubmit(data) {
+    const payload = {
+      startTime: fromDatetimeLocal(data.startTime),
+      endTime: fromDatetimeLocal(data.endTime),
+      price: data.price,
+      maxBookings: data.maxBookings,
+      description: data.description || null,
+    };
+    if (isEdit && slot)
+      await updateMutation.mutateAsync({
+        mentorId,
+        slotId: slot.id,
+        ...payload,
+      });
+    else
+      await createMutation.mutateAsync({
+        mentorId,
+        ...payload,
+      });
+    form.reset();
+    onSuccess?.();
+  }
+  return /* @__PURE__ */ jsx(Form, {
+    ...form,
+    children: /* @__PURE__ */ jsxs("form", {
+      onSubmit: form.handleSubmit(onSubmit),
+      className: "space-y-4",
+      id: "slot-form",
+      children: [
+        /* @__PURE__ */ jsxs("div", {
+          className: "grid grid-cols-1 gap-4 sm:grid-cols-2",
+          children: [
+            /* @__PURE__ */ jsx(FormField, {
+              control: form.control,
+              name: "startTime",
+              render: ({ field }) =>
+                /* @__PURE__ */ jsxs(FormItem, {
+                  children: [
+                    /* @__PURE__ */ jsx(FormLabel, {
+                      children: "Start Time *",
+                    }),
+                    /* @__PURE__ */ jsx(FormControl, {
+                      children: /* @__PURE__ */ jsx(Input, {
+                        type: "datetime-local",
+                        ...field,
+                      }),
+                    }),
+                    /* @__PURE__ */ jsx(FormMessage, {}),
+                  ],
+                }),
+            }),
+            /* @__PURE__ */ jsx(FormField, {
+              control: form.control,
+              name: "endTime",
+              render: ({ field }) =>
+                /* @__PURE__ */ jsxs(FormItem, {
+                  children: [
+                    /* @__PURE__ */ jsx(FormLabel, { children: "End Time *" }),
+                    /* @__PURE__ */ jsx(FormControl, {
+                      children: /* @__PURE__ */ jsx(Input, {
+                        type: "datetime-local",
+                        ...field,
+                      }),
+                    }),
+                    /* @__PURE__ */ jsx(FormMessage, {}),
+                  ],
+                }),
+            }),
+          ],
+        }),
+        /* @__PURE__ */ jsxs("div", {
+          className: "grid grid-cols-1 gap-4 sm:grid-cols-2",
+          children: [
+            /* @__PURE__ */ jsx(FormField, {
+              control: form.control,
+              name: "price",
+              render: ({ field }) =>
+                /* @__PURE__ */ jsxs(FormItem, {
+                  children: [
+                    /* @__PURE__ */ jsx(FormLabel, {
+                      children: "Price (VND) *",
+                    }),
+                    /* @__PURE__ */ jsx(FormControl, {
+                      children: /* @__PURE__ */ jsx(Input, {
+                        type: "number",
+                        min: 0,
+                        step: 1e3,
+                        ...field,
+                        onChange: (e) => field.onChange(Number(e.target.value)),
+                      }),
+                    }),
+                    /* @__PURE__ */ jsx(FormMessage, {}),
+                  ],
+                }),
+            }),
+            /* @__PURE__ */ jsx(FormField, {
+              control: form.control,
+              name: "maxBookings",
+              render: ({ field }) =>
+                /* @__PURE__ */ jsxs(FormItem, {
+                  children: [
+                    /* @__PURE__ */ jsx(FormLabel, {
+                      children: "Max Bookings *",
+                    }),
+                    /* @__PURE__ */ jsx(FormControl, {
+                      children: /* @__PURE__ */ jsx(Input, {
+                        type: "number",
+                        min: 1,
+                        ...field,
+                        onChange: (e) => field.onChange(Number(e.target.value)),
+                      }),
+                    }),
+                    /* @__PURE__ */ jsx(FormMessage, {}),
+                  ],
+                }),
+            }),
+          ],
+        }),
+        /* @__PURE__ */ jsx(FormField, {
+          control: form.control,
+          name: "description",
+          render: ({ field }) =>
+            /* @__PURE__ */ jsxs(FormItem, {
+              children: [
+                /* @__PURE__ */ jsx(FormLabel, { children: "Description" }),
+                /* @__PURE__ */ jsx(FormControl, {
+                  children: /* @__PURE__ */ jsx(Textarea, {
+                    placeholder: "Optional notes about this slot...",
+                    className: "resize-none",
+                    rows: 2,
+                    ...field,
+                    value: field.value ?? "",
+                  }),
+                }),
+                /* @__PURE__ */ jsx(FormMessage, {}),
+              ],
+            }),
+        }),
+        /* @__PURE__ */ jsxs(Button, {
+          type: "submit",
+          className: "w-full",
+          disabled: isPending,
+          children: [
+            isPending &&
+              /* @__PURE__ */ jsx(Loader2, {
+                className: "mr-2 size-4 animate-spin",
+              }),
+            isEdit ? "Update Slot" : "Create Slot",
+          ],
+        }),
+      ],
+    }),
+  });
+}
 //#endregion
 //#region app/routes/mentor/schedule.tsx
 var schedule_exports = /* @__PURE__ */ __exportAll({
@@ -5098,38 +7329,403 @@ var schedule_exports = /* @__PURE__ */ __exportAll({
 function meta$11() {
   return [{ title: "My Schedule — MiniBooking" }];
 }
+function formatPrice$2(price) {
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+    maximumFractionDigits: 0,
+  }).format(price);
+}
+function formatTime(iso) {
+  return new Date(iso).toLocaleTimeString("vi-VN", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+var STATUS_VARIANT$1 = {
+  [SLOT_STATUS.Available]: "default",
+  [SLOT_STATUS.FullyBooked]: "secondary",
+  [SLOT_STATUS.Blocked]: "outline",
+  [SLOT_STATUS.Cancelled]: "destructive",
+  [SLOT_STATUS.Completed]: "outline",
+};
 var schedule_default = UNSAFE_withComponentProps(function MentorSchedule() {
+  const { mentor, mentorId, isPending } = useMyMentorProfile();
+  const [createOpen, setCreateOpen] = useState(false);
+  const [editSlot, setEditSlot] = useState(null);
+  const [filter, setFilter] = useState("upcoming");
+  if (isPending)
+    return /* @__PURE__ */ jsxs("div", {
+      className: "space-y-6",
+      children: [
+        /* @__PURE__ */ jsx(Skeleton, { className: "h-8 w-48" }),
+        /* @__PURE__ */ jsx(Skeleton, { className: "h-10 w-64" }),
+        /* @__PURE__ */ jsx("div", {
+          className: "space-y-4",
+          children: Array.from({ length: 3 }).map((_, i) =>
+            /* @__PURE__ */ jsx(Skeleton, { className: "h-24" }, i),
+          ),
+        }),
+      ],
+    });
+  const now = /* @__PURE__ */ new Date();
+  const sorted = [
+    ...(mentor?.slots ?? []).filter((slot) => {
+      const slotTime = new Date(slot.startTime);
+      if (filter === "upcoming") return slotTime > now;
+      if (filter === "past") return slotTime <= now;
+      return true;
+    }),
+  ].sort((a, b) => {
+    if (filter === "past")
+      return new Date(b.startTime).getTime() - new Date(a.startTime).getTime();
+    return new Date(a.startTime).getTime() - new Date(b.startTime).getTime();
+  });
+  const groups = [];
+  for (const slot of sorted) {
+    const slotDate = new Date(slot.startTime);
+    const existing = groups.find((g) => isSameDay(g.date, slotDate));
+    if (existing) existing.slots.push(slot);
+    else
+      groups.push({
+        date: slotDate,
+        slots: [slot],
+      });
+  }
   return /* @__PURE__ */ jsxs("div", {
     className: "space-y-6",
     children: [
       /* @__PURE__ */ jsxs("div", {
+        className:
+          "flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between",
         children: [
-          /* @__PURE__ */ jsx("h2", {
-            className: "text-2xl font-semibold tracking-tight",
-            children: "My Schedule",
+          /* @__PURE__ */ jsxs("div", {
+            children: [
+              /* @__PURE__ */ jsx("h2", {
+                className: "text-2xl font-semibold tracking-tight",
+                children: "My Schedule",
+              }),
+              /* @__PURE__ */ jsx("p", {
+                className: "text-muted-foreground",
+                children: "Manage your available time slots.",
+              }),
+            ],
           }),
-          /* @__PURE__ */ jsx("p", {
-            className: "text-muted-foreground",
-            children: "Manage your available time slots.",
+          /* @__PURE__ */ jsxs(Button, {
+            onClick: () => setCreateOpen(true),
+            className: "gap-1.5 self-start sm:self-auto",
+            children: [
+              /* @__PURE__ */ jsx(Plus, { className: "size-4" }),
+              "New Slot",
+            ],
           }),
         ],
       }),
-      /* @__PURE__ */ jsxs("div", {
-        className:
-          "flex flex-col items-center justify-center rounded-xl border border-dashed py-16 text-center",
-        children: [
-          /* @__PURE__ */ jsx(CalendarDays, {
-            className: "mb-4 size-10 text-muted-foreground/50",
+      /* @__PURE__ */ jsx(Tabs$1, {
+        value: filter,
+        onValueChange: (v) => setFilter(v),
+        children: /* @__PURE__ */ jsxs(TabsList, {
+          children: [
+            /* @__PURE__ */ jsx(TabsTrigger, {
+              value: "upcoming",
+              children: "Upcoming",
+            }),
+            /* @__PURE__ */ jsx(TabsTrigger, {
+              value: "past",
+              children: "Past",
+            }),
+            /* @__PURE__ */ jsx(TabsTrigger, {
+              value: "all",
+              children: "All",
+            }),
+          ],
+        }),
+      }),
+      groups.length === 0
+        ? /* @__PURE__ */ jsxs("div", {
+            className:
+              "flex flex-col items-center justify-center rounded-xl border border-dashed py-16 text-center",
+            children: [
+              /* @__PURE__ */ jsx(CalendarDays, {
+                className: "mb-4 size-10 text-muted-foreground/50",
+              }),
+              /* @__PURE__ */ jsx("p", {
+                className: "text-sm font-medium text-muted-foreground",
+                children:
+                  filter === "upcoming"
+                    ? "No upcoming slots"
+                    : filter === "past"
+                      ? "No past slots"
+                      : "No slots created yet",
+              }),
+              /* @__PURE__ */ jsx("p", {
+                className: "mt-1 text-xs text-muted-foreground/70",
+                children: "Create a slot to start accepting bookings.",
+              }),
+              /* @__PURE__ */ jsx(Button, {
+                variant: "outline",
+                size: "sm",
+                className: "mt-4",
+                onClick: () => setCreateOpen(true),
+                children: "Create first slot",
+              }),
+            ],
+          })
+        : /* @__PURE__ */ jsx("div", {
+            className: "space-y-6",
+            children: groups.map((group) =>
+              /* @__PURE__ */ jsxs(
+                "div",
+                {
+                  children: [
+                    /* @__PURE__ */ jsx("h3", {
+                      className:
+                        "mb-3 text-sm font-medium text-muted-foreground",
+                      children: format(group.date, "EEEE, dd/MM/yyyy"),
+                    }),
+                    /* @__PURE__ */ jsx("div", {
+                      className: "space-y-2",
+                      children: group.slots.map((slot) =>
+                        /* @__PURE__ */ jsx(
+                          Card,
+                          {
+                            className: "transition-colors hover:bg-muted/30",
+                            children: /* @__PURE__ */ jsxs(CardContent, {
+                              className:
+                                "flex items-center justify-between p-4",
+                              children: [
+                                /* @__PURE__ */ jsxs("div", {
+                                  className: "space-y-1",
+                                  children: [
+                                    /* @__PURE__ */ jsxs("div", {
+                                      className:
+                                        "flex items-center gap-2 text-sm font-medium",
+                                      children: [
+                                        /* @__PURE__ */ jsx(Clock, {
+                                          className:
+                                            "size-3.5 text-muted-foreground",
+                                        }),
+                                        /* @__PURE__ */ jsx("span", {
+                                          children: formatTime(slot.startTime),
+                                        }),
+                                        /* @__PURE__ */ jsx("span", {
+                                          className: "text-muted-foreground",
+                                          children: "—",
+                                        }),
+                                        /* @__PURE__ */ jsx("span", {
+                                          children: formatTime(slot.endTime),
+                                        }),
+                                      ],
+                                    }),
+                                    /* @__PURE__ */ jsxs("div", {
+                                      className:
+                                        "flex flex-wrap items-center gap-3 text-xs text-muted-foreground",
+                                      children: [
+                                        /* @__PURE__ */ jsxs("span", {
+                                          className:
+                                            "flex items-center gap-1 font-medium text-foreground",
+                                          children: [
+                                            /* @__PURE__ */ jsx(DollarSign, {
+                                              className: "size-3",
+                                            }),
+                                            formatPrice$2(slot.price),
+                                          ],
+                                        }),
+                                        /* @__PURE__ */ jsxs("span", {
+                                          className: "flex items-center gap-1",
+                                          children: [
+                                            /* @__PURE__ */ jsx(Users, {
+                                              className: "size-3",
+                                            }),
+                                            slot.currentBookings,
+                                            "/",
+                                            slot.maxBookings,
+                                          ],
+                                        }),
+                                        slot.description &&
+                                          /* @__PURE__ */ jsx("span", {
+                                            className: "truncate max-w-[200px]",
+                                            children: slot.description,
+                                          }),
+                                      ],
+                                    }),
+                                  ],
+                                }),
+                                /* @__PURE__ */ jsxs("div", {
+                                  className: "flex items-center gap-2 shrink-0",
+                                  children: [
+                                    /* @__PURE__ */ jsx(Badge, {
+                                      variant:
+                                        STATUS_VARIANT$1[slot.status] ??
+                                        "secondary",
+                                      className: "text-xs",
+                                      children: SLOT_STATUS_LABEL[slot.status],
+                                    }),
+                                    slot.status === SLOT_STATUS.Available &&
+                                      /* @__PURE__ */ jsx(Button, {
+                                        variant: "ghost",
+                                        size: "icon",
+                                        className: "size-8",
+                                        onClick: () => setEditSlot(slot),
+                                        children: /* @__PURE__ */ jsx(Edit, {
+                                          className: "size-3.5",
+                                        }),
+                                      }),
+                                  ],
+                                }),
+                              ],
+                            }),
+                          },
+                          slot.id,
+                        ),
+                      ),
+                    }),
+                  ],
+                },
+                group.date.toISOString(),
+              ),
+            ),
           }),
-          /* @__PURE__ */ jsx("p", {
-            className: "text-sm font-medium text-muted-foreground",
-            children: "Schedule management coming soon",
-          }),
-        ],
+      /* @__PURE__ */ jsx(Dialog$1, {
+        open: createOpen,
+        onOpenChange: setCreateOpen,
+        children: /* @__PURE__ */ jsxs(DialogContent, {
+          className: "sm:max-w-md",
+          children: [
+            /* @__PURE__ */ jsx(DialogHeader, {
+              children: /* @__PURE__ */ jsx(DialogTitle, {
+                children: "Create New Slot",
+              }),
+            }),
+            mentorId &&
+              /* @__PURE__ */ jsx(MentorSlotForm, {
+                mentorId,
+                onSuccess: () => setCreateOpen(false),
+              }),
+          ],
+        }),
+      }),
+      /* @__PURE__ */ jsx(Dialog$1, {
+        open: !!editSlot,
+        onOpenChange: (o) => !o && setEditSlot(null),
+        children: /* @__PURE__ */ jsxs(DialogContent, {
+          className: "sm:max-w-md",
+          children: [
+            /* @__PURE__ */ jsx(DialogHeader, {
+              children: /* @__PURE__ */ jsx(DialogTitle, {
+                children: "Edit Slot",
+              }),
+            }),
+            mentorId &&
+              editSlot &&
+              /* @__PURE__ */ jsx(MentorSlotForm, {
+                mentorId,
+                slot: editSlot,
+                onSuccess: () => setEditSlot(null),
+              }),
+          ],
+        }),
       }),
     ],
   });
 });
+//#endregion
+//#region app/hooks/mentor/use-add-mentor-skill-mutation.ts
+function useAddMentorSkillMutation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ mentorId, skillName }) =>
+      mentorService.addSkill(mentorId, { skillName }),
+    onSuccess: (_data, { mentorId }) => {
+      qc.invalidateQueries({ queryKey: queryKeys.mentors.detail(mentorId) });
+      toast.success("Skill added successfully");
+    },
+    onError: (err) => {
+      toast.error(getApiErrorMessage(err));
+    },
+  });
+}
+//#endregion
+//#region app/features/admin/mentor/schemas/mentor-skill.schema.ts
+var addSkillSchema = z.object({
+  skillName: z
+    .string()
+    .min(1, "Skill name is required")
+    .max(100, "Skill name must not exceed 100 characters"),
+});
+//#endregion
+//#region app/features/admin/mentor/components/mentor-skills-form.tsx
+function MentorSkillsForm({ mentorId }) {
+  const { mutateAsync, isPending } = useAddMentorSkillMutation();
+  const form = useForm({
+    resolver: zodResolver(addSkillSchema),
+    defaultValues: { skillName: "" },
+  });
+  async function onSubmit(data) {
+    await mutateAsync({
+      mentorId,
+      skillName: data.skillName,
+    });
+    form.reset();
+  }
+  return /* @__PURE__ */ jsx(Form, {
+    ...form,
+    children: /* @__PURE__ */ jsxs("form", {
+      onSubmit: form.handleSubmit(onSubmit),
+      className: "flex items-start gap-2",
+      children: [
+        /* @__PURE__ */ jsx(FormField, {
+          control: form.control,
+          name: "skillName",
+          render: ({ field }) =>
+            /* @__PURE__ */ jsxs(FormItem, {
+              className: "flex-1",
+              children: [
+                /* @__PURE__ */ jsx(FormControl, {
+                  children: /* @__PURE__ */ jsx(Input, {
+                    placeholder: "Add a skill (e.g. React, Node.js)",
+                    ...field,
+                    disabled: isPending,
+                  }),
+                }),
+                /* @__PURE__ */ jsx(FormMessage, {}),
+              ],
+            }),
+        }),
+        /* @__PURE__ */ jsxs(Button, {
+          type: "submit",
+          size: "sm",
+          disabled: isPending,
+          className: "gap-1.5",
+          children: [
+            isPending
+              ? /* @__PURE__ */ jsx(Loader2, {
+                  className: "size-4 animate-spin",
+                })
+              : /* @__PURE__ */ jsx(Plus, { className: "size-4" }),
+            "Add",
+          ],
+        }),
+      ],
+    }),
+  });
+}
+//#endregion
+//#region app/hooks/mentor/use-remove-mentor-skill-mutation.ts
+function useRemoveMentorSkillMutation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ mentorId, skillId }) =>
+      mentorService.removeSkill(mentorId, skillId),
+    onSuccess: (_data, { mentorId }) => {
+      qc.invalidateQueries({ queryKey: queryKeys.mentors.detail(mentorId) });
+      toast.success("Skill removed successfully");
+    },
+    onError: (err) => {
+      toast.error(getApiErrorMessage(err));
+    },
+  });
+}
 //#endregion
 //#region app/routes/mentor/skills.tsx
 var skills_exports = /* @__PURE__ */ __exportAll({
@@ -5140,6 +7736,22 @@ function meta$10() {
   return [{ title: "My Skills — MiniBooking" }];
 }
 var skills_default = UNSAFE_withComponentProps(function MentorSkills() {
+  const { mentor, mentorId, isPending } = useMyMentorProfile();
+  const {
+    mutate: removeSkill,
+    isPending: isRemoving,
+    variables,
+  } = useRemoveMentorSkillMutation();
+  if (isPending)
+    return /* @__PURE__ */ jsxs("div", {
+      className: "space-y-6",
+      children: [
+        /* @__PURE__ */ jsx(Skeleton, { className: "h-8 w-48" }),
+        /* @__PURE__ */ jsx(Skeleton, { className: "h-12 w-full" }),
+        /* @__PURE__ */ jsx(Skeleton, { className: "h-32 w-full" }),
+      ],
+    });
+  const skills = mentor?.skills ?? [];
   return /* @__PURE__ */ jsxs("div", {
     className: "space-y-6",
     children: [
@@ -5155,16 +7767,106 @@ var skills_default = UNSAFE_withComponentProps(function MentorSkills() {
           }),
         ],
       }),
-      /* @__PURE__ */ jsxs("div", {
-        className:
-          "flex flex-col items-center justify-center rounded-xl border border-dashed py-16 text-center",
+      /* @__PURE__ */ jsxs(Card, {
         children: [
-          /* @__PURE__ */ jsx(GraduationCap, {
-            className: "mb-4 size-10 text-muted-foreground/50",
+          /* @__PURE__ */ jsx(CardHeader, {
+            className: "pb-3",
+            children: /* @__PURE__ */ jsx(CardTitle, {
+              className: "text-base",
+              children: "Add New Skill",
+            }),
           }),
-          /* @__PURE__ */ jsx("p", {
-            className: "text-sm font-medium text-muted-foreground",
-            children: "Skills management coming soon",
+          /* @__PURE__ */ jsx(CardContent, {
+            children:
+              mentorId && /* @__PURE__ */ jsx(MentorSkillsForm, { mentorId }),
+          }),
+        ],
+      }),
+      /* @__PURE__ */ jsx(Separator$1, {}),
+      /* @__PURE__ */ jsxs(Card, {
+        children: [
+          /* @__PURE__ */ jsx(CardHeader, {
+            className: "pb-3",
+            children: /* @__PURE__ */ jsxs(CardTitle, {
+              className: "text-base",
+              children: [
+                "Current Skills",
+                /* @__PURE__ */ jsxs("span", {
+                  className: "ml-2 text-xs font-normal text-muted-foreground",
+                  children: ["(", skills.length, ")"],
+                }),
+              ],
+            }),
+          }),
+          /* @__PURE__ */ jsx(CardContent, {
+            children:
+              skills.length === 0
+                ? /* @__PURE__ */ jsxs("div", {
+                    className:
+                      "flex flex-col items-center justify-center rounded-xl border border-dashed py-10 text-center",
+                    children: [
+                      /* @__PURE__ */ jsx(GraduationCap, {
+                        className: "mb-3 size-8 text-muted-foreground/50",
+                      }),
+                      /* @__PURE__ */ jsx("p", {
+                        className: "text-sm text-muted-foreground",
+                        children: "No skills added yet.",
+                      }),
+                      /* @__PURE__ */ jsx("p", {
+                        className: "mt-1 text-xs text-muted-foreground/70",
+                        children:
+                          "Add skills to let students know what you can teach.",
+                      }),
+                    ],
+                  })
+                : /* @__PURE__ */ jsx("div", {
+                    className: "flex flex-wrap gap-2",
+                    children: skills.map((skill) => {
+                      const removing =
+                        isRemoving && variables?.skillId === skill.id;
+                      return /* @__PURE__ */ jsxs(
+                        Badge,
+                        {
+                          variant: "secondary",
+                          className: "gap-1.5 px-3 py-1.5 text-sm",
+                          children: [
+                            skill.skillName,
+                            /* @__PURE__ */ jsxs(Tooltip$1, {
+                              children: [
+                                /* @__PURE__ */ jsx(TooltipTrigger, {
+                                  asChild: true,
+                                  children: /* @__PURE__ */ jsx("button", {
+                                    type: "button",
+                                    onClick: () =>
+                                      mentorId &&
+                                      removeSkill({
+                                        mentorId,
+                                        skillId: skill.id,
+                                      }),
+                                    disabled: removing,
+                                    className:
+                                      "ml-0.5 rounded-full p-0.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive disabled:opacity-50",
+                                    "aria-label": `Remove ${skill.skillName}`,
+                                    children: removing
+                                      ? /* @__PURE__ */ jsx(Loader2, {
+                                          className: "size-3 animate-spin",
+                                        })
+                                      : /* @__PURE__ */ jsx(X, {
+                                          className: "size-3",
+                                        }),
+                                  }),
+                                }),
+                                /* @__PURE__ */ jsx(TooltipContent, {
+                                  children: "Remove skill",
+                                }),
+                              ],
+                            }),
+                          ],
+                        },
+                        skill.id,
+                      );
+                    }),
+                  }),
           }),
         ],
       }),
@@ -5180,7 +7882,170 @@ var bookings_exports$1 = /* @__PURE__ */ __exportAll({
 function meta$9() {
   return [{ title: "Bookings — MiniBooking" }];
 }
+function formatSlotTime(iso) {
+  return new Date(iso).toLocaleString("vi-VN", {
+    weekday: "short",
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+function formatPrice$1(price) {
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+    maximumFractionDigits: 0,
+  }).format(price);
+}
+var SLOT_FILTER_TABS = [
+  {
+    label: "All",
+    value: "all",
+  },
+  {
+    label: "Available",
+    value: "available",
+    filter: SLOT_STATUS.Available,
+  },
+  {
+    label: "Fully Booked",
+    value: "booked",
+    filter: SLOT_STATUS.FullyBooked,
+  },
+  {
+    label: "Completed",
+    value: "completed",
+    filter: SLOT_STATUS.Completed,
+  },
+];
+function SlotBookingCard({ slot }) {
+  const isFuture = new Date(slot.startTime) > /* @__PURE__ */ new Date();
+  const statusVariant = {
+    [SLOT_STATUS.Available]: "default",
+    [SLOT_STATUS.FullyBooked]: "secondary",
+    [SLOT_STATUS.Blocked]: "outline",
+    [SLOT_STATUS.Cancelled]: "destructive",
+    [SLOT_STATUS.Completed]: "outline",
+  };
+  return /* @__PURE__ */ jsx(Card, {
+    className: !isFuture ? "opacity-70" : "",
+    children: /* @__PURE__ */ jsx(CardContent, {
+      className: "p-4",
+      children: /* @__PURE__ */ jsxs("div", {
+        className: "flex items-center justify-between gap-4",
+        children: [
+          /* @__PURE__ */ jsxs("div", {
+            className: "min-w-0 flex-1 space-y-1",
+            children: [
+              /* @__PURE__ */ jsxs("div", {
+                className: "flex items-center gap-2 text-sm font-medium",
+                children: [
+                  /* @__PURE__ */ jsx(Clock, {
+                    className: "size-3.5 text-muted-foreground",
+                  }),
+                  /* @__PURE__ */ jsx("span", {
+                    children: formatSlotTime(slot.startTime),
+                  }),
+                  /* @__PURE__ */ jsx("span", {
+                    className: "text-muted-foreground",
+                    children: "—",
+                  }),
+                  /* @__PURE__ */ jsx("span", {
+                    children: formatSlotTime(slot.endTime),
+                  }),
+                ],
+              }),
+              /* @__PURE__ */ jsxs("div", {
+                className:
+                  "flex flex-wrap items-center gap-3 text-xs text-muted-foreground",
+                children: [
+                  /* @__PURE__ */ jsxs("span", {
+                    className:
+                      "flex items-center gap-1 font-medium text-foreground",
+                    children: [
+                      /* @__PURE__ */ jsx(DollarSign, { className: "size-3" }),
+                      formatPrice$1(slot.price),
+                    ],
+                  }),
+                  /* @__PURE__ */ jsxs("span", {
+                    className: "flex items-center gap-1",
+                    children: [
+                      /* @__PURE__ */ jsx(User, { className: "size-3" }),
+                      slot.currentBookings,
+                      "/",
+                      slot.maxBookings,
+                      " booked",
+                    ],
+                  }),
+                  slot.description &&
+                    /* @__PURE__ */ jsx("span", {
+                      className: "truncate max-w-[200px]",
+                      children: slot.description,
+                    }),
+                ],
+              }),
+            ],
+          }),
+          /* @__PURE__ */ jsxs("div", {
+            className: "flex items-center gap-2 shrink-0",
+            children: [
+              slot.currentBookings > 0 &&
+                /* @__PURE__ */ jsxs(Badge, {
+                  variant: "outline",
+                  className: "text-xs gap-1",
+                  children: [
+                    /* @__PURE__ */ jsx(User, { className: "size-3" }),
+                    slot.currentBookings,
+                  ],
+                }),
+              /* @__PURE__ */ jsx(Badge, {
+                variant: statusVariant[slot.status] ?? "secondary",
+                className: "text-xs",
+                children: SLOT_STATUS_LABEL[slot.status],
+              }),
+            ],
+          }),
+        ],
+      }),
+    }),
+  });
+}
 var bookings_default$1 = UNSAFE_withComponentProps(function MentorBookings() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { mentor, isPending } = useMyMentorProfile();
+  const activeTab = searchParams.get("filter") ?? "all";
+  const statusFilter = SLOT_FILTER_TABS.find(
+    (t) => t.value === activeTab,
+  )?.filter;
+  const allSlots = mentor?.slots ?? [];
+  const sorted = [
+    ...(statusFilter != null
+      ? allSlots.filter((s) => s.status === statusFilter)
+      : allSlots),
+  ].sort(
+    (a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime(),
+  );
+  const totalBookings = allSlots.reduce((sum, s) => sum + s.currentBookings, 0);
+  function handleTabChange(value) {
+    const params = new URLSearchParams();
+    if (value !== "all") params.set("filter", value);
+    setSearchParams(params, { replace: true });
+  }
+  if (isPending)
+    return /* @__PURE__ */ jsxs("div", {
+      className: "space-y-6",
+      children: [
+        /* @__PURE__ */ jsx(Skeleton, { className: "h-8 w-48" }),
+        /* @__PURE__ */ jsx(Skeleton, { className: "h-10 w-64" }),
+        /* @__PURE__ */ jsx("div", {
+          className: "space-y-3",
+          children: Array.from({ length: 4 }).map((_, i) =>
+            /* @__PURE__ */ jsx(Skeleton, { className: "h-20" }, i),
+          ),
+        }),
+      ],
+    });
   return /* @__PURE__ */ jsxs("div", {
     className: "space-y-6",
     children: [
@@ -5190,25 +8055,69 @@ var bookings_default$1 = UNSAFE_withComponentProps(function MentorBookings() {
             className: "text-2xl font-semibold tracking-tight",
             children: "Bookings",
           }),
-          /* @__PURE__ */ jsx("p", {
+          /* @__PURE__ */ jsxs("p", {
             className: "text-muted-foreground",
-            children: "View all sessions booked with you.",
+            children: [
+              "View sessions booked with you.",
+              totalBookings > 0 &&
+                /* @__PURE__ */ jsxs("span", {
+                  className: "ml-1 font-medium text-foreground",
+                  children: [
+                    totalBookings,
+                    " total booking",
+                    totalBookings !== 1 ? "s" : "",
+                  ],
+                }),
+            ],
           }),
         ],
       }),
-      /* @__PURE__ */ jsxs("div", {
-        className:
-          "flex flex-col items-center justify-center rounded-xl border border-dashed py-16 text-center",
-        children: [
-          /* @__PURE__ */ jsx(BookOpen, {
-            className: "mb-4 size-10 text-muted-foreground/50",
-          }),
-          /* @__PURE__ */ jsx("p", {
-            className: "text-sm font-medium text-muted-foreground",
-            children: "No bookings yet",
-          }),
-        ],
+      /* @__PURE__ */ jsx(Tabs$1, {
+        value: activeTab,
+        onValueChange: handleTabChange,
+        children: /* @__PURE__ */ jsx(TabsList, {
+          className: "w-full justify-start overflow-x-auto",
+          children: SLOT_FILTER_TABS.map((tab) =>
+            /* @__PURE__ */ jsx(
+              TabsTrigger,
+              {
+                value: tab.value,
+                className: "text-xs sm:text-sm",
+                children: tab.label,
+              },
+              tab.value,
+            ),
+          ),
+        }),
       }),
+      sorted.length === 0
+        ? /* @__PURE__ */ jsxs("div", {
+            className:
+              "flex flex-col items-center justify-center rounded-xl border border-dashed py-16 text-center",
+            children: [
+              /* @__PURE__ */ jsx(BookOpen, {
+                className: "mb-4 size-10 text-muted-foreground/50",
+              }),
+              /* @__PURE__ */ jsx("p", {
+                className: "text-sm font-medium text-muted-foreground",
+                children:
+                  activeTab === "all"
+                    ? "No bookings yet"
+                    : "No slots with this status",
+              }),
+              /* @__PURE__ */ jsx("p", {
+                className: "mt-1 text-xs text-muted-foreground/70",
+                children:
+                  "Create time slots to start receiving bookings from students.",
+              }),
+            ],
+          })
+        : /* @__PURE__ */ jsx("div", {
+            className: "space-y-3",
+            children: sorted.map((slot) =>
+              /* @__PURE__ */ jsx(SlotBookingCard, { slot }, slot.id),
+            ),
+          }),
     ],
   });
 });
@@ -5262,8 +8171,46 @@ var profile_exports = /* @__PURE__ */ __exportAll({
 function meta$7() {
   return [{ title: "Profile — MiniBooking" }];
 }
+function formatPrice(price) {
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+    maximumFractionDigits: 0,
+  }).format(price);
+}
 var profile_default = UNSAFE_withComponentProps(function MentorProfile() {
   const user = useCurrentUser();
+  const { mentor, isPending } = useMyMentorProfile();
+  if (isPending)
+    return /* @__PURE__ */ jsxs("div", {
+      className: "space-y-6",
+      children: [
+        /* @__PURE__ */ jsx(Skeleton, { className: "h-8 w-48" }),
+        /* @__PURE__ */ jsxs("div", {
+          className: "flex items-center gap-4",
+          children: [
+            /* @__PURE__ */ jsx(Skeleton, {
+              className: "size-20 rounded-full",
+            }),
+            /* @__PURE__ */ jsxs("div", {
+              className: "space-y-2",
+              children: [
+                /* @__PURE__ */ jsx(Skeleton, { className: "h-6 w-48" }),
+                /* @__PURE__ */ jsx(Skeleton, { className: "h-4 w-32" }),
+              ],
+            }),
+          ],
+        }),
+        /* @__PURE__ */ jsx(Skeleton, { className: "h-48 w-full" }),
+      ],
+    });
+  const initials = (mentor?.displayName ?? user?.fullName ?? "?")
+    .split(" ")
+    .filter(Boolean)
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
   return /* @__PURE__ */ jsxs("div", {
     className: "space-y-6",
     children: [
@@ -5275,40 +8222,245 @@ var profile_default = UNSAFE_withComponentProps(function MentorProfile() {
           }),
           /* @__PURE__ */ jsx("p", {
             className: "text-muted-foreground",
-            children: "Manage your mentor profile and information.",
+            children: "Your mentor profile information.",
           }),
         ],
       }),
-      /* @__PURE__ */ jsx("div", {
-        className: "rounded-xl border bg-card p-6 shadow-sm",
-        children: /* @__PURE__ */ jsxs("div", {
-          className: "flex items-center gap-4",
-          children: [
-            /* @__PURE__ */ jsx("div", {
-              className:
-                "flex size-16 items-center justify-center rounded-full bg-primary/10",
-              children: /* @__PURE__ */ jsx(UserCircle, {
-                className: "size-8 text-primary",
+      /* @__PURE__ */ jsx(Card, {
+        children: /* @__PURE__ */ jsx(CardContent, {
+          className: "p-6",
+          children: /* @__PURE__ */ jsxs("div", {
+            className:
+              "flex flex-col items-center gap-6 sm:flex-row sm:items-start",
+            children: [
+              /* @__PURE__ */ jsxs("div", {
+                className: "relative shrink-0",
+                children: [
+                  /* @__PURE__ */ jsxs(Avatar$1, {
+                    className:
+                      "size-20 ring-2 ring-border ring-offset-2 ring-offset-background",
+                    children: [
+                      /* @__PURE__ */ jsx(AvatarImage, {
+                        src: mentor?.avatarUrl ?? void 0,
+                        alt: mentor?.displayName,
+                      }),
+                      /* @__PURE__ */ jsx(AvatarFallback, {
+                        className: "text-lg font-semibold",
+                        children: initials,
+                      }),
+                    ],
+                  }),
+                  mentor?.isActive &&
+                    /* @__PURE__ */ jsx("span", {
+                      className:
+                        "absolute bottom-1 right-1 size-3.5 rounded-full bg-green-500 ring-2 ring-background",
+                    }),
+                ],
               }),
-            }),
-            /* @__PURE__ */ jsxs("div", {
+              /* @__PURE__ */ jsxs("div", {
+                className: "min-w-0 flex-1 text-center sm:text-left",
+                children: [
+                  /* @__PURE__ */ jsxs("div", {
+                    className:
+                      "flex flex-wrap items-center justify-center gap-2 sm:justify-start",
+                    children: [
+                      /* @__PURE__ */ jsx("h3", {
+                        className: "text-xl font-semibold",
+                        children: mentor?.displayName ?? user?.fullName,
+                      }),
+                      /* @__PURE__ */ jsx(Badge, {
+                        variant: mentor?.isActive ? "default" : "secondary",
+                        children: mentor?.isActive ? "Active" : "Inactive",
+                      }),
+                    ],
+                  }),
+                  mentor?.specialization &&
+                    /* @__PURE__ */ jsx("p", {
+                      className: "mt-1 text-sm text-muted-foreground",
+                      children: mentor.specialization,
+                    }),
+                  /* @__PURE__ */ jsxs("div", {
+                    className:
+                      "mt-3 flex flex-wrap items-center justify-center gap-4 text-sm sm:justify-start",
+                    children: [
+                      /* @__PURE__ */ jsxs("div", {
+                        className:
+                          "flex items-center gap-1.5 text-muted-foreground",
+                        children: [
+                          /* @__PURE__ */ jsx(Mail, { className: "size-3.5" }),
+                          /* @__PURE__ */ jsx("span", {
+                            children: mentor?.email ?? user?.email,
+                          }),
+                        ],
+                      }),
+                      (mentor?.phoneNumber || user?.phoneNumber) &&
+                        /* @__PURE__ */ jsxs("div", {
+                          className:
+                            "flex items-center gap-1.5 text-muted-foreground",
+                          children: [
+                            /* @__PURE__ */ jsx(Phone, {
+                              className: "size-3.5",
+                            }),
+                            /* @__PURE__ */ jsx("span", {
+                              children:
+                                mentor?.phoneNumber ?? user?.phoneNumber,
+                            }),
+                          ],
+                        }),
+                    ],
+                  }),
+                ],
+              }),
+            ],
+          }),
+        }),
+      }),
+      /* @__PURE__ */ jsxs("div", {
+        className: "grid gap-4 sm:grid-cols-3",
+        children: [
+          /* @__PURE__ */ jsx(Card, {
+            children: /* @__PURE__ */ jsxs(CardContent, {
+              className: "flex items-center gap-3 p-4",
               children: [
-                /* @__PURE__ */ jsx("p", {
-                  className: "text-lg font-semibold",
-                  children: user?.fullName,
+                /* @__PURE__ */ jsx("div", {
+                  className:
+                    "flex size-9 items-center justify-center rounded-lg bg-primary/10",
+                  children: /* @__PURE__ */ jsx(Briefcase, {
+                    className: "size-4 text-primary",
+                  }),
                 }),
-                /* @__PURE__ */ jsx("p", {
-                  className: "text-sm text-muted-foreground",
-                  children: user?.email,
-                }),
-                /* @__PURE__ */ jsx("p", {
-                  className: "text-sm text-muted-foreground",
-                  children: user?.phoneNumber,
+                /* @__PURE__ */ jsxs("div", {
+                  children: [
+                    /* @__PURE__ */ jsx("p", {
+                      className: "text-xs text-muted-foreground",
+                      children: "Experience",
+                    }),
+                    /* @__PURE__ */ jsxs("p", {
+                      className: "text-lg font-semibold",
+                      children: [
+                        mentor?.experienceYears ?? 0,
+                        " year",
+                        (mentor?.experienceYears ?? 0) !== 1 ? "s" : "",
+                      ],
+                    }),
+                  ],
                 }),
               ],
             }),
+          }),
+          /* @__PURE__ */ jsx(Card, {
+            children: /* @__PURE__ */ jsxs(CardContent, {
+              className: "flex items-center gap-3 p-4",
+              children: [
+                /* @__PURE__ */ jsx("div", {
+                  className:
+                    "flex size-9 items-center justify-center rounded-lg bg-primary/10",
+                  children: /* @__PURE__ */ jsx(DollarSign, {
+                    className: "size-4 text-primary",
+                  }),
+                }),
+                /* @__PURE__ */ jsxs("div", {
+                  children: [
+                    /* @__PURE__ */ jsx("p", {
+                      className: "text-xs text-muted-foreground",
+                      children: "Base Price",
+                    }),
+                    /* @__PURE__ */ jsx("p", {
+                      className: "text-lg font-semibold",
+                      children: formatPrice(mentor?.basePrice ?? 0),
+                    }),
+                  ],
+                }),
+              ],
+            }),
+          }),
+          /* @__PURE__ */ jsx(Card, {
+            children: /* @__PURE__ */ jsxs(CardContent, {
+              className: "flex items-center gap-3 p-4",
+              children: [
+                /* @__PURE__ */ jsx("div", {
+                  className:
+                    "flex size-9 items-center justify-center rounded-lg bg-primary/10",
+                  children: /* @__PURE__ */ jsx(CalendarDays, {
+                    className: "size-4 text-primary",
+                  }),
+                }),
+                /* @__PURE__ */ jsxs("div", {
+                  children: [
+                    /* @__PURE__ */ jsx("p", {
+                      className: "text-xs text-muted-foreground",
+                      children: "Total Slots",
+                    }),
+                    /* @__PURE__ */ jsx("p", {
+                      className: "text-lg font-semibold",
+                      children: mentor?.slots.length ?? 0,
+                    }),
+                  ],
+                }),
+              ],
+            }),
+          }),
+        ],
+      }),
+      mentor?.bio &&
+        /* @__PURE__ */ jsxs(Card, {
+          children: [
+            /* @__PURE__ */ jsx(CardHeader, {
+              className: "pb-3",
+              children: /* @__PURE__ */ jsx(CardTitle, {
+                className: "text-base",
+                children: "About",
+              }),
+            }),
+            /* @__PURE__ */ jsx(CardContent, {
+              children: /* @__PURE__ */ jsx("p", {
+                className:
+                  "text-sm leading-relaxed text-muted-foreground whitespace-pre-line",
+                children: mentor.bio,
+              }),
+            }),
           ],
         }),
+      /* @__PURE__ */ jsxs(Card, {
+        children: [
+          /* @__PURE__ */ jsx(CardHeader, {
+            className: "pb-3",
+            children: /* @__PURE__ */ jsxs(CardTitle, {
+              className: "flex items-center gap-2 text-base",
+              children: [
+                /* @__PURE__ */ jsx(GraduationCap, { className: "size-4" }),
+                "Skills",
+                /* @__PURE__ */ jsxs("span", {
+                  className: "text-xs font-normal text-muted-foreground",
+                  children: ["(", mentor?.skills.length ?? 0, ")"],
+                }),
+              ],
+            }),
+          }),
+          /* @__PURE__ */ jsx(CardContent, {
+            children:
+              (mentor?.skills.length ?? 0) === 0
+                ? /* @__PURE__ */ jsx("p", {
+                    className: "text-sm text-muted-foreground",
+                    children:
+                      "No skills added yet. Go to the Skills page to add your expertise.",
+                  })
+                : /* @__PURE__ */ jsx("div", {
+                    className: "flex flex-wrap gap-2",
+                    children: mentor.skills.map((skill) =>
+                      /* @__PURE__ */ jsx(
+                        Badge,
+                        {
+                          variant: "secondary",
+                          className: "text-sm",
+                          children: skill.skillName,
+                        },
+                        skill.id,
+                      ),
+                    ),
+                  }),
+          }),
+        ],
       }),
     ],
   });
@@ -5733,106 +8885,6 @@ function DataTableViewOptions({ table }) {
         ],
       }),
     ],
-  });
-}
-//#endregion
-//#region app/components/ui/dialog.tsx
-function Dialog$1({ ...props }) {
-  return /* @__PURE__ */ jsx(Dialog.Root, {
-    "data-slot": "dialog",
-    ...props,
-  });
-}
-function DialogPortal({ ...props }) {
-  return /* @__PURE__ */ jsx(Dialog.Portal, {
-    "data-slot": "dialog-portal",
-    ...props,
-  });
-}
-function DialogOverlay({ className, ...props }) {
-  return /* @__PURE__ */ jsx(Dialog.Overlay, {
-    "data-slot": "dialog-overlay",
-    className: cn(
-      "fixed inset-0 isolate z-50 bg-black/10 duration-100 supports-backdrop-filter:backdrop-blur-xs data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
-      className,
-    ),
-    ...props,
-  });
-}
-function DialogContent({
-  className,
-  children,
-  showCloseButton = true,
-  ...props
-}) {
-  return /* @__PURE__ */ jsxs(DialogPortal, {
-    children: [
-      /* @__PURE__ */ jsx(DialogOverlay, {}),
-      /* @__PURE__ */ jsxs(Dialog.Content, {
-        "data-slot": "dialog-content",
-        className: cn(
-          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl bg-popover p-4 text-sm text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
-          className,
-        ),
-        ...props,
-        children: [
-          children,
-          showCloseButton &&
-            /* @__PURE__ */ jsx(Dialog.Close, {
-              "data-slot": "dialog-close",
-              asChild: true,
-              children: /* @__PURE__ */ jsxs(Button, {
-                variant: "ghost",
-                className: "absolute top-2 right-2",
-                size: "icon-sm",
-                children: [
-                  /* @__PURE__ */ jsx(XIcon, {}),
-                  /* @__PURE__ */ jsx("span", {
-                    className: "sr-only",
-                    children: "Close",
-                  }),
-                ],
-              }),
-            }),
-        ],
-      }),
-    ],
-  });
-}
-function DialogHeader({ className, ...props }) {
-  return /* @__PURE__ */ jsx("div", {
-    "data-slot": "dialog-header",
-    className: cn("flex flex-col gap-2", className),
-    ...props,
-  });
-}
-function DialogTitle({ className, ...props }) {
-  return /* @__PURE__ */ jsx(Dialog.Title, {
-    "data-slot": "dialog-title",
-    className: cn("font-heading text-base leading-none font-medium", className),
-    ...props,
-  });
-}
-function DialogDescription({ className, ...props }) {
-  return /* @__PURE__ */ jsx(Dialog.Description, {
-    "data-slot": "dialog-description",
-    className: cn(
-      "text-sm text-muted-foreground *:[a]:underline *:[a]:underline-offset-3 *:[a]:hover:text-foreground",
-      className,
-    ),
-    ...props,
-  });
-}
-//#endregion
-//#region app/components/ui/textarea.tsx
-function Textarea({ className, ...props }) {
-  return /* @__PURE__ */ jsx("textarea", {
-    "data-slot": "textarea",
-    className: cn(
-      "flex field-sizing-content min-h-16 w-full rounded-lg border border-input bg-transparent px-2.5 py-2 text-base transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
-      className,
-    ),
-    ...props,
   });
 }
 //#endregion
@@ -7198,88 +10250,6 @@ function MentorCreateDialog({ open, onOpenChange }) {
   });
 }
 //#endregion
-//#region app/components/ui/tabs.tsx
-function Tabs$1({ className, orientation = "horizontal", ...props }) {
-  return /* @__PURE__ */ jsx(Tabs.Root, {
-    "data-slot": "tabs",
-    "data-orientation": orientation,
-    className: cn("group/tabs flex gap-2 data-horizontal:flex-col", className),
-    ...props,
-  });
-}
-var tabsListVariants = cva(
-  "group/tabs-list inline-flex w-fit items-center justify-center rounded-lg p-[3px] text-muted-foreground group-data-horizontal/tabs:h-8 group-data-vertical/tabs:h-fit group-data-vertical/tabs:flex-col data-[variant=line]:rounded-none",
-  {
-    variants: {
-      variant: {
-        default: "bg-muted",
-        line: "gap-1 bg-transparent",
-      },
-    },
-    defaultVariants: { variant: "default" },
-  },
-);
-function TabsList({ className, variant = "default", ...props }) {
-  return /* @__PURE__ */ jsx(Tabs.List, {
-    "data-slot": "tabs-list",
-    "data-variant": variant,
-    className: cn(tabsListVariants({ variant }), className),
-    ...props,
-  });
-}
-function TabsTrigger({ className, ...props }) {
-  return /* @__PURE__ */ jsx(Tabs.Trigger, {
-    "data-slot": "tabs-trigger",
-    className: cn(
-      "relative inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 rounded-md border border-transparent px-1.5 py-0.5 text-sm font-medium whitespace-nowrap text-foreground/60 transition-all group-data-vertical/tabs:w-full group-data-vertical/tabs:justify-start hover:text-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50 has-data-[icon=inline-end]:pr-1 has-data-[icon=inline-start]:pl-1 dark:text-muted-foreground dark:hover:text-foreground group-data-[variant=default]/tabs-list:data-active:shadow-sm group-data-[variant=line]/tabs-list:data-active:shadow-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
-      "group-data-[variant=line]/tabs-list:bg-transparent group-data-[variant=line]/tabs-list:data-active:bg-transparent dark:group-data-[variant=line]/tabs-list:data-active:border-transparent dark:group-data-[variant=line]/tabs-list:data-active:bg-transparent",
-      "data-active:bg-background data-active:text-foreground dark:data-active:border-input dark:data-active:bg-input/30 dark:data-active:text-foreground",
-      "after:absolute after:bg-foreground after:opacity-0 after:transition-opacity group-data-horizontal/tabs:after:inset-x-0 group-data-horizontal/tabs:after:bottom-[-5px] group-data-horizontal/tabs:after:h-0.5 group-data-vertical/tabs:after:inset-y-0 group-data-vertical/tabs:after:-right-1 group-data-vertical/tabs:after:w-0.5 group-data-[variant=line]/tabs-list:data-active:after:opacity-100",
-      className,
-    ),
-    ...props,
-  });
-}
-function TabsContent({ className, ...props }) {
-  return /* @__PURE__ */ jsx(Tabs.Content, {
-    "data-slot": "tabs-content",
-    className: cn("flex-1 text-sm outline-none", className),
-    ...props,
-  });
-}
-//#endregion
-//#region app/hooks/mentor/use-add-mentor-skill-mutation.ts
-function useAddMentorSkillMutation() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: ({ mentorId, skillName }) =>
-      mentorService.addSkill(mentorId, { skillName }),
-    onSuccess: (_data, { mentorId }) => {
-      qc.invalidateQueries({ queryKey: queryKeys.mentors.detail(mentorId) });
-      toast.success("Skill added successfully");
-    },
-    onError: (err) => {
-      toast.error(getApiErrorMessage(err));
-    },
-  });
-}
-//#endregion
-//#region app/hooks/mentor/use-remove-mentor-skill-mutation.ts
-function useRemoveMentorSkillMutation() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: ({ mentorId, skillId }) =>
-      mentorService.removeSkill(mentorId, skillId),
-    onSuccess: (_data, { mentorId }) => {
-      qc.invalidateQueries({ queryKey: queryKeys.mentors.detail(mentorId) });
-      toast.success("Skill removed successfully");
-    },
-    onError: (err) => {
-      toast.error(getApiErrorMessage(err));
-    },
-  });
-}
-//#endregion
 //#region app/hooks/mentor/use-update-mentor-mutation.ts
 function useUpdateMentorMutation() {
   const qc = useQueryClient();
@@ -7295,14 +10265,6 @@ function useUpdateMentorMutation() {
     },
   });
 }
-//#endregion
-//#region app/features/admin/mentor/schemas/mentor-skill.schema.ts
-var addSkillSchema = z.object({
-  skillName: z
-    .string()
-    .min(1, "Skill name is required")
-    .max(100, "Skill name must not exceed 100 characters"),
-});
 //#endregion
 //#region app/features/admin/mentor/components/mentor-edit-dialog.tsx
 function InlineSkillForm({ mentorId }) {
@@ -8703,63 +11665,6 @@ function MentorProfileTab({ mentor }) {
   });
 }
 //#endregion
-//#region app/features/admin/mentor/components/mentor-skills-form.tsx
-function MentorSkillsForm({ mentorId }) {
-  const { mutateAsync, isPending } = useAddMentorSkillMutation();
-  const form = useForm({
-    resolver: zodResolver(addSkillSchema),
-    defaultValues: { skillName: "" },
-  });
-  async function onSubmit(data) {
-    await mutateAsync({
-      mentorId,
-      skillName: data.skillName,
-    });
-    form.reset();
-  }
-  return /* @__PURE__ */ jsx(Form, {
-    ...form,
-    children: /* @__PURE__ */ jsxs("form", {
-      onSubmit: form.handleSubmit(onSubmit),
-      className: "flex items-start gap-2",
-      children: [
-        /* @__PURE__ */ jsx(FormField, {
-          control: form.control,
-          name: "skillName",
-          render: ({ field }) =>
-            /* @__PURE__ */ jsxs(FormItem, {
-              className: "flex-1",
-              children: [
-                /* @__PURE__ */ jsx(FormControl, {
-                  children: /* @__PURE__ */ jsx(Input, {
-                    placeholder: "Add a skill (e.g. React, Node.js)",
-                    ...field,
-                    disabled: isPending,
-                  }),
-                }),
-                /* @__PURE__ */ jsx(FormMessage, {}),
-              ],
-            }),
-        }),
-        /* @__PURE__ */ jsxs(Button, {
-          type: "submit",
-          size: "sm",
-          disabled: isPending,
-          className: "gap-1.5",
-          children: [
-            isPending
-              ? /* @__PURE__ */ jsx(Loader2, {
-                  className: "size-4 animate-spin",
-                })
-              : /* @__PURE__ */ jsx(Plus, { className: "size-4" }),
-            "Add",
-          ],
-        }),
-      ],
-    }),
-  });
-}
-//#endregion
 //#region app/features/admin/mentor/components/mentor-skills-tab.tsx
 function MentorSkillsTab({ mentorId, skills }) {
   const {
@@ -8859,298 +11764,13 @@ function MentorSkillsTab({ mentorId, skills }) {
   });
 }
 //#endregion
-//#region app/hooks/mentor/use-create-mentor-slot-mutation.ts
-function useCreateMentorSlotMutation() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: ({ mentorId, ...body }) =>
-      mentorService.createSlot(mentorId, body),
-    onSuccess: (_data, { mentorId }) => {
-      qc.invalidateQueries({ queryKey: queryKeys.mentors.detail(mentorId) });
-      toast.success("Slot created successfully");
-    },
-    onError: (err) => {
-      toast.error(getApiErrorMessage(err));
-    },
-  });
-}
-//#endregion
-//#region app/hooks/mentor/use-update-mentor-slot-mutation.ts
-function useUpdateMentorSlotMutation() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: ({ mentorId, slotId, ...body }) =>
-      mentorService.updateSlot(mentorId, slotId, body),
-    onSuccess: (_data, { mentorId }) => {
-      qc.invalidateQueries({ queryKey: queryKeys.mentors.detail(mentorId) });
-      toast.success("Slot updated successfully");
-    },
-    onError: (err) => {
-      toast.error(getApiErrorMessage(err));
-    },
-  });
-}
-//#endregion
-//#region app/features/admin/mentor/schemas/mentor-slot.schema.ts
-var mentorSlotSchema = z
-  .object({
-    startTime: z.string().min(1, "Start time is required"),
-    endTime: z.string().min(1, "End time is required"),
-    price: z
-      .number({ error: "Price must be a number" })
-      .min(0, "Price must not be negative"),
-    maxBookings: z
-      .number({ error: "Max bookings must be a number" })
-      .int("Max bookings must be an integer")
-      .min(1, "Max bookings must be at least 1"),
-    description: z
-      .string()
-      .max(1e3, "Description must not exceed 1000 characters")
-      .optional()
-      .or(z.literal("")),
-  })
-  .superRefine((data, ctx) => {
-    const start = new Date(data.startTime);
-    const end = new Date(data.endTime);
-    const now = /* @__PURE__ */ new Date();
-    if (isNaN(start.getTime())) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Invalid start time",
-        path: ["startTime"],
-      });
-      return;
-    }
-    if (isNaN(end.getTime())) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Invalid end time",
-        path: ["endTime"],
-      });
-      return;
-    }
-    if (start <= now)
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Start time must be in the future",
-        path: ["startTime"],
-      });
-    if (end <= start) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "End time must be after start time",
-        path: ["endTime"],
-      });
-      return;
-    }
-    const durationMinutes = (end.getTime() - start.getTime()) / 6e4;
-    if (durationMinutes < 30)
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Slot duration must be at least 30 minutes",
-        path: ["endTime"],
-      });
-    if (durationMinutes > 720)
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Slot duration must not exceed 12 hours",
-        path: ["endTime"],
-      });
-  });
-//#endregion
-//#region app/features/admin/mentor/components/mentor-slot-form.tsx
-function toDatetimeLocal(iso) {
-  const d = new Date(iso);
-  const pad = (n) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-function fromDatetimeLocal(local) {
-  return new Date(local).toISOString();
-}
-function MentorSlotForm({ mentorId, slot, onSuccess }) {
-  const isEdit = !!slot;
-  const createMutation = useCreateMentorSlotMutation();
-  const updateMutation = useUpdateMentorSlotMutation();
-  const isPending = createMutation.isPending || updateMutation.isPending;
-  const form = useForm({
-    resolver: zodResolver(mentorSlotSchema),
-    defaultValues: slot
-      ? {
-          startTime: toDatetimeLocal(slot.startTime),
-          endTime: toDatetimeLocal(slot.endTime),
-          price: slot.price,
-          maxBookings: slot.maxBookings ?? 1,
-          description: slot.description ?? "",
-        }
-      : {
-          startTime: "",
-          endTime: "",
-          price: 0,
-          maxBookings: 1,
-          description: "",
-        },
-  });
-  async function onSubmit(data) {
-    const payload = {
-      startTime: fromDatetimeLocal(data.startTime),
-      endTime: fromDatetimeLocal(data.endTime),
-      price: data.price,
-      maxBookings: data.maxBookings,
-      description: data.description || null,
-    };
-    if (isEdit && slot)
-      await updateMutation.mutateAsync({
-        mentorId,
-        slotId: slot.id,
-        ...payload,
-      });
-    else
-      await createMutation.mutateAsync({
-        mentorId,
-        ...payload,
-      });
-    form.reset();
-    onSuccess?.();
-  }
-  return /* @__PURE__ */ jsx(Form, {
-    ...form,
-    children: /* @__PURE__ */ jsxs("form", {
-      onSubmit: form.handleSubmit(onSubmit),
-      className: "space-y-4",
-      id: "slot-form",
-      children: [
-        /* @__PURE__ */ jsxs("div", {
-          className: "grid grid-cols-1 gap-4 sm:grid-cols-2",
-          children: [
-            /* @__PURE__ */ jsx(FormField, {
-              control: form.control,
-              name: "startTime",
-              render: ({ field }) =>
-                /* @__PURE__ */ jsxs(FormItem, {
-                  children: [
-                    /* @__PURE__ */ jsx(FormLabel, {
-                      children: "Start Time *",
-                    }),
-                    /* @__PURE__ */ jsx(FormControl, {
-                      children: /* @__PURE__ */ jsx(Input, {
-                        type: "datetime-local",
-                        ...field,
-                      }),
-                    }),
-                    /* @__PURE__ */ jsx(FormMessage, {}),
-                  ],
-                }),
-            }),
-            /* @__PURE__ */ jsx(FormField, {
-              control: form.control,
-              name: "endTime",
-              render: ({ field }) =>
-                /* @__PURE__ */ jsxs(FormItem, {
-                  children: [
-                    /* @__PURE__ */ jsx(FormLabel, { children: "End Time *" }),
-                    /* @__PURE__ */ jsx(FormControl, {
-                      children: /* @__PURE__ */ jsx(Input, {
-                        type: "datetime-local",
-                        ...field,
-                      }),
-                    }),
-                    /* @__PURE__ */ jsx(FormMessage, {}),
-                  ],
-                }),
-            }),
-          ],
-        }),
-        /* @__PURE__ */ jsxs("div", {
-          className: "grid grid-cols-1 gap-4 sm:grid-cols-2",
-          children: [
-            /* @__PURE__ */ jsx(FormField, {
-              control: form.control,
-              name: "price",
-              render: ({ field }) =>
-                /* @__PURE__ */ jsxs(FormItem, {
-                  children: [
-                    /* @__PURE__ */ jsx(FormLabel, {
-                      children: "Price (VND) *",
-                    }),
-                    /* @__PURE__ */ jsx(FormControl, {
-                      children: /* @__PURE__ */ jsx(Input, {
-                        type: "number",
-                        min: 0,
-                        step: 1e3,
-                        ...field,
-                        onChange: (e) => field.onChange(Number(e.target.value)),
-                      }),
-                    }),
-                    /* @__PURE__ */ jsx(FormMessage, {}),
-                  ],
-                }),
-            }),
-            /* @__PURE__ */ jsx(FormField, {
-              control: form.control,
-              name: "maxBookings",
-              render: ({ field }) =>
-                /* @__PURE__ */ jsxs(FormItem, {
-                  children: [
-                    /* @__PURE__ */ jsx(FormLabel, {
-                      children: "Max Bookings *",
-                    }),
-                    /* @__PURE__ */ jsx(FormControl, {
-                      children: /* @__PURE__ */ jsx(Input, {
-                        type: "number",
-                        min: 1,
-                        ...field,
-                        onChange: (e) => field.onChange(Number(e.target.value)),
-                      }),
-                    }),
-                    /* @__PURE__ */ jsx(FormMessage, {}),
-                  ],
-                }),
-            }),
-          ],
-        }),
-        /* @__PURE__ */ jsx(FormField, {
-          control: form.control,
-          name: "description",
-          render: ({ field }) =>
-            /* @__PURE__ */ jsxs(FormItem, {
-              children: [
-                /* @__PURE__ */ jsx(FormLabel, { children: "Description" }),
-                /* @__PURE__ */ jsx(FormControl, {
-                  children: /* @__PURE__ */ jsx(Textarea, {
-                    placeholder: "Optional notes about this slot...",
-                    className: "resize-none",
-                    rows: 2,
-                    ...field,
-                    value: field.value ?? "",
-                  }),
-                }),
-                /* @__PURE__ */ jsx(FormMessage, {}),
-              ],
-            }),
-        }),
-        /* @__PURE__ */ jsxs(Button, {
-          type: "submit",
-          className: "w-full",
-          disabled: isPending,
-          children: [
-            isPending &&
-              /* @__PURE__ */ jsx(Loader2, {
-                className: "mr-2 size-4 animate-spin",
-              }),
-            isEdit ? "Update Slot" : "Create Slot",
-          ],
-        }),
-      ],
-    }),
-  });
-}
-//#endregion
 //#region app/features/admin/mentor/components/mentor-slots-tab.tsx
 var STATUS_VARIANT = {
-  Available: "default",
-  Booked: "secondary",
-  Cancelled: "destructive",
-  Completed: "outline",
+  1: "default",
+  2: "secondary",
+  3: "outline",
+  4: "destructive",
+  5: "outline",
 };
 function MentorSlotsTab({ mentorId, slots, createShortcutEnabled = false }) {
   const [createOpen, setCreateOpen] = useState(false);
@@ -9306,7 +11926,9 @@ function MentorSlotsTab({ mentorId, slots, createShortcutEnabled = false }) {
                                         /* @__PURE__ */ jsx(Badge, {
                                           variant: STATUS_VARIANT[slot.status],
                                           className: "text-xs",
-                                          children: slot.status,
+                                          children:
+                                            SLOT_STATUS_LABEL[slot.status] ??
+                                            "Unknown",
                                         }),
                                         /* @__PURE__ */ jsx("span", {
                                           className: "text-xs font-medium",
@@ -9908,13 +12530,13 @@ var unauthorized_default = UNSAFE_withComponentProps(
 //#region \0virtual:react-router/server-manifest
 var server_manifest_default = {
   entry: {
-    module: "/assets/entry.client-CdrDVXe9.js",
+    module: "/assets/entry.client-D2AijQnQ.js",
     imports: [
-      "/assets/rolldown-runtime-DYWduciG.js",
-      "/assets/chunk-5KNZJZUH-fndOlr0G.js",
-      "/assets/react-dom-CaaWIOFI.js",
-      "/assets/jsx-runtime-BF_AeVYp.js",
-      "/assets/react-KIkuYek_.js",
+      "/assets/rolldown-runtime-D7KTRRX7.js",
+      "/assets/chunk-5KNZJZUH-CvMizu8N.js",
+      "/assets/react-dom-DL8BN-RZ.js",
+      "/assets/jsx-runtime-BlYCgOOU.js",
+      "/assets/react-B-3UWBEL.js",
     ],
     css: [],
   },
@@ -9932,29 +12554,31 @@ var server_manifest_default = {
       hasClientMiddleware: false,
       hasDefaultExport: true,
       hasErrorBoundary: true,
-      module: "/assets/root-wPicMfpM.js",
+      module: "/assets/root-CWiQE2AC.js",
       imports: [
-        "/assets/rolldown-runtime-DYWduciG.js",
-        "/assets/chunk-5KNZJZUH-fndOlr0G.js",
-        "/assets/react-dom-CaaWIOFI.js",
-        "/assets/jsx-runtime-BF_AeVYp.js",
-        "/assets/react-KIkuYek_.js",
-        "/assets/tooltip-Dsy_JaCi.js",
-        "/assets/api-error-CMREsI_H.js",
-        "/assets/auth.store-BpAsB_pL.js",
-        "/assets/QueryClientProvider-aB-cyHCA.js",
-        "/assets/createLucideIcon--oGfSDMz.js",
-        "/assets/circle-check-zVCOfpRn.js",
-        "/assets/loader-circle-BH-G8kfm.js",
-        "/assets/dist-DXGeaMHF.js",
-        "/assets/utils-C00ojcRQ.js",
-        "/assets/dist-DNmepa_6.js",
-        "/assets/dist-qwa7tjg4.js",
-        "/assets/dist-BCL0tzsT.js",
-        "/assets/dist-KPIweKH3.js",
-        "/assets/dist-HbRDZrxr.js",
+        "/assets/rolldown-runtime-D7KTRRX7.js",
+        "/assets/chunk-5KNZJZUH-CvMizu8N.js",
+        "/assets/react-dom-DL8BN-RZ.js",
+        "/assets/jsx-runtime-BlYCgOOU.js",
+        "/assets/react-B-3UWBEL.js",
+        "/assets/tooltip-BxvEFgKv.js",
+        "/assets/api-error-DsoLvGEf.js",
+        "/assets/auth.store-2ys34xdP.js",
+        "/assets/QueryClientProvider-BSetF0kN.js",
+        "/assets/mutation-C96behGB.js",
+        "/assets/createLucideIcon-B2n_jYVc.js",
+        "/assets/circle-check-DGXQ6KNJ.js",
+        "/assets/loader-circle-DxipSu_q.js",
+        "/assets/dist-Dm1nhCqh.js",
+        "/assets/utils-DZ7UQ4Bk.js",
+        "/assets/dist-DMJxeS_F.js",
+        "/assets/dist-Mpu295hZ.js",
+        "/assets/dist-DdO1kwVo.js",
+        "/assets/dist-CeOfY7EX.js",
+        "/assets/dist-C5yWpQ74.js",
+        "/assets/dist-GZs3GFMO.js",
       ],
-      css: ["/assets/root-DNBLC2Qj.css"],
+      css: ["/assets/root-BTY5yZZ-.css"],
       clientActionModule: void 0,
       clientLoaderModule: void 0,
       clientMiddlewareModule: void 0,
@@ -9973,33 +12597,35 @@ var server_manifest_default = {
       hasClientMiddleware: false,
       hasDefaultExport: true,
       hasErrorBoundary: false,
-      module: "/assets/_layout-BD0kI4Ba.js",
+      module: "/assets/_layout-W-i1NxJK.js",
       imports: [
-        "/assets/chunk-5KNZJZUH-fndOlr0G.js",
-        "/assets/avatar-BBye0Mpi.js",
-        "/assets/button-DcPcryEB.js",
-        "/assets/separator-aRNVHzkW.js",
-        "/assets/sheet-s92CUBwo.js",
-        "/assets/use-auth-B6EGvmkA.js",
-        "/assets/auth.service-CAoaQXxd.js",
-        "/assets/auth.store-BpAsB_pL.js",
-        "/assets/calendar-days-9khLxXmn.js",
-        "/assets/circle-user-DVz0FY2S.js",
-        "/assets/log-out-Dlx3ggnA.js",
-        "/assets/jsx-runtime-BF_AeVYp.js",
-        "/assets/rolldown-runtime-DYWduciG.js",
-        "/assets/react-KIkuYek_.js",
-        "/assets/utils-C00ojcRQ.js",
-        "/assets/dist-BCL0tzsT.js",
-        "/assets/dist-HbRDZrxr.js",
-        "/assets/react-dom-CaaWIOFI.js",
-        "/assets/dist-pTSroALd.js",
-        "/assets/dist-CpxhpIKr.js",
-        "/assets/x-ClfZI0LA.js",
-        "/assets/createLucideIcon--oGfSDMz.js",
-        "/assets/dist-qwa7tjg4.js",
-        "/assets/dist-KPIweKH3.js",
-        "/assets/axios.config-DeLyeqpM.js",
+        "/assets/chunk-5KNZJZUH-CvMizu8N.js",
+        "/assets/avatar-DJgmc_Mf.js",
+        "/assets/button-4KLeZV-d.js",
+        "/assets/separator-iiM6-Sxx.js",
+        "/assets/sheet-BvsiYVru.js",
+        "/assets/use-auth-Bm0M9Fk6.js",
+        "/assets/auth.service-Dy9lc57k.js",
+        "/assets/auth.store-2ys34xdP.js",
+        "/assets/calendar-days-CX08cIXK.js",
+        "/assets/circle-user-lD79-Kph.js",
+        "/assets/log-out-e-HsZzjL.js",
+        "/assets/jsx-runtime-BlYCgOOU.js",
+        "/assets/rolldown-runtime-D7KTRRX7.js",
+        "/assets/react-B-3UWBEL.js",
+        "/assets/utils-DZ7UQ4Bk.js",
+        "/assets/dist-DdO1kwVo.js",
+        "/assets/dist-GZs3GFMO.js",
+        "/assets/react-dom-DL8BN-RZ.js",
+        "/assets/dist-DKAWrTW-.js",
+        "/assets/dist-CfBkXSLO.js",
+        "/assets/createLucideIcon-B2n_jYVc.js",
+        "/assets/x-BZUO-sLr.js",
+        "/assets/dist-Mpu295hZ.js",
+        "/assets/dist-CeOfY7EX.js",
+        "/assets/es2015-DaoE4flL.js",
+        "/assets/dist-C5yWpQ74.js",
+        "/assets/axios.config-BQys5tVP.js",
       ],
       css: [],
       clientActionModule: void 0,
@@ -10020,26 +12646,26 @@ var server_manifest_default = {
       hasClientMiddleware: false,
       hasDefaultExport: true,
       hasErrorBoundary: false,
-      module: "/assets/home-BS58pjwc.js",
+      module: "/assets/home-CS73SjBZ.js",
       imports: [
-        "/assets/chunk-5KNZJZUH-fndOlr0G.js",
-        "/assets/badge-sMKy90uC.js",
-        "/assets/button-DcPcryEB.js",
-        "/assets/separator-aRNVHzkW.js",
-        "/assets/createLucideIcon--oGfSDMz.js",
-        "/assets/chart-column-DRAVns-r.js",
-        "/assets/calendar-check-DGEEFoBz.js",
-        "/assets/chevron-right-BV1M7zuq.js",
-        "/assets/circle-check-zVCOfpRn.js",
-        "/assets/search-BmH0U9Hq.js",
-        "/assets/users-BmT7d3So.js",
-        "/assets/jsx-runtime-BF_AeVYp.js",
-        "/assets/rolldown-runtime-DYWduciG.js",
-        "/assets/react-KIkuYek_.js",
-        "/assets/utils-C00ojcRQ.js",
-        "/assets/dist-pTSroALd.js",
-        "/assets/dist-HbRDZrxr.js",
-        "/assets/react-dom-CaaWIOFI.js",
+        "/assets/chunk-5KNZJZUH-CvMizu8N.js",
+        "/assets/badge-BmglEu3D.js",
+        "/assets/button-4KLeZV-d.js",
+        "/assets/separator-iiM6-Sxx.js",
+        "/assets/createLucideIcon-B2n_jYVc.js",
+        "/assets/chart-column-BAeSxre6.js",
+        "/assets/calendar-check-BQQ517_C.js",
+        "/assets/chevron-right-B0ExwN4W.js",
+        "/assets/circle-check-DGXQ6KNJ.js",
+        "/assets/search-BePpyUcP.js",
+        "/assets/users-DXGm006r.js",
+        "/assets/jsx-runtime-BlYCgOOU.js",
+        "/assets/rolldown-runtime-D7KTRRX7.js",
+        "/assets/react-B-3UWBEL.js",
+        "/assets/utils-DZ7UQ4Bk.js",
+        "/assets/dist-DKAWrTW-.js",
+        "/assets/dist-GZs3GFMO.js",
+        "/assets/react-dom-DL8BN-RZ.js",
       ],
       css: [],
       clientActionModule: void 0,
@@ -10060,22 +12686,22 @@ var server_manifest_default = {
       hasClientMiddleware: false,
       hasDefaultExport: true,
       hasErrorBoundary: false,
-      module: "/assets/about-NR9CR8eo.js",
+      module: "/assets/about-Bubqmp78.js",
       imports: [
-        "/assets/avatar-BBye0Mpi.js",
-        "/assets/badge-sMKy90uC.js",
-        "/assets/separator-aRNVHzkW.js",
-        "/assets/createLucideIcon--oGfSDMz.js",
-        "/assets/chart-column-DRAVns-r.js",
-        "/assets/users-BmT7d3So.js",
-        "/assets/jsx-runtime-BF_AeVYp.js",
-        "/assets/rolldown-runtime-DYWduciG.js",
-        "/assets/utils-C00ojcRQ.js",
-        "/assets/dist-BCL0tzsT.js",
-        "/assets/dist-HbRDZrxr.js",
-        "/assets/react-KIkuYek_.js",
-        "/assets/react-dom-CaaWIOFI.js",
-        "/assets/dist-pTSroALd.js",
+        "/assets/avatar-DJgmc_Mf.js",
+        "/assets/badge-BmglEu3D.js",
+        "/assets/separator-iiM6-Sxx.js",
+        "/assets/createLucideIcon-B2n_jYVc.js",
+        "/assets/chart-column-BAeSxre6.js",
+        "/assets/users-DXGm006r.js",
+        "/assets/jsx-runtime-BlYCgOOU.js",
+        "/assets/rolldown-runtime-D7KTRRX7.js",
+        "/assets/utils-DZ7UQ4Bk.js",
+        "/assets/dist-DdO1kwVo.js",
+        "/assets/dist-GZs3GFMO.js",
+        "/assets/react-B-3UWBEL.js",
+        "/assets/react-dom-DL8BN-RZ.js",
+        "/assets/dist-DKAWrTW-.js",
       ],
       css: [],
       clientActionModule: void 0,
@@ -10096,35 +12722,42 @@ var server_manifest_default = {
       hasClientMiddleware: false,
       hasDefaultExport: true,
       hasErrorBoundary: false,
-      module: "/assets/mentors-DPZBL0-d.js",
+      module: "/assets/mentors-DY7Snxl7.js",
       imports: [
-        "/assets/chunk-5KNZJZUH-fndOlr0G.js",
-        "/assets/mentor-list-container-BvozdDyo.js",
-        "/assets/jsx-runtime-BF_AeVYp.js",
-        "/assets/rolldown-runtime-DYWduciG.js",
-        "/assets/react-KIkuYek_.js",
-        "/assets/mentor-filter-panel-CvjT35Zr.js",
-        "/assets/avatar-BBye0Mpi.js",
-        "/assets/button-DcPcryEB.js",
-        "/assets/card-BzS_Dwrf.js",
-        "/assets/utils-C00ojcRQ.js",
-        "/assets/createLucideIcon--oGfSDMz.js",
-        "/assets/dollar-sign-BU2WRAgv.js",
-        "/assets/users-BmT7d3So.js",
-        "/assets/badge-sMKy90uC.js",
-        "/assets/label-gJP-FZTT.js",
-        "/assets/dist-DNmepa_6.js",
-        "/assets/dist-DhT6ksdH.js",
-        "/assets/dist-qwa7tjg4.js",
-        "/assets/dist-BCL0tzsT.js",
-        "/assets/x-ClfZI0LA.js",
-        "/assets/dist-HbRDZrxr.js",
-        "/assets/QueryClientProvider-aB-cyHCA.js",
-        "/assets/chevron-right-BV1M7zuq.js",
-        "/assets/search-BmH0U9Hq.js",
-        "/assets/react-dom-CaaWIOFI.js",
-        "/assets/dist-pTSroALd.js",
-        "/assets/axios.config-DeLyeqpM.js",
+        "/assets/chunk-5KNZJZUH-CvMizu8N.js",
+        "/assets/mentor-list-container-B-9zjmy-.js",
+        "/assets/jsx-runtime-BlYCgOOU.js",
+        "/assets/rolldown-runtime-D7KTRRX7.js",
+        "/assets/react-B-3UWBEL.js",
+        "/assets/data-table-pagination-DhXvt5KN.js",
+        "/assets/mentor-filter-panel-hQ_UnR6u.js",
+        "/assets/avatar-DJgmc_Mf.js",
+        "/assets/button-4KLeZV-d.js",
+        "/assets/card-6LjgNCSB.js",
+        "/assets/utils-DZ7UQ4Bk.js",
+        "/assets/createLucideIcon-B2n_jYVc.js",
+        "/assets/briefcase-C0f7RW0h.js",
+        "/assets/dollar-sign-ter81zHN.js",
+        "/assets/users-DXGm006r.js",
+        "/assets/dist-DMJxeS_F.js",
+        "/assets/dist-Bwou0fCS.js",
+        "/assets/dist-Mpu295hZ.js",
+        "/assets/dist-BRlPHYh3.js",
+        "/assets/dist-DdO1kwVo.js",
+        "/assets/dist-CeOfY7EX.js",
+        "/assets/es2015-DaoE4flL.js",
+        "/assets/dist-GZs3GFMO.js",
+        "/assets/chevron-right-B0ExwN4W.js",
+        "/assets/react-dom-DL8BN-RZ.js",
+        "/assets/dist-DKAWrTW-.js",
+        "/assets/badge-BmglEu3D.js",
+        "/assets/input-BWt5iw2T.js",
+        "/assets/label-Dps5ofxK.js",
+        "/assets/mentor.service-DPL6eBMY.js",
+        "/assets/QueryClientProvider-BSetF0kN.js",
+        "/assets/search-BePpyUcP.js",
+        "/assets/x-BZUO-sLr.js",
+        "/assets/axios.config-BQys5tVP.js",
       ],
       css: [],
       clientActionModule: void 0,
@@ -10145,29 +12778,53 @@ var server_manifest_default = {
       hasClientMiddleware: false,
       hasDefaultExport: true,
       hasErrorBoundary: false,
-      module: "/assets/mentor-detail-CX_c5doH.js",
+      module: "/assets/mentor-detail-NOzE0g1g.js",
       imports: [
-        "/assets/chunk-5KNZJZUH-fndOlr0G.js",
-        "/assets/mentor-detail-view-kEfV_vV_.js",
-        "/assets/jsx-runtime-BF_AeVYp.js",
-        "/assets/rolldown-runtime-DYWduciG.js",
-        "/assets/react-KIkuYek_.js",
-        "/assets/avatar-BBye0Mpi.js",
-        "/assets/badge-sMKy90uC.js",
-        "/assets/button-DcPcryEB.js",
-        "/assets/card-BzS_Dwrf.js",
-        "/assets/separator-aRNVHzkW.js",
-        "/assets/use-mentor-detail-query-CP2hbGhe.js",
-        "/assets/createLucideIcon--oGfSDMz.js",
-        "/assets/clock-C-Thf6XD.js",
-        "/assets/dollar-sign-BU2WRAgv.js",
-        "/assets/utils-C00ojcRQ.js",
-        "/assets/dist-BCL0tzsT.js",
-        "/assets/dist-HbRDZrxr.js",
-        "/assets/react-dom-CaaWIOFI.js",
-        "/assets/dist-pTSroALd.js",
-        "/assets/axios.config-DeLyeqpM.js",
-        "/assets/QueryClientProvider-aB-cyHCA.js",
+        "/assets/chunk-5KNZJZUH-CvMizu8N.js",
+        "/assets/mentor-detail-view-pwZveAgr.js",
+        "/assets/jsx-runtime-BlYCgOOU.js",
+        "/assets/rolldown-runtime-D7KTRRX7.js",
+        "/assets/react-B-3UWBEL.js",
+        "/assets/avatar-DJgmc_Mf.js",
+        "/assets/badge-BmglEu3D.js",
+        "/assets/button-4KLeZV-d.js",
+        "/assets/card-6LjgNCSB.js",
+        "/assets/textarea-CfN3TLtF.js",
+        "/assets/label-Dps5ofxK.js",
+        "/assets/separator-iiM6-Sxx.js",
+        "/assets/use-user-bookings-query-CF3lHHJI.js",
+        "/assets/use-mentor-detail-query-BXrqEF3A.js",
+        "/assets/api-error-DsoLvGEf.js",
+        "/assets/utils-DZ7UQ4Bk.js",
+        "/assets/booking.service-B8etHkBu.js",
+        "/assets/auth.store-2ys34xdP.js",
+        "/assets/mentor-Bg1gbwk1.js",
+        "/assets/QueryClientProvider-BSetF0kN.js",
+        "/assets/useMutation-CvoIZgcs.js",
+        "/assets/arrow-left-B7etKPWB.js",
+        "/assets/briefcase-C0f7RW0h.js",
+        "/assets/calendar-days-CX08cIXK.js",
+        "/assets/calendar-Bj1l8o8z.js",
+        "/assets/clock-B5djXDMU.js",
+        "/assets/dollar-sign-ter81zHN.js",
+        "/assets/loader-circle-DxipSu_q.js",
+        "/assets/phone-DnpuB4sX.js",
+        "/assets/user-PZHMXx1a.js",
+        "/assets/dist-Dm1nhCqh.js",
+        "/assets/dist-DdO1kwVo.js",
+        "/assets/dist-GZs3GFMO.js",
+        "/assets/react-dom-DL8BN-RZ.js",
+        "/assets/dist-DKAWrTW-.js",
+        "/assets/dist-CfBkXSLO.js",
+        "/assets/x-BZUO-sLr.js",
+        "/assets/dist-Mpu295hZ.js",
+        "/assets/dist-CeOfY7EX.js",
+        "/assets/es2015-DaoE4flL.js",
+        "/assets/dist-C5yWpQ74.js",
+        "/assets/createLucideIcon-B2n_jYVc.js",
+        "/assets/axios.config-BQys5tVP.js",
+        "/assets/mentor.service-DPL6eBMY.js",
+        "/assets/mutation-C96behGB.js",
       ],
       css: [],
       clientActionModule: void 0,
@@ -10188,14 +12845,14 @@ var server_manifest_default = {
       hasClientMiddleware: false,
       hasDefaultExport: true,
       hasErrorBoundary: false,
-      module: "/assets/_layout-ZhcSU10c.js",
+      module: "/assets/_layout-DsGVbPPu.js",
       imports: [
-        "/assets/chunk-5KNZJZUH-fndOlr0G.js",
-        "/assets/require-role-BGfCDaFH.js",
-        "/assets/jsx-runtime-BF_AeVYp.js",
-        "/assets/rolldown-runtime-DYWduciG.js",
-        "/assets/react-KIkuYek_.js",
-        "/assets/auth.store-BpAsB_pL.js",
+        "/assets/chunk-5KNZJZUH-CvMizu8N.js",
+        "/assets/require-role-CJ_8scK3.js",
+        "/assets/jsx-runtime-BlYCgOOU.js",
+        "/assets/rolldown-runtime-D7KTRRX7.js",
+        "/assets/react-B-3UWBEL.js",
+        "/assets/auth.store-2ys34xdP.js",
       ],
       css: [],
       clientActionModule: void 0,
@@ -10216,30 +12873,31 @@ var server_manifest_default = {
       hasClientMiddleware: false,
       hasDefaultExport: true,
       hasErrorBoundary: false,
-      module: "/assets/login-gM7yeiSx.js",
+      module: "/assets/login-CgplN7Ry.js",
       imports: [
-        "/assets/rolldown-runtime-DYWduciG.js",
-        "/assets/chunk-5KNZJZUH-fndOlr0G.js",
-        "/assets/social.form-6qpjLY0h.js",
-        "/assets/button-DcPcryEB.js",
-        "/assets/schemas-DpP4Lly7.js",
-        "/assets/label-gJP-FZTT.js",
-        "/assets/api-error-CMREsI_H.js",
-        "/assets/auth.service-CAoaQXxd.js",
-        "/assets/auth.store-BpAsB_pL.js",
-        "/assets/eye-CFO9NvP9.js",
-        "/assets/loader-circle-BH-G8kfm.js",
-        "/assets/jsx-runtime-BF_AeVYp.js",
-        "/assets/react-KIkuYek_.js",
-        "/assets/dist-DXGeaMHF.js",
-        "/assets/separator-aRNVHzkW.js",
-        "/assets/calendar-days-9khLxXmn.js",
-        "/assets/utils-C00ojcRQ.js",
-        "/assets/dist-pTSroALd.js",
-        "/assets/dist-HbRDZrxr.js",
-        "/assets/react-dom-CaaWIOFI.js",
-        "/assets/createLucideIcon--oGfSDMz.js",
-        "/assets/axios.config-DeLyeqpM.js",
+        "/assets/rolldown-runtime-D7KTRRX7.js",
+        "/assets/chunk-5KNZJZUH-CvMizu8N.js",
+        "/assets/social.form-BmLj8Qcb.js",
+        "/assets/button-4KLeZV-d.js",
+        "/assets/schemas-CdW0TvSb.js",
+        "/assets/input-BWt5iw2T.js",
+        "/assets/api-error-DsoLvGEf.js",
+        "/assets/auth.service-Dy9lc57k.js",
+        "/assets/auth.store-2ys34xdP.js",
+        "/assets/eye-CwrHmF5t.js",
+        "/assets/loader-circle-DxipSu_q.js",
+        "/assets/jsx-runtime-BlYCgOOU.js",
+        "/assets/react-B-3UWBEL.js",
+        "/assets/dist-Dm1nhCqh.js",
+        "/assets/separator-iiM6-Sxx.js",
+        "/assets/calendar-days-CX08cIXK.js",
+        "/assets/utils-DZ7UQ4Bk.js",
+        "/assets/dist-DKAWrTW-.js",
+        "/assets/dist-GZs3GFMO.js",
+        "/assets/react-dom-DL8BN-RZ.js",
+        "/assets/createLucideIcon-B2n_jYVc.js",
+        "/assets/label-Dps5ofxK.js",
+        "/assets/axios.config-BQys5tVP.js",
       ],
       css: [],
       clientActionModule: void 0,
@@ -10260,29 +12918,30 @@ var server_manifest_default = {
       hasClientMiddleware: false,
       hasDefaultExport: true,
       hasErrorBoundary: false,
-      module: "/assets/register-BGh40cMl.js",
+      module: "/assets/register-ChfqAx_B.js",
       imports: [
-        "/assets/rolldown-runtime-DYWduciG.js",
-        "/assets/chunk-5KNZJZUH-fndOlr0G.js",
-        "/assets/social.form-6qpjLY0h.js",
-        "/assets/button-DcPcryEB.js",
-        "/assets/schemas-DpP4Lly7.js",
-        "/assets/label-gJP-FZTT.js",
-        "/assets/api-error-CMREsI_H.js",
-        "/assets/auth.service-CAoaQXxd.js",
-        "/assets/eye-CFO9NvP9.js",
-        "/assets/loader-circle-BH-G8kfm.js",
-        "/assets/jsx-runtime-BF_AeVYp.js",
-        "/assets/react-KIkuYek_.js",
-        "/assets/dist-DXGeaMHF.js",
-        "/assets/separator-aRNVHzkW.js",
-        "/assets/calendar-days-9khLxXmn.js",
-        "/assets/utils-C00ojcRQ.js",
-        "/assets/dist-pTSroALd.js",
-        "/assets/dist-HbRDZrxr.js",
-        "/assets/react-dom-CaaWIOFI.js",
-        "/assets/createLucideIcon--oGfSDMz.js",
-        "/assets/axios.config-DeLyeqpM.js",
+        "/assets/rolldown-runtime-D7KTRRX7.js",
+        "/assets/chunk-5KNZJZUH-CvMizu8N.js",
+        "/assets/social.form-BmLj8Qcb.js",
+        "/assets/button-4KLeZV-d.js",
+        "/assets/schemas-CdW0TvSb.js",
+        "/assets/input-BWt5iw2T.js",
+        "/assets/api-error-DsoLvGEf.js",
+        "/assets/auth.service-Dy9lc57k.js",
+        "/assets/eye-CwrHmF5t.js",
+        "/assets/loader-circle-DxipSu_q.js",
+        "/assets/jsx-runtime-BlYCgOOU.js",
+        "/assets/react-B-3UWBEL.js",
+        "/assets/dist-Dm1nhCqh.js",
+        "/assets/separator-iiM6-Sxx.js",
+        "/assets/calendar-days-CX08cIXK.js",
+        "/assets/utils-DZ7UQ4Bk.js",
+        "/assets/dist-DKAWrTW-.js",
+        "/assets/dist-GZs3GFMO.js",
+        "/assets/react-dom-DL8BN-RZ.js",
+        "/assets/createLucideIcon-B2n_jYVc.js",
+        "/assets/label-Dps5ofxK.js",
+        "/assets/axios.config-BQys5tVP.js",
       ],
       css: [],
       clientActionModule: void 0,
@@ -10303,42 +12962,44 @@ var server_manifest_default = {
       hasClientMiddleware: false,
       hasDefaultExport: true,
       hasErrorBoundary: false,
-      module: "/assets/_layout-7GTWCAMV.js",
+      module: "/assets/_layout-Dv8kl8Tm.js",
       imports: [
-        "/assets/chunk-5KNZJZUH-fndOlr0G.js",
-        "/assets/nav-config-CVMEpoop.js",
-        "/assets/require-role-BGfCDaFH.js",
-        "/assets/jsx-runtime-BF_AeVYp.js",
-        "/assets/rolldown-runtime-DYWduciG.js",
-        "/assets/react-KIkuYek_.js",
-        "/assets/avatar-BBye0Mpi.js",
-        "/assets/button-DcPcryEB.js",
-        "/assets/separator-aRNVHzkW.js",
-        "/assets/sheet-s92CUBwo.js",
-        "/assets/utils-C00ojcRQ.js",
-        "/assets/auth.service-CAoaQXxd.js",
-        "/assets/auth.store-BpAsB_pL.js",
-        "/assets/activity-Dx7AvX8g.js",
-        "/assets/book-open-Dgcw3052.js",
-        "/assets/bot-od7yFoxp.js",
-        "/assets/calendar-check-DGEEFoBz.js",
-        "/assets/calendar-days-9khLxXmn.js",
-        "/assets/circle-user-DVz0FY2S.js",
-        "/assets/credit-card-UZ2dlzym.js",
-        "/assets/graduation-cap-D6Kkm6j8.js",
-        "/assets/log-out-Dlx3ggnA.js",
-        "/assets/users-BmT7d3So.js",
-        "/assets/dist-DXGeaMHF.js",
-        "/assets/dist-BCL0tzsT.js",
-        "/assets/dist-HbRDZrxr.js",
-        "/assets/react-dom-CaaWIOFI.js",
-        "/assets/dist-pTSroALd.js",
-        "/assets/dist-CpxhpIKr.js",
-        "/assets/x-ClfZI0LA.js",
-        "/assets/createLucideIcon--oGfSDMz.js",
-        "/assets/dist-qwa7tjg4.js",
-        "/assets/dist-KPIweKH3.js",
-        "/assets/axios.config-DeLyeqpM.js",
+        "/assets/chunk-5KNZJZUH-CvMizu8N.js",
+        "/assets/nav-config-DwEQ-Nxr.js",
+        "/assets/require-role-CJ_8scK3.js",
+        "/assets/jsx-runtime-BlYCgOOU.js",
+        "/assets/rolldown-runtime-D7KTRRX7.js",
+        "/assets/react-B-3UWBEL.js",
+        "/assets/avatar-DJgmc_Mf.js",
+        "/assets/button-4KLeZV-d.js",
+        "/assets/separator-iiM6-Sxx.js",
+        "/assets/sheet-BvsiYVru.js",
+        "/assets/utils-DZ7UQ4Bk.js",
+        "/assets/auth.service-Dy9lc57k.js",
+        "/assets/auth.store-2ys34xdP.js",
+        "/assets/activity-CDTLDLIC.js",
+        "/assets/book-open-B__mxakS.js",
+        "/assets/bot-DwWtA718.js",
+        "/assets/calendar-check-BQQ517_C.js",
+        "/assets/calendar-days-CX08cIXK.js",
+        "/assets/circle-user-lD79-Kph.js",
+        "/assets/credit-card-CFnx3JQ5.js",
+        "/assets/graduation-cap-DLzpx06y.js",
+        "/assets/log-out-e-HsZzjL.js",
+        "/assets/users-DXGm006r.js",
+        "/assets/dist-Dm1nhCqh.js",
+        "/assets/dist-DdO1kwVo.js",
+        "/assets/dist-GZs3GFMO.js",
+        "/assets/react-dom-DL8BN-RZ.js",
+        "/assets/dist-DKAWrTW-.js",
+        "/assets/dist-CfBkXSLO.js",
+        "/assets/createLucideIcon-B2n_jYVc.js",
+        "/assets/x-BZUO-sLr.js",
+        "/assets/dist-Mpu295hZ.js",
+        "/assets/dist-CeOfY7EX.js",
+        "/assets/es2015-DaoE4flL.js",
+        "/assets/dist-C5yWpQ74.js",
+        "/assets/axios.config-BQys5tVP.js",
       ],
       css: [],
       clientActionModule: void 0,
@@ -10359,14 +13020,14 @@ var server_manifest_default = {
       hasClientMiddleware: false,
       hasDefaultExport: true,
       hasErrorBoundary: false,
-      module: "/assets/dashboard-BtWsMriv.js",
+      module: "/assets/dashboard-BsiG5BO9.js",
       imports: [
-        "/assets/chunk-5KNZJZUH-fndOlr0G.js",
-        "/assets/use-auth-B6EGvmkA.js",
-        "/assets/jsx-runtime-BF_AeVYp.js",
-        "/assets/rolldown-runtime-DYWduciG.js",
-        "/assets/react-KIkuYek_.js",
-        "/assets/auth.store-BpAsB_pL.js",
+        "/assets/chunk-5KNZJZUH-CvMizu8N.js",
+        "/assets/use-auth-Bm0M9Fk6.js",
+        "/assets/jsx-runtime-BlYCgOOU.js",
+        "/assets/rolldown-runtime-D7KTRRX7.js",
+        "/assets/react-B-3UWBEL.js",
+        "/assets/auth.store-2ys34xdP.js",
       ],
       css: [],
       clientActionModule: void 0,
@@ -10387,14 +13048,145 @@ var server_manifest_default = {
       hasClientMiddleware: false,
       hasDefaultExport: true,
       hasErrorBoundary: false,
-      module: "/assets/bookings-DqYepump.js",
+      module: "/assets/bookings-BUdgfGB-.js",
       imports: [
-        "/assets/chunk-5KNZJZUH-fndOlr0G.js",
-        "/assets/calendar-check-DGEEFoBz.js",
-        "/assets/jsx-runtime-BF_AeVYp.js",
-        "/assets/rolldown-runtime-DYWduciG.js",
-        "/assets/react-KIkuYek_.js",
-        "/assets/createLucideIcon--oGfSDMz.js",
+        "/assets/rolldown-runtime-D7KTRRX7.js",
+        "/assets/chunk-5KNZJZUH-CvMizu8N.js",
+        "/assets/data-table-pagination-DhXvt5KN.js",
+        "/assets/avatar-DJgmc_Mf.js",
+        "/assets/badge-BmglEu3D.js",
+        "/assets/button-4KLeZV-d.js",
+        "/assets/card-6LjgNCSB.js",
+        "/assets/tabs-ivzE7UWj.js",
+        "/assets/use-user-bookings-query-CF3lHHJI.js",
+        "/assets/auth.store-2ys34xdP.js",
+        "/assets/booking-BgsOWCU3.js",
+        "/assets/calendar-check-BQQ517_C.js",
+        "/assets/chevron-right-B0ExwN4W.js",
+        "/assets/clock-B5djXDMU.js",
+        "/assets/credit-card-CFnx3JQ5.js",
+        "/assets/dollar-sign-ter81zHN.js",
+        "/assets/jsx-runtime-BlYCgOOU.js",
+        "/assets/react-B-3UWBEL.js",
+        "/assets/utils-DZ7UQ4Bk.js",
+        "/assets/dist-DMJxeS_F.js",
+        "/assets/dist-Bwou0fCS.js",
+        "/assets/dist-Mpu295hZ.js",
+        "/assets/dist-BRlPHYh3.js",
+        "/assets/dist-DdO1kwVo.js",
+        "/assets/dist-CeOfY7EX.js",
+        "/assets/es2015-DaoE4flL.js",
+        "/assets/dist-GZs3GFMO.js",
+        "/assets/createLucideIcon-B2n_jYVc.js",
+        "/assets/react-dom-DL8BN-RZ.js",
+        "/assets/dist-DKAWrTW-.js",
+        "/assets/QueryClientProvider-BSetF0kN.js",
+        "/assets/dist-C5yWpQ74.js",
+        "/assets/booking.service-B8etHkBu.js",
+        "/assets/axios.config-BQys5tVP.js",
+      ],
+      css: [],
+      clientActionModule: void 0,
+      clientLoaderModule: void 0,
+      clientMiddlewareModule: void 0,
+      hydrateFallbackModule: void 0,
+    },
+    "routes/user/booking-detail": {
+      id: "routes/user/booking-detail",
+      parentId: "routes/user/_layout",
+      path: "user/bookings/:id",
+      index: void 0,
+      caseSensitive: void 0,
+      hasAction: false,
+      hasLoader: false,
+      hasClientAction: false,
+      hasClientLoader: false,
+      hasClientMiddleware: false,
+      hasDefaultExport: true,
+      hasErrorBoundary: false,
+      module: "/assets/booking-detail-BZKlc7pW.js",
+      imports: [
+        "/assets/rolldown-runtime-D7KTRRX7.js",
+        "/assets/chunk-5KNZJZUH-CvMizu8N.js",
+        "/assets/avatar-DJgmc_Mf.js",
+        "/assets/badge-BmglEu3D.js",
+        "/assets/button-4KLeZV-d.js",
+        "/assets/card-6LjgNCSB.js",
+        "/assets/textarea-CfN3TLtF.js",
+        "/assets/label-Dps5ofxK.js",
+        "/assets/separator-iiM6-Sxx.js",
+        "/assets/use-booking-detail-query-tFewnflI.js",
+        "/assets/api-error-DsoLvGEf.js",
+        "/assets/booking.service-B8etHkBu.js",
+        "/assets/auth.store-2ys34xdP.js",
+        "/assets/booking-BgsOWCU3.js",
+        "/assets/QueryClientProvider-BSetF0kN.js",
+        "/assets/useMutation-CvoIZgcs.js",
+        "/assets/arrow-left-B7etKPWB.js",
+        "/assets/calendar-Bj1l8o8z.js",
+        "/assets/circle-check-DGXQ6KNJ.js",
+        "/assets/clock-B5djXDMU.js",
+        "/assets/credit-card-CFnx3JQ5.js",
+        "/assets/dollar-sign-ter81zHN.js",
+        "/assets/loader-circle-DxipSu_q.js",
+        "/assets/jsx-runtime-BlYCgOOU.js",
+        "/assets/react-B-3UWBEL.js",
+        "/assets/dist-Dm1nhCqh.js",
+        "/assets/utils-DZ7UQ4Bk.js",
+        "/assets/dist-DdO1kwVo.js",
+        "/assets/dist-GZs3GFMO.js",
+        "/assets/react-dom-DL8BN-RZ.js",
+        "/assets/dist-DKAWrTW-.js",
+        "/assets/dist-CfBkXSLO.js",
+        "/assets/x-BZUO-sLr.js",
+        "/assets/dist-Mpu295hZ.js",
+        "/assets/dist-CeOfY7EX.js",
+        "/assets/es2015-DaoE4flL.js",
+        "/assets/dist-C5yWpQ74.js",
+        "/assets/createLucideIcon-B2n_jYVc.js",
+        "/assets/axios.config-BQys5tVP.js",
+        "/assets/mutation-C96behGB.js",
+      ],
+      css: [],
+      clientActionModule: void 0,
+      clientLoaderModule: void 0,
+      clientMiddlewareModule: void 0,
+      hydrateFallbackModule: void 0,
+    },
+    "routes/user/booking-payment": {
+      id: "routes/user/booking-payment",
+      parentId: "routes/user/_layout",
+      path: "user/bookings/:id/payment",
+      index: void 0,
+      caseSensitive: void 0,
+      hasAction: false,
+      hasLoader: false,
+      hasClientAction: false,
+      hasClientLoader: false,
+      hasClientMiddleware: false,
+      hasDefaultExport: true,
+      hasErrorBoundary: false,
+      module: "/assets/booking-payment-eseZvh0W.js",
+      imports: [
+        "/assets/rolldown-runtime-D7KTRRX7.js",
+        "/assets/chunk-5KNZJZUH-CvMizu8N.js",
+        "/assets/badge-BmglEu3D.js",
+        "/assets/button-4KLeZV-d.js",
+        "/assets/card-6LjgNCSB.js",
+        "/assets/use-booking-detail-query-tFewnflI.js",
+        "/assets/axios.config-BQys5tVP.js",
+        "/assets/useMutation-CvoIZgcs.js",
+        "/assets/createLucideIcon-B2n_jYVc.js",
+        "/assets/circle-check-DGXQ6KNJ.js",
+        "/assets/clock-B5djXDMU.js",
+        "/assets/loader-circle-DxipSu_q.js",
+        "/assets/jsx-runtime-BlYCgOOU.js",
+        "/assets/react-B-3UWBEL.js",
+        "/assets/utils-DZ7UQ4Bk.js",
+        "/assets/dist-DKAWrTW-.js",
+        "/assets/QueryClientProvider-BSetF0kN.js",
+        "/assets/booking.service-B8etHkBu.js",
+        "/assets/mutation-C96behGB.js",
       ],
       css: [],
       clientActionModule: void 0,
@@ -10415,35 +13207,42 @@ var server_manifest_default = {
       hasClientMiddleware: false,
       hasDefaultExport: true,
       hasErrorBoundary: false,
-      module: "/assets/find-mentors-Dw08CmOe.js",
+      module: "/assets/find-mentors-Bu0Abe9v.js",
       imports: [
-        "/assets/chunk-5KNZJZUH-fndOlr0G.js",
-        "/assets/mentor-list-container-BvozdDyo.js",
-        "/assets/jsx-runtime-BF_AeVYp.js",
-        "/assets/rolldown-runtime-DYWduciG.js",
-        "/assets/react-KIkuYek_.js",
-        "/assets/mentor-filter-panel-CvjT35Zr.js",
-        "/assets/avatar-BBye0Mpi.js",
-        "/assets/button-DcPcryEB.js",
-        "/assets/card-BzS_Dwrf.js",
-        "/assets/utils-C00ojcRQ.js",
-        "/assets/createLucideIcon--oGfSDMz.js",
-        "/assets/dollar-sign-BU2WRAgv.js",
-        "/assets/users-BmT7d3So.js",
-        "/assets/badge-sMKy90uC.js",
-        "/assets/label-gJP-FZTT.js",
-        "/assets/dist-DNmepa_6.js",
-        "/assets/dist-DhT6ksdH.js",
-        "/assets/dist-qwa7tjg4.js",
-        "/assets/dist-BCL0tzsT.js",
-        "/assets/x-ClfZI0LA.js",
-        "/assets/dist-HbRDZrxr.js",
-        "/assets/QueryClientProvider-aB-cyHCA.js",
-        "/assets/chevron-right-BV1M7zuq.js",
-        "/assets/search-BmH0U9Hq.js",
-        "/assets/react-dom-CaaWIOFI.js",
-        "/assets/dist-pTSroALd.js",
-        "/assets/axios.config-DeLyeqpM.js",
+        "/assets/chunk-5KNZJZUH-CvMizu8N.js",
+        "/assets/mentor-list-container-B-9zjmy-.js",
+        "/assets/jsx-runtime-BlYCgOOU.js",
+        "/assets/rolldown-runtime-D7KTRRX7.js",
+        "/assets/react-B-3UWBEL.js",
+        "/assets/data-table-pagination-DhXvt5KN.js",
+        "/assets/mentor-filter-panel-hQ_UnR6u.js",
+        "/assets/avatar-DJgmc_Mf.js",
+        "/assets/button-4KLeZV-d.js",
+        "/assets/card-6LjgNCSB.js",
+        "/assets/utils-DZ7UQ4Bk.js",
+        "/assets/createLucideIcon-B2n_jYVc.js",
+        "/assets/briefcase-C0f7RW0h.js",
+        "/assets/dollar-sign-ter81zHN.js",
+        "/assets/users-DXGm006r.js",
+        "/assets/dist-DMJxeS_F.js",
+        "/assets/dist-Bwou0fCS.js",
+        "/assets/dist-Mpu295hZ.js",
+        "/assets/dist-BRlPHYh3.js",
+        "/assets/dist-DdO1kwVo.js",
+        "/assets/dist-CeOfY7EX.js",
+        "/assets/es2015-DaoE4flL.js",
+        "/assets/dist-GZs3GFMO.js",
+        "/assets/chevron-right-B0ExwN4W.js",
+        "/assets/react-dom-DL8BN-RZ.js",
+        "/assets/dist-DKAWrTW-.js",
+        "/assets/badge-BmglEu3D.js",
+        "/assets/input-BWt5iw2T.js",
+        "/assets/label-Dps5ofxK.js",
+        "/assets/mentor.service-DPL6eBMY.js",
+        "/assets/QueryClientProvider-BSetF0kN.js",
+        "/assets/search-BePpyUcP.js",
+        "/assets/x-BZUO-sLr.js",
+        "/assets/axios.config-BQys5tVP.js",
       ],
       css: [],
       clientActionModule: void 0,
@@ -10464,29 +13263,53 @@ var server_manifest_default = {
       hasClientMiddleware: false,
       hasDefaultExport: true,
       hasErrorBoundary: false,
-      module: "/assets/mentor-detail-CZPldjvB.js",
+      module: "/assets/mentor-detail--dhFYULO.js",
       imports: [
-        "/assets/chunk-5KNZJZUH-fndOlr0G.js",
-        "/assets/mentor-detail-view-kEfV_vV_.js",
-        "/assets/jsx-runtime-BF_AeVYp.js",
-        "/assets/rolldown-runtime-DYWduciG.js",
-        "/assets/react-KIkuYek_.js",
-        "/assets/avatar-BBye0Mpi.js",
-        "/assets/badge-sMKy90uC.js",
-        "/assets/button-DcPcryEB.js",
-        "/assets/card-BzS_Dwrf.js",
-        "/assets/separator-aRNVHzkW.js",
-        "/assets/use-mentor-detail-query-CP2hbGhe.js",
-        "/assets/createLucideIcon--oGfSDMz.js",
-        "/assets/clock-C-Thf6XD.js",
-        "/assets/dollar-sign-BU2WRAgv.js",
-        "/assets/utils-C00ojcRQ.js",
-        "/assets/dist-BCL0tzsT.js",
-        "/assets/dist-HbRDZrxr.js",
-        "/assets/react-dom-CaaWIOFI.js",
-        "/assets/dist-pTSroALd.js",
-        "/assets/axios.config-DeLyeqpM.js",
-        "/assets/QueryClientProvider-aB-cyHCA.js",
+        "/assets/chunk-5KNZJZUH-CvMizu8N.js",
+        "/assets/mentor-detail-view-pwZveAgr.js",
+        "/assets/jsx-runtime-BlYCgOOU.js",
+        "/assets/rolldown-runtime-D7KTRRX7.js",
+        "/assets/react-B-3UWBEL.js",
+        "/assets/avatar-DJgmc_Mf.js",
+        "/assets/badge-BmglEu3D.js",
+        "/assets/button-4KLeZV-d.js",
+        "/assets/card-6LjgNCSB.js",
+        "/assets/textarea-CfN3TLtF.js",
+        "/assets/label-Dps5ofxK.js",
+        "/assets/separator-iiM6-Sxx.js",
+        "/assets/use-user-bookings-query-CF3lHHJI.js",
+        "/assets/use-mentor-detail-query-BXrqEF3A.js",
+        "/assets/api-error-DsoLvGEf.js",
+        "/assets/utils-DZ7UQ4Bk.js",
+        "/assets/booking.service-B8etHkBu.js",
+        "/assets/auth.store-2ys34xdP.js",
+        "/assets/mentor-Bg1gbwk1.js",
+        "/assets/QueryClientProvider-BSetF0kN.js",
+        "/assets/useMutation-CvoIZgcs.js",
+        "/assets/arrow-left-B7etKPWB.js",
+        "/assets/briefcase-C0f7RW0h.js",
+        "/assets/calendar-days-CX08cIXK.js",
+        "/assets/calendar-Bj1l8o8z.js",
+        "/assets/clock-B5djXDMU.js",
+        "/assets/dollar-sign-ter81zHN.js",
+        "/assets/loader-circle-DxipSu_q.js",
+        "/assets/phone-DnpuB4sX.js",
+        "/assets/user-PZHMXx1a.js",
+        "/assets/dist-Dm1nhCqh.js",
+        "/assets/dist-DdO1kwVo.js",
+        "/assets/dist-GZs3GFMO.js",
+        "/assets/react-dom-DL8BN-RZ.js",
+        "/assets/dist-DKAWrTW-.js",
+        "/assets/dist-CfBkXSLO.js",
+        "/assets/x-BZUO-sLr.js",
+        "/assets/dist-Mpu295hZ.js",
+        "/assets/dist-CeOfY7EX.js",
+        "/assets/es2015-DaoE4flL.js",
+        "/assets/dist-C5yWpQ74.js",
+        "/assets/createLucideIcon-B2n_jYVc.js",
+        "/assets/axios.config-BQys5tVP.js",
+        "/assets/mentor.service-DPL6eBMY.js",
+        "/assets/mutation-C96behGB.js",
       ],
       css: [],
       clientActionModule: void 0,
@@ -10507,14 +13330,14 @@ var server_manifest_default = {
       hasClientMiddleware: false,
       hasDefaultExport: true,
       hasErrorBoundary: false,
-      module: "/assets/ai-chat-mJqOPR7_.js",
+      module: "/assets/ai-chat-yq51gMRE.js",
       imports: [
-        "/assets/chunk-5KNZJZUH-fndOlr0G.js",
-        "/assets/bot-od7yFoxp.js",
-        "/assets/jsx-runtime-BF_AeVYp.js",
-        "/assets/rolldown-runtime-DYWduciG.js",
-        "/assets/react-KIkuYek_.js",
-        "/assets/createLucideIcon--oGfSDMz.js",
+        "/assets/chunk-5KNZJZUH-CvMizu8N.js",
+        "/assets/bot-DwWtA718.js",
+        "/assets/jsx-runtime-BlYCgOOU.js",
+        "/assets/rolldown-runtime-D7KTRRX7.js",
+        "/assets/react-B-3UWBEL.js",
+        "/assets/createLucideIcon-B2n_jYVc.js",
       ],
       css: [],
       clientActionModule: void 0,
@@ -10535,14 +13358,14 @@ var server_manifest_default = {
       hasClientMiddleware: false,
       hasDefaultExport: true,
       hasErrorBoundary: false,
-      module: "/assets/payments-CkVBogfk.js",
+      module: "/assets/payments-CmhRZ5Lp.js",
       imports: [
-        "/assets/chunk-5KNZJZUH-fndOlr0G.js",
-        "/assets/credit-card-UZ2dlzym.js",
-        "/assets/jsx-runtime-BF_AeVYp.js",
-        "/assets/rolldown-runtime-DYWduciG.js",
-        "/assets/react-KIkuYek_.js",
-        "/assets/createLucideIcon--oGfSDMz.js",
+        "/assets/chunk-5KNZJZUH-CvMizu8N.js",
+        "/assets/credit-card-CFnx3JQ5.js",
+        "/assets/jsx-runtime-BlYCgOOU.js",
+        "/assets/rolldown-runtime-D7KTRRX7.js",
+        "/assets/react-B-3UWBEL.js",
+        "/assets/createLucideIcon-B2n_jYVc.js",
       ],
       css: [],
       clientActionModule: void 0,
@@ -10563,16 +13386,16 @@ var server_manifest_default = {
       hasClientMiddleware: false,
       hasDefaultExport: true,
       hasErrorBoundary: false,
-      module: "/assets/profile-nxhkamFg.js",
+      module: "/assets/profile-uVETPaDH.js",
       imports: [
-        "/assets/chunk-5KNZJZUH-fndOlr0G.js",
-        "/assets/use-auth-B6EGvmkA.js",
-        "/assets/circle-user-DVz0FY2S.js",
-        "/assets/jsx-runtime-BF_AeVYp.js",
-        "/assets/rolldown-runtime-DYWduciG.js",
-        "/assets/react-KIkuYek_.js",
-        "/assets/auth.store-BpAsB_pL.js",
-        "/assets/createLucideIcon--oGfSDMz.js",
+        "/assets/chunk-5KNZJZUH-CvMizu8N.js",
+        "/assets/use-auth-Bm0M9Fk6.js",
+        "/assets/circle-user-lD79-Kph.js",
+        "/assets/jsx-runtime-BlYCgOOU.js",
+        "/assets/rolldown-runtime-D7KTRRX7.js",
+        "/assets/react-B-3UWBEL.js",
+        "/assets/auth.store-2ys34xdP.js",
+        "/assets/createLucideIcon-B2n_jYVc.js",
       ],
       css: [],
       clientActionModule: void 0,
@@ -10593,42 +13416,44 @@ var server_manifest_default = {
       hasClientMiddleware: false,
       hasDefaultExport: true,
       hasErrorBoundary: false,
-      module: "/assets/_layout-BM4ZwMHQ.js",
+      module: "/assets/_layout-CZoD5by7.js",
       imports: [
-        "/assets/chunk-5KNZJZUH-fndOlr0G.js",
-        "/assets/nav-config-CVMEpoop.js",
-        "/assets/require-role-BGfCDaFH.js",
-        "/assets/jsx-runtime-BF_AeVYp.js",
-        "/assets/rolldown-runtime-DYWduciG.js",
-        "/assets/react-KIkuYek_.js",
-        "/assets/avatar-BBye0Mpi.js",
-        "/assets/button-DcPcryEB.js",
-        "/assets/separator-aRNVHzkW.js",
-        "/assets/sheet-s92CUBwo.js",
-        "/assets/utils-C00ojcRQ.js",
-        "/assets/auth.service-CAoaQXxd.js",
-        "/assets/auth.store-BpAsB_pL.js",
-        "/assets/activity-Dx7AvX8g.js",
-        "/assets/book-open-Dgcw3052.js",
-        "/assets/bot-od7yFoxp.js",
-        "/assets/calendar-check-DGEEFoBz.js",
-        "/assets/calendar-days-9khLxXmn.js",
-        "/assets/circle-user-DVz0FY2S.js",
-        "/assets/credit-card-UZ2dlzym.js",
-        "/assets/graduation-cap-D6Kkm6j8.js",
-        "/assets/log-out-Dlx3ggnA.js",
-        "/assets/users-BmT7d3So.js",
-        "/assets/dist-DXGeaMHF.js",
-        "/assets/dist-BCL0tzsT.js",
-        "/assets/dist-HbRDZrxr.js",
-        "/assets/react-dom-CaaWIOFI.js",
-        "/assets/dist-pTSroALd.js",
-        "/assets/dist-CpxhpIKr.js",
-        "/assets/x-ClfZI0LA.js",
-        "/assets/createLucideIcon--oGfSDMz.js",
-        "/assets/dist-qwa7tjg4.js",
-        "/assets/dist-KPIweKH3.js",
-        "/assets/axios.config-DeLyeqpM.js",
+        "/assets/chunk-5KNZJZUH-CvMizu8N.js",
+        "/assets/nav-config-DwEQ-Nxr.js",
+        "/assets/require-role-CJ_8scK3.js",
+        "/assets/jsx-runtime-BlYCgOOU.js",
+        "/assets/rolldown-runtime-D7KTRRX7.js",
+        "/assets/react-B-3UWBEL.js",
+        "/assets/avatar-DJgmc_Mf.js",
+        "/assets/button-4KLeZV-d.js",
+        "/assets/separator-iiM6-Sxx.js",
+        "/assets/sheet-BvsiYVru.js",
+        "/assets/utils-DZ7UQ4Bk.js",
+        "/assets/auth.service-Dy9lc57k.js",
+        "/assets/auth.store-2ys34xdP.js",
+        "/assets/activity-CDTLDLIC.js",
+        "/assets/book-open-B__mxakS.js",
+        "/assets/bot-DwWtA718.js",
+        "/assets/calendar-check-BQQ517_C.js",
+        "/assets/calendar-days-CX08cIXK.js",
+        "/assets/circle-user-lD79-Kph.js",
+        "/assets/credit-card-CFnx3JQ5.js",
+        "/assets/graduation-cap-DLzpx06y.js",
+        "/assets/log-out-e-HsZzjL.js",
+        "/assets/users-DXGm006r.js",
+        "/assets/dist-Dm1nhCqh.js",
+        "/assets/dist-DdO1kwVo.js",
+        "/assets/dist-GZs3GFMO.js",
+        "/assets/react-dom-DL8BN-RZ.js",
+        "/assets/dist-DKAWrTW-.js",
+        "/assets/dist-CfBkXSLO.js",
+        "/assets/createLucideIcon-B2n_jYVc.js",
+        "/assets/x-BZUO-sLr.js",
+        "/assets/dist-Mpu295hZ.js",
+        "/assets/dist-CeOfY7EX.js",
+        "/assets/es2015-DaoE4flL.js",
+        "/assets/dist-C5yWpQ74.js",
+        "/assets/axios.config-BQys5tVP.js",
       ],
       css: [],
       clientActionModule: void 0,
@@ -10649,14 +13474,30 @@ var server_manifest_default = {
       hasClientMiddleware: false,
       hasDefaultExport: true,
       hasErrorBoundary: false,
-      module: "/assets/dashboard-qPRFmuJR.js",
+      module: "/assets/dashboard-DClFmKxC.js",
       imports: [
-        "/assets/chunk-5KNZJZUH-fndOlr0G.js",
-        "/assets/use-auth-B6EGvmkA.js",
-        "/assets/jsx-runtime-BF_AeVYp.js",
-        "/assets/rolldown-runtime-DYWduciG.js",
-        "/assets/react-KIkuYek_.js",
-        "/assets/auth.store-BpAsB_pL.js",
+        "/assets/chunk-5KNZJZUH-CvMizu8N.js",
+        "/assets/badge-BmglEu3D.js",
+        "/assets/button-4KLeZV-d.js",
+        "/assets/card-6LjgNCSB.js",
+        "/assets/use-my-mentor-profile-BhMK-brR.js",
+        "/assets/use-auth-Bm0M9Fk6.js",
+        "/assets/mentor-Bg1gbwk1.js",
+        "/assets/createLucideIcon-B2n_jYVc.js",
+        "/assets/calendar-days-CX08cIXK.js",
+        "/assets/clock-B5djXDMU.js",
+        "/assets/dollar-sign-ter81zHN.js",
+        "/assets/graduation-cap-DLzpx06y.js",
+        "/assets/users-DXGm006r.js",
+        "/assets/jsx-runtime-BlYCgOOU.js",
+        "/assets/rolldown-runtime-D7KTRRX7.js",
+        "/assets/react-B-3UWBEL.js",
+        "/assets/utils-DZ7UQ4Bk.js",
+        "/assets/dist-DKAWrTW-.js",
+        "/assets/QueryClientProvider-BSetF0kN.js",
+        "/assets/mentor.service-DPL6eBMY.js",
+        "/assets/auth.store-2ys34xdP.js",
+        "/assets/axios.config-BQys5tVP.js",
       ],
       css: [],
       clientActionModule: void 0,
@@ -10677,14 +13518,51 @@ var server_manifest_default = {
       hasClientMiddleware: false,
       hasDefaultExport: true,
       hasErrorBoundary: false,
-      module: "/assets/schedule-B356e2j_.js",
+      module: "/assets/schedule-BsP_qGIr.js",
       imports: [
-        "/assets/chunk-5KNZJZUH-fndOlr0G.js",
-        "/assets/calendar-days-9khLxXmn.js",
-        "/assets/jsx-runtime-BF_AeVYp.js",
-        "/assets/rolldown-runtime-DYWduciG.js",
-        "/assets/react-KIkuYek_.js",
-        "/assets/createLucideIcon--oGfSDMz.js",
+        "/assets/rolldown-runtime-D7KTRRX7.js",
+        "/assets/chunk-5KNZJZUH-CvMizu8N.js",
+        "/assets/badge-BmglEu3D.js",
+        "/assets/button-4KLeZV-d.js",
+        "/assets/card-6LjgNCSB.js",
+        "/assets/textarea-CfN3TLtF.js",
+        "/assets/tabs-ivzE7UWj.js",
+        "/assets/mentor-slot-form-DbsOtVhG.js",
+        "/assets/use-my-mentor-profile-BhMK-brR.js",
+        "/assets/mentor-Bg1gbwk1.js",
+        "/assets/format-BB6sCivm.js",
+        "/assets/calendar-days-CX08cIXK.js",
+        "/assets/clock-B5djXDMU.js",
+        "/assets/dollar-sign-ter81zHN.js",
+        "/assets/plus-avQu0RtP.js",
+        "/assets/users-DXGm006r.js",
+        "/assets/jsx-runtime-BlYCgOOU.js",
+        "/assets/react-B-3UWBEL.js",
+        "/assets/utils-DZ7UQ4Bk.js",
+        "/assets/dist-DKAWrTW-.js",
+        "/assets/QueryClientProvider-BSetF0kN.js",
+        "/assets/dist-CfBkXSLO.js",
+        "/assets/x-BZUO-sLr.js",
+        "/assets/dist-Mpu295hZ.js",
+        "/assets/dist-DdO1kwVo.js",
+        "/assets/dist-CeOfY7EX.js",
+        "/assets/es2015-DaoE4flL.js",
+        "/assets/dist-C5yWpQ74.js",
+        "/assets/dist-GZs3GFMO.js",
+        "/assets/react-dom-DL8BN-RZ.js",
+        "/assets/createLucideIcon-B2n_jYVc.js",
+        "/assets/dist-BRlPHYh3.js",
+        "/assets/schemas-CdW0TvSb.js",
+        "/assets/input-BWt5iw2T.js",
+        "/assets/api-error-DsoLvGEf.js",
+        "/assets/mentor.service-DPL6eBMY.js",
+        "/assets/useMutation-CvoIZgcs.js",
+        "/assets/loader-circle-DxipSu_q.js",
+        "/assets/dist-Dm1nhCqh.js",
+        "/assets/label-Dps5ofxK.js",
+        "/assets/axios.config-BQys5tVP.js",
+        "/assets/mutation-C96behGB.js",
+        "/assets/auth.store-2ys34xdP.js",
       ],
       css: [],
       clientActionModule: void 0,
@@ -10705,14 +13583,45 @@ var server_manifest_default = {
       hasClientMiddleware: false,
       hasDefaultExport: true,
       hasErrorBoundary: false,
-      module: "/assets/skills-zAgHWBA5.js",
+      module: "/assets/skills-Cbp-kCNc.js",
       imports: [
-        "/assets/chunk-5KNZJZUH-fndOlr0G.js",
-        "/assets/graduation-cap-D6Kkm6j8.js",
-        "/assets/jsx-runtime-BF_AeVYp.js",
-        "/assets/rolldown-runtime-DYWduciG.js",
-        "/assets/react-KIkuYek_.js",
-        "/assets/createLucideIcon--oGfSDMz.js",
+        "/assets/chunk-5KNZJZUH-CvMizu8N.js",
+        "/assets/badge-BmglEu3D.js",
+        "/assets/button-4KLeZV-d.js",
+        "/assets/card-6LjgNCSB.js",
+        "/assets/separator-iiM6-Sxx.js",
+        "/assets/tooltip-BxvEFgKv.js",
+        "/assets/mentor-skills-form-B8rHB5-O.js",
+        "/assets/use-remove-mentor-skill-mutation-CMrN_x0L.js",
+        "/assets/use-my-mentor-profile-BhMK-brR.js",
+        "/assets/graduation-cap-DLzpx06y.js",
+        "/assets/loader-circle-DxipSu_q.js",
+        "/assets/x-BZUO-sLr.js",
+        "/assets/jsx-runtime-BlYCgOOU.js",
+        "/assets/rolldown-runtime-D7KTRRX7.js",
+        "/assets/react-B-3UWBEL.js",
+        "/assets/utils-DZ7UQ4Bk.js",
+        "/assets/dist-DKAWrTW-.js",
+        "/assets/QueryClientProvider-BSetF0kN.js",
+        "/assets/dist-GZs3GFMO.js",
+        "/assets/react-dom-DL8BN-RZ.js",
+        "/assets/dist-DMJxeS_F.js",
+        "/assets/dist-Mpu295hZ.js",
+        "/assets/dist-DdO1kwVo.js",
+        "/assets/dist-CeOfY7EX.js",
+        "/assets/dist-C5yWpQ74.js",
+        "/assets/schemas-CdW0TvSb.js",
+        "/assets/input-BWt5iw2T.js",
+        "/assets/plus-avQu0RtP.js",
+        "/assets/label-Dps5ofxK.js",
+        "/assets/api-error-DsoLvGEf.js",
+        "/assets/mentor.service-DPL6eBMY.js",
+        "/assets/useMutation-CvoIZgcs.js",
+        "/assets/dist-Dm1nhCqh.js",
+        "/assets/axios.config-BQys5tVP.js",
+        "/assets/mutation-C96behGB.js",
+        "/assets/createLucideIcon-B2n_jYVc.js",
+        "/assets/auth.store-2ys34xdP.js",
       ],
       css: [],
       clientActionModule: void 0,
@@ -10733,14 +13642,37 @@ var server_manifest_default = {
       hasClientMiddleware: false,
       hasDefaultExport: true,
       hasErrorBoundary: false,
-      module: "/assets/bookings-DanDOau_.js",
+      module: "/assets/bookings-CColR_fb.js",
       imports: [
-        "/assets/chunk-5KNZJZUH-fndOlr0G.js",
-        "/assets/book-open-Dgcw3052.js",
-        "/assets/jsx-runtime-BF_AeVYp.js",
-        "/assets/rolldown-runtime-DYWduciG.js",
-        "/assets/react-KIkuYek_.js",
-        "/assets/createLucideIcon--oGfSDMz.js",
+        "/assets/chunk-5KNZJZUH-CvMizu8N.js",
+        "/assets/avatar-DJgmc_Mf.js",
+        "/assets/badge-BmglEu3D.js",
+        "/assets/button-4KLeZV-d.js",
+        "/assets/card-6LjgNCSB.js",
+        "/assets/tabs-ivzE7UWj.js",
+        "/assets/use-my-mentor-profile-BhMK-brR.js",
+        "/assets/booking-BgsOWCU3.js",
+        "/assets/mentor-Bg1gbwk1.js",
+        "/assets/book-open-B__mxakS.js",
+        "/assets/clock-B5djXDMU.js",
+        "/assets/dollar-sign-ter81zHN.js",
+        "/assets/user-PZHMXx1a.js",
+        "/assets/jsx-runtime-BlYCgOOU.js",
+        "/assets/rolldown-runtime-D7KTRRX7.js",
+        "/assets/react-B-3UWBEL.js",
+        "/assets/utils-DZ7UQ4Bk.js",
+        "/assets/dist-DdO1kwVo.js",
+        "/assets/dist-GZs3GFMO.js",
+        "/assets/react-dom-DL8BN-RZ.js",
+        "/assets/dist-DKAWrTW-.js",
+        "/assets/QueryClientProvider-BSetF0kN.js",
+        "/assets/dist-Mpu295hZ.js",
+        "/assets/dist-BRlPHYh3.js",
+        "/assets/dist-C5yWpQ74.js",
+        "/assets/mentor.service-DPL6eBMY.js",
+        "/assets/auth.store-2ys34xdP.js",
+        "/assets/axios.config-BQys5tVP.js",
+        "/assets/createLucideIcon-B2n_jYVc.js",
       ],
       css: [],
       clientActionModule: void 0,
@@ -10761,14 +13693,14 @@ var server_manifest_default = {
       hasClientMiddleware: false,
       hasDefaultExport: true,
       hasErrorBoundary: false,
-      module: "/assets/ai-chat-Blv525R-.js",
+      module: "/assets/ai-chat-D4iUhrZj.js",
       imports: [
-        "/assets/chunk-5KNZJZUH-fndOlr0G.js",
-        "/assets/bot-od7yFoxp.js",
-        "/assets/jsx-runtime-BF_AeVYp.js",
-        "/assets/rolldown-runtime-DYWduciG.js",
-        "/assets/react-KIkuYek_.js",
-        "/assets/createLucideIcon--oGfSDMz.js",
+        "/assets/chunk-5KNZJZUH-CvMizu8N.js",
+        "/assets/bot-DwWtA718.js",
+        "/assets/jsx-runtime-BlYCgOOU.js",
+        "/assets/rolldown-runtime-D7KTRRX7.js",
+        "/assets/react-B-3UWBEL.js",
+        "/assets/createLucideIcon-B2n_jYVc.js",
       ],
       css: [],
       clientActionModule: void 0,
@@ -10789,16 +13721,33 @@ var server_manifest_default = {
       hasClientMiddleware: false,
       hasDefaultExport: true,
       hasErrorBoundary: false,
-      module: "/assets/profile-BXsRraqV.js",
+      module: "/assets/profile-DBHwhUwd.js",
       imports: [
-        "/assets/chunk-5KNZJZUH-fndOlr0G.js",
-        "/assets/use-auth-B6EGvmkA.js",
-        "/assets/circle-user-DVz0FY2S.js",
-        "/assets/jsx-runtime-BF_AeVYp.js",
-        "/assets/rolldown-runtime-DYWduciG.js",
-        "/assets/react-KIkuYek_.js",
-        "/assets/auth.store-BpAsB_pL.js",
-        "/assets/createLucideIcon--oGfSDMz.js",
+        "/assets/chunk-5KNZJZUH-CvMizu8N.js",
+        "/assets/avatar-DJgmc_Mf.js",
+        "/assets/badge-BmglEu3D.js",
+        "/assets/card-6LjgNCSB.js",
+        "/assets/separator-iiM6-Sxx.js",
+        "/assets/use-my-mentor-profile-BhMK-brR.js",
+        "/assets/use-auth-Bm0M9Fk6.js",
+        "/assets/briefcase-C0f7RW0h.js",
+        "/assets/calendar-days-CX08cIXK.js",
+        "/assets/dollar-sign-ter81zHN.js",
+        "/assets/graduation-cap-DLzpx06y.js",
+        "/assets/phone-DnpuB4sX.js",
+        "/assets/jsx-runtime-BlYCgOOU.js",
+        "/assets/rolldown-runtime-D7KTRRX7.js",
+        "/assets/react-B-3UWBEL.js",
+        "/assets/utils-DZ7UQ4Bk.js",
+        "/assets/dist-DdO1kwVo.js",
+        "/assets/dist-GZs3GFMO.js",
+        "/assets/react-dom-DL8BN-RZ.js",
+        "/assets/dist-DKAWrTW-.js",
+        "/assets/QueryClientProvider-BSetF0kN.js",
+        "/assets/mentor.service-DPL6eBMY.js",
+        "/assets/auth.store-2ys34xdP.js",
+        "/assets/axios.config-BQys5tVP.js",
+        "/assets/createLucideIcon-B2n_jYVc.js",
       ],
       css: [],
       clientActionModule: void 0,
@@ -10819,42 +13768,44 @@ var server_manifest_default = {
       hasClientMiddleware: false,
       hasDefaultExport: true,
       hasErrorBoundary: false,
-      module: "/assets/_layout-SFKpy-Lj.js",
+      module: "/assets/_layout-C3nUp4Qq.js",
       imports: [
-        "/assets/chunk-5KNZJZUH-fndOlr0G.js",
-        "/assets/nav-config-CVMEpoop.js",
-        "/assets/require-role-BGfCDaFH.js",
-        "/assets/jsx-runtime-BF_AeVYp.js",
-        "/assets/rolldown-runtime-DYWduciG.js",
-        "/assets/react-KIkuYek_.js",
-        "/assets/avatar-BBye0Mpi.js",
-        "/assets/button-DcPcryEB.js",
-        "/assets/separator-aRNVHzkW.js",
-        "/assets/sheet-s92CUBwo.js",
-        "/assets/utils-C00ojcRQ.js",
-        "/assets/auth.service-CAoaQXxd.js",
-        "/assets/auth.store-BpAsB_pL.js",
-        "/assets/activity-Dx7AvX8g.js",
-        "/assets/book-open-Dgcw3052.js",
-        "/assets/bot-od7yFoxp.js",
-        "/assets/calendar-check-DGEEFoBz.js",
-        "/assets/calendar-days-9khLxXmn.js",
-        "/assets/circle-user-DVz0FY2S.js",
-        "/assets/credit-card-UZ2dlzym.js",
-        "/assets/graduation-cap-D6Kkm6j8.js",
-        "/assets/log-out-Dlx3ggnA.js",
-        "/assets/users-BmT7d3So.js",
-        "/assets/dist-DXGeaMHF.js",
-        "/assets/dist-BCL0tzsT.js",
-        "/assets/dist-HbRDZrxr.js",
-        "/assets/react-dom-CaaWIOFI.js",
-        "/assets/dist-pTSroALd.js",
-        "/assets/dist-CpxhpIKr.js",
-        "/assets/x-ClfZI0LA.js",
-        "/assets/createLucideIcon--oGfSDMz.js",
-        "/assets/dist-qwa7tjg4.js",
-        "/assets/dist-KPIweKH3.js",
-        "/assets/axios.config-DeLyeqpM.js",
+        "/assets/chunk-5KNZJZUH-CvMizu8N.js",
+        "/assets/nav-config-DwEQ-Nxr.js",
+        "/assets/require-role-CJ_8scK3.js",
+        "/assets/jsx-runtime-BlYCgOOU.js",
+        "/assets/rolldown-runtime-D7KTRRX7.js",
+        "/assets/react-B-3UWBEL.js",
+        "/assets/avatar-DJgmc_Mf.js",
+        "/assets/button-4KLeZV-d.js",
+        "/assets/separator-iiM6-Sxx.js",
+        "/assets/sheet-BvsiYVru.js",
+        "/assets/utils-DZ7UQ4Bk.js",
+        "/assets/auth.service-Dy9lc57k.js",
+        "/assets/auth.store-2ys34xdP.js",
+        "/assets/activity-CDTLDLIC.js",
+        "/assets/book-open-B__mxakS.js",
+        "/assets/bot-DwWtA718.js",
+        "/assets/calendar-check-BQQ517_C.js",
+        "/assets/calendar-days-CX08cIXK.js",
+        "/assets/circle-user-lD79-Kph.js",
+        "/assets/credit-card-CFnx3JQ5.js",
+        "/assets/graduation-cap-DLzpx06y.js",
+        "/assets/log-out-e-HsZzjL.js",
+        "/assets/users-DXGm006r.js",
+        "/assets/dist-Dm1nhCqh.js",
+        "/assets/dist-DdO1kwVo.js",
+        "/assets/dist-GZs3GFMO.js",
+        "/assets/react-dom-DL8BN-RZ.js",
+        "/assets/dist-DKAWrTW-.js",
+        "/assets/dist-CfBkXSLO.js",
+        "/assets/createLucideIcon-B2n_jYVc.js",
+        "/assets/x-BZUO-sLr.js",
+        "/assets/dist-Mpu295hZ.js",
+        "/assets/dist-CeOfY7EX.js",
+        "/assets/es2015-DaoE4flL.js",
+        "/assets/dist-C5yWpQ74.js",
+        "/assets/axios.config-BQys5tVP.js",
       ],
       css: [],
       clientActionModule: void 0,
@@ -10875,12 +13826,12 @@ var server_manifest_default = {
       hasClientMiddleware: false,
       hasDefaultExport: true,
       hasErrorBoundary: false,
-      module: "/assets/dashboard-Bj27No8V.js",
+      module: "/assets/dashboard-C5NqG8aj.js",
       imports: [
-        "/assets/chunk-5KNZJZUH-fndOlr0G.js",
-        "/assets/jsx-runtime-BF_AeVYp.js",
-        "/assets/rolldown-runtime-DYWduciG.js",
-        "/assets/react-KIkuYek_.js",
+        "/assets/chunk-5KNZJZUH-CvMizu8N.js",
+        "/assets/jsx-runtime-BlYCgOOU.js",
+        "/assets/rolldown-runtime-D7KTRRX7.js",
+        "/assets/react-B-3UWBEL.js",
       ],
       css: [],
       clientActionModule: void 0,
@@ -10901,49 +13852,63 @@ var server_manifest_default = {
       hasClientMiddleware: false,
       hasDefaultExport: true,
       hasErrorBoundary: false,
-      module: "/assets/mentors-L4vSjdlx.js",
+      module: "/assets/mentors-CRMfTxIq.js",
       imports: [
-        "/assets/rolldown-runtime-DYWduciG.js",
-        "/assets/chunk-5KNZJZUH-fndOlr0G.js",
-        "/assets/mentor-delete-dialog-BS5nRjgE.js",
-        "/assets/mentor-filter-panel-CvjT35Zr.js",
-        "/assets/avatar-BBye0Mpi.js",
-        "/assets/badge-sMKy90uC.js",
-        "/assets/button-DcPcryEB.js",
-        "/assets/card-BzS_Dwrf.js",
-        "/assets/schemas-DpP4Lly7.js",
-        "/assets/label-gJP-FZTT.js",
-        "/assets/separator-aRNVHzkW.js",
-        "/assets/use-mentor-detail-query-CP2hbGhe.js",
-        "/assets/api-error-CMREsI_H.js",
-        "/assets/utils-C00ojcRQ.js",
-        "/assets/auth.service-CAoaQXxd.js",
-        "/assets/auth.store-BpAsB_pL.js",
-        "/assets/dist-DNmepa_6.js",
-        "/assets/dist-DhT6ksdH.js",
-        "/assets/dist-qwa7tjg4.js",
-        "/assets/dist-BCL0tzsT.js",
-        "/assets/dist-CpxhpIKr.js",
-        "/assets/x-ClfZI0LA.js",
-        "/assets/dist-KPIweKH3.js",
-        "/assets/dist-HbRDZrxr.js",
-        "/assets/QueryClientProvider-aB-cyHCA.js",
-        "/assets/dist-pTSroALd.js",
-        "/assets/createLucideIcon--oGfSDMz.js",
-        "/assets/calendar-days-9khLxXmn.js",
-        "/assets/eye-CFO9NvP9.js",
-        "/assets/loader-circle-BH-G8kfm.js",
-        "/assets/log-out-Dlx3ggnA.js",
-        "/assets/search-BmH0U9Hq.js",
-        "/assets/users-BmT7d3So.js",
-        "/assets/jsx-runtime-BF_AeVYp.js",
-        "/assets/react-KIkuYek_.js",
-        "/assets/dist-DXGeaMHF.js",
-        "/assets/tooltip-Dsy_JaCi.js",
-        "/assets/graduation-cap-D6Kkm6j8.js",
-        "/assets/axios.config-DeLyeqpM.js",
-        "/assets/react-dom-CaaWIOFI.js",
-        "/assets/chevron-right-BV1M7zuq.js",
+        "/assets/rolldown-runtime-D7KTRRX7.js",
+        "/assets/chunk-5KNZJZUH-CvMizu8N.js",
+        "/assets/mentor-delete-dialog-Bd0UADo_.js",
+        "/assets/data-table-pagination-DhXvt5KN.js",
+        "/assets/mentor-filter-panel-hQ_UnR6u.js",
+        "/assets/avatar-DJgmc_Mf.js",
+        "/assets/badge-BmglEu3D.js",
+        "/assets/button-4KLeZV-d.js",
+        "/assets/card-6LjgNCSB.js",
+        "/assets/textarea-CfN3TLtF.js",
+        "/assets/schemas-CdW0TvSb.js",
+        "/assets/input-BWt5iw2T.js",
+        "/assets/separator-iiM6-Sxx.js",
+        "/assets/tabs-ivzE7UWj.js",
+        "/assets/use-mentor-detail-query-BXrqEF3A.js",
+        "/assets/api-error-DsoLvGEf.js",
+        "/assets/utils-DZ7UQ4Bk.js",
+        "/assets/auth.service-Dy9lc57k.js",
+        "/assets/mentor.service-DPL6eBMY.js",
+        "/assets/auth.store-2ys34xdP.js",
+        "/assets/dist-DMJxeS_F.js",
+        "/assets/dist-Mpu295hZ.js",
+        "/assets/dist-BRlPHYh3.js",
+        "/assets/dist-DdO1kwVo.js",
+        "/assets/dist-CfBkXSLO.js",
+        "/assets/dist-CeOfY7EX.js",
+        "/assets/es2015-DaoE4flL.js",
+        "/assets/dist-C5yWpQ74.js",
+        "/assets/dist-GZs3GFMO.js",
+        "/assets/QueryClientProvider-BSetF0kN.js",
+        "/assets/useMutation-CvoIZgcs.js",
+        "/assets/dist-DKAWrTW-.js",
+        "/assets/format-BB6sCivm.js",
+        "/assets/createLucideIcon-B2n_jYVc.js",
+        "/assets/calendar-days-CX08cIXK.js",
+        "/assets/eye-CwrHmF5t.js",
+        "/assets/loader-circle-DxipSu_q.js",
+        "/assets/log-out-e-HsZzjL.js",
+        "/assets/search-BePpyUcP.js",
+        "/assets/users-DXGm006r.js",
+        "/assets/jsx-runtime-BlYCgOOU.js",
+        "/assets/react-B-3UWBEL.js",
+        "/assets/dist-Dm1nhCqh.js",
+        "/assets/tooltip-BxvEFgKv.js",
+        "/assets/use-remove-mentor-skill-mutation-CMrN_x0L.js",
+        "/assets/dist-Bwou0fCS.js",
+        "/assets/graduation-cap-DLzpx06y.js",
+        "/assets/plus-avQu0RtP.js",
+        "/assets/user-PZHMXx1a.js",
+        "/assets/x-BZUO-sLr.js",
+        "/assets/react-dom-DL8BN-RZ.js",
+        "/assets/label-Dps5ofxK.js",
+        "/assets/axios.config-BQys5tVP.js",
+        "/assets/mutation-C96behGB.js",
+        "/assets/chevron-right-B0ExwN4W.js",
       ],
       css: [],
       clientActionModule: void 0,
@@ -10964,43 +13929,60 @@ var server_manifest_default = {
       hasClientMiddleware: false,
       hasDefaultExport: true,
       hasErrorBoundary: false,
-      module: "/assets/mentors._id-CtDF1OgE.js",
+      module: "/assets/mentors._id-cwkpRkBx.js",
       imports: [
-        "/assets/rolldown-runtime-DYWduciG.js",
-        "/assets/chunk-5KNZJZUH-fndOlr0G.js",
-        "/assets/mentor-delete-dialog-BS5nRjgE.js",
-        "/assets/avatar-BBye0Mpi.js",
-        "/assets/badge-sMKy90uC.js",
-        "/assets/button-DcPcryEB.js",
-        "/assets/card-BzS_Dwrf.js",
-        "/assets/schemas-DpP4Lly7.js",
-        "/assets/label-gJP-FZTT.js",
-        "/assets/separator-aRNVHzkW.js",
-        "/assets/tooltip-Dsy_JaCi.js",
-        "/assets/use-mentor-detail-query-CP2hbGhe.js",
-        "/assets/api-error-CMREsI_H.js",
-        "/assets/utils-C00ojcRQ.js",
-        "/assets/x-ClfZI0LA.js",
-        "/assets/QueryClientProvider-aB-cyHCA.js",
-        "/assets/createLucideIcon--oGfSDMz.js",
-        "/assets/clock-C-Thf6XD.js",
-        "/assets/calendar-days-9khLxXmn.js",
-        "/assets/chevron-right-BV1M7zuq.js",
-        "/assets/graduation-cap-D6Kkm6j8.js",
-        "/assets/loader-circle-BH-G8kfm.js",
-        "/assets/jsx-runtime-BF_AeVYp.js",
-        "/assets/react-KIkuYek_.js",
-        "/assets/dist-DXGeaMHF.js",
-        "/assets/dist-DhT6ksdH.js",
-        "/assets/dist-qwa7tjg4.js",
-        "/assets/dist-BCL0tzsT.js",
-        "/assets/dist-CpxhpIKr.js",
-        "/assets/dist-KPIweKH3.js",
-        "/assets/dist-HbRDZrxr.js",
-        "/assets/dist-pTSroALd.js",
-        "/assets/axios.config-DeLyeqpM.js",
-        "/assets/react-dom-CaaWIOFI.js",
-        "/assets/dist-DNmepa_6.js",
+        "/assets/rolldown-runtime-D7KTRRX7.js",
+        "/assets/chunk-5KNZJZUH-CvMizu8N.js",
+        "/assets/mentor-delete-dialog-Bd0UADo_.js",
+        "/assets/avatar-DJgmc_Mf.js",
+        "/assets/badge-BmglEu3D.js",
+        "/assets/button-4KLeZV-d.js",
+        "/assets/card-6LjgNCSB.js",
+        "/assets/textarea-CfN3TLtF.js",
+        "/assets/separator-iiM6-Sxx.js",
+        "/assets/tabs-ivzE7UWj.js",
+        "/assets/tooltip-BxvEFgKv.js",
+        "/assets/mentor-skills-form-B8rHB5-O.js",
+        "/assets/mentor-slot-form-DbsOtVhG.js",
+        "/assets/use-remove-mentor-skill-mutation-CMrN_x0L.js",
+        "/assets/use-mentor-detail-query-BXrqEF3A.js",
+        "/assets/utils-DZ7UQ4Bk.js",
+        "/assets/mentor-Bg1gbwk1.js",
+        "/assets/format-BB6sCivm.js",
+        "/assets/createLucideIcon-B2n_jYVc.js",
+        "/assets/arrow-left-B7etKPWB.js",
+        "/assets/calendar-days-CX08cIXK.js",
+        "/assets/chevron-right-B0ExwN4W.js",
+        "/assets/clock-B5djXDMU.js",
+        "/assets/graduation-cap-DLzpx06y.js",
+        "/assets/loader-circle-DxipSu_q.js",
+        "/assets/plus-avQu0RtP.js",
+        "/assets/x-BZUO-sLr.js",
+        "/assets/jsx-runtime-BlYCgOOU.js",
+        "/assets/react-B-3UWBEL.js",
+        "/assets/schemas-CdW0TvSb.js",
+        "/assets/input-BWt5iw2T.js",
+        "/assets/api-error-DsoLvGEf.js",
+        "/assets/mentor.service-DPL6eBMY.js",
+        "/assets/dist-Bwou0fCS.js",
+        "/assets/dist-Mpu295hZ.js",
+        "/assets/dist-BRlPHYh3.js",
+        "/assets/dist-DdO1kwVo.js",
+        "/assets/dist-CfBkXSLO.js",
+        "/assets/dist-C5yWpQ74.js",
+        "/assets/dist-GZs3GFMO.js",
+        "/assets/QueryClientProvider-BSetF0kN.js",
+        "/assets/useMutation-CvoIZgcs.js",
+        "/assets/user-PZHMXx1a.js",
+        "/assets/dist-Dm1nhCqh.js",
+        "/assets/dist-DKAWrTW-.js",
+        "/assets/dist-CeOfY7EX.js",
+        "/assets/es2015-DaoE4flL.js",
+        "/assets/react-dom-DL8BN-RZ.js",
+        "/assets/label-Dps5ofxK.js",
+        "/assets/dist-DMJxeS_F.js",
+        "/assets/axios.config-BQys5tVP.js",
+        "/assets/mutation-C96behGB.js",
       ],
       css: [],
       clientActionModule: void 0,
@@ -11021,14 +14003,14 @@ var server_manifest_default = {
       hasClientMiddleware: false,
       hasDefaultExport: true,
       hasErrorBoundary: false,
-      module: "/assets/bookings-IT4Ibm6s.js",
+      module: "/assets/bookings-GmVRQ0FY.js",
       imports: [
-        "/assets/chunk-5KNZJZUH-fndOlr0G.js",
-        "/assets/calendar-check-DGEEFoBz.js",
-        "/assets/jsx-runtime-BF_AeVYp.js",
-        "/assets/rolldown-runtime-DYWduciG.js",
-        "/assets/react-KIkuYek_.js",
-        "/assets/createLucideIcon--oGfSDMz.js",
+        "/assets/chunk-5KNZJZUH-CvMizu8N.js",
+        "/assets/calendar-check-BQQ517_C.js",
+        "/assets/jsx-runtime-BlYCgOOU.js",
+        "/assets/rolldown-runtime-D7KTRRX7.js",
+        "/assets/react-B-3UWBEL.js",
+        "/assets/createLucideIcon-B2n_jYVc.js",
       ],
       css: [],
       clientActionModule: void 0,
@@ -11049,14 +14031,14 @@ var server_manifest_default = {
       hasClientMiddleware: false,
       hasDefaultExport: true,
       hasErrorBoundary: false,
-      module: "/assets/payments-DfyOA9nH.js",
+      module: "/assets/payments-CTXEkDn9.js",
       imports: [
-        "/assets/chunk-5KNZJZUH-fndOlr0G.js",
-        "/assets/credit-card-UZ2dlzym.js",
-        "/assets/jsx-runtime-BF_AeVYp.js",
-        "/assets/rolldown-runtime-DYWduciG.js",
-        "/assets/react-KIkuYek_.js",
-        "/assets/createLucideIcon--oGfSDMz.js",
+        "/assets/chunk-5KNZJZUH-CvMizu8N.js",
+        "/assets/credit-card-CFnx3JQ5.js",
+        "/assets/jsx-runtime-BlYCgOOU.js",
+        "/assets/rolldown-runtime-D7KTRRX7.js",
+        "/assets/react-B-3UWBEL.js",
+        "/assets/createLucideIcon-B2n_jYVc.js",
       ],
       css: [],
       clientActionModule: void 0,
@@ -11077,14 +14059,14 @@ var server_manifest_default = {
       hasClientMiddleware: false,
       hasDefaultExport: true,
       hasErrorBoundary: false,
-      module: "/assets/health-CmiTHt3j.js",
+      module: "/assets/health-Cy4hNf02.js",
       imports: [
-        "/assets/chunk-5KNZJZUH-fndOlr0G.js",
-        "/assets/createLucideIcon--oGfSDMz.js",
-        "/assets/activity-Dx7AvX8g.js",
-        "/assets/jsx-runtime-BF_AeVYp.js",
-        "/assets/rolldown-runtime-DYWduciG.js",
-        "/assets/react-KIkuYek_.js",
+        "/assets/chunk-5KNZJZUH-CvMizu8N.js",
+        "/assets/createLucideIcon-B2n_jYVc.js",
+        "/assets/activity-CDTLDLIC.js",
+        "/assets/jsx-runtime-BlYCgOOU.js",
+        "/assets/rolldown-runtime-D7KTRRX7.js",
+        "/assets/react-B-3UWBEL.js",
       ],
       css: [],
       clientActionModule: void 0,
@@ -11105,16 +14087,16 @@ var server_manifest_default = {
       hasClientMiddleware: false,
       hasDefaultExport: true,
       hasErrorBoundary: false,
-      module: "/assets/unauthorized-8GMOBLeG.js",
+      module: "/assets/unauthorized-B4XQeGSS.js",
       imports: [
-        "/assets/chunk-5KNZJZUH-fndOlr0G.js",
-        "/assets/button-DcPcryEB.js",
-        "/assets/createLucideIcon--oGfSDMz.js",
-        "/assets/jsx-runtime-BF_AeVYp.js",
-        "/assets/rolldown-runtime-DYWduciG.js",
-        "/assets/react-KIkuYek_.js",
-        "/assets/utils-C00ojcRQ.js",
-        "/assets/dist-pTSroALd.js",
+        "/assets/chunk-5KNZJZUH-CvMizu8N.js",
+        "/assets/button-4KLeZV-d.js",
+        "/assets/createLucideIcon-B2n_jYVc.js",
+        "/assets/jsx-runtime-BlYCgOOU.js",
+        "/assets/rolldown-runtime-D7KTRRX7.js",
+        "/assets/react-B-3UWBEL.js",
+        "/assets/utils-DZ7UQ4Bk.js",
+        "/assets/dist-DKAWrTW-.js",
       ],
       css: [],
       clientActionModule: void 0,
@@ -11123,8 +14105,8 @@ var server_manifest_default = {
       hydrateFallbackModule: void 0,
     },
   },
-  url: "/assets/manifest-8d49eaee.js",
-  version: "8d49eaee",
+  url: "/assets/manifest-9ff066a2.js",
+  version: "9ff066a2",
   sri: void 0,
 };
 //#endregion
@@ -11245,6 +14227,22 @@ var routes = {
     index: void 0,
     caseSensitive: void 0,
     module: bookings_exports$2,
+  },
+  "routes/user/booking-detail": {
+    id: "routes/user/booking-detail",
+    parentId: "routes/user/_layout",
+    path: "user/bookings/:id",
+    index: void 0,
+    caseSensitive: void 0,
+    module: booking_detail_exports,
+  },
+  "routes/user/booking-payment": {
+    id: "routes/user/booking-payment",
+    parentId: "routes/user/_layout",
+    path: "user/bookings/:id/payment",
+    index: void 0,
+    caseSensitive: void 0,
+    module: booking_payment_exports,
   },
   "routes/user/find-mentors": {
     id: "routes/user/find-mentors",

@@ -7,16 +7,19 @@ public class ProcessSePayWebhookCommandHandler : IRequestHandler<ProcessSePayWeb
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ISePayQrService _sePayQrService;
+    private readonly ICacheService _cacheService;
     private readonly ILogger<ProcessSePayWebhookCommandHandler> _logger;
 
     public ProcessSePayWebhookCommandHandler(
         IUnitOfWork unitOfWork,
         ISePayQrService sePayQrService,
+        ICacheService cacheService,
         ILogger<ProcessSePayWebhookCommandHandler> logger
     )
     {
         _unitOfWork = unitOfWork;
         _sePayQrService = sePayQrService;
+        _cacheService = cacheService;
         _logger = logger;
     }
 
@@ -187,6 +190,12 @@ public class ProcessSePayWebhookCommandHandler : IRequestHandler<ProcessSePayWeb
             webhookLog.ProcessedAt = DateTime.UtcNow;
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            // Invalidate booking detail cache so the next read reflects the confirmed status
+            await _cacheService.RemoveAsync(
+                CacheKeys.BookingDetail(payment.BookingId),
+                cancellationToken
+            );
 
             _logger.LogInformation(
                 "SePay webhook Id={Id} processed successfully. OrderCode={OrderCode}, BookingId={BookingId}.",

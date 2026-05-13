@@ -24,6 +24,8 @@ export default [
   layout("routes/user/_layout.tsx", [
     route("user", "routes/user/dashboard.tsx"),
     route("user/bookings", "routes/user/bookings.tsx"),
+    route("user/bookings/:id", "routes/user/booking-detail.tsx"),
+    route("user/bookings/:id/payment", "routes/user/booking-payment.tsx"),
     route("user/mentors", "routes/user/find-mentors.tsx"),
     route("user/mentors/:id", "routes/user/mentor-detail.tsx"),
     route("user/ai-chat", "routes/user/ai-chat.tsx"),
