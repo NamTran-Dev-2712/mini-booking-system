@@ -1,3 +1,5 @@
+using System.Linq.Expressions;
+
 namespace MiniBookingSystem.UnitTests.Application.Mentor.Commands;
 
 public sealed class CreateMentorCommandHandlerTests
@@ -6,6 +8,7 @@ public sealed class CreateMentorCommandHandlerTests
     private readonly Mock<IUnitOfWork> _unitOfWork;
     private readonly Mock<IMentorRepository> _mentorRepo;
     private readonly Mock<IUserRepository> _userRepo;
+    private readonly Mock<IBackgroundJobService> _backgroundJobService;
     private readonly CreateMentorCommandHandler _sut;
 
     public CreateMentorCommandHandlerTests()
@@ -14,11 +17,16 @@ public sealed class CreateMentorCommandHandlerTests
         _unitOfWork = new Mock<IUnitOfWork>(MockBehavior.Strict);
         _mentorRepo = new Mock<IMentorRepository>(MockBehavior.Strict);
         _userRepo = new Mock<IUserRepository>(MockBehavior.Strict);
+        _backgroundJobService = new Mock<IBackgroundJobService>();
 
         _unitOfWork.Setup(u => u.Mentor).Returns(_mentorRepo.Object);
         _unitOfWork.Setup(u => u.User).Returns(_userRepo.Object);
 
-        _sut = new CreateMentorCommandHandler(_identityService.Object, _unitOfWork.Object);
+        _sut = new CreateMentorCommandHandler(
+            _identityService.Object,
+            _unitOfWork.Object,
+            _backgroundJobService.Object
+        );
     }
 
     private void SetupHappyPath(CreateMentorCommand cmd, Guid userId)
@@ -32,7 +40,7 @@ public sealed class CreateMentorCommandHandlerTests
                 s.RegisterAsync(
                     cmd.FullName,
                     cmd.Email,
-                    cmd.Password,
+                    It.IsAny<string>(),
                     cmd.PhoneNumber,
                     It.IsAny<CancellationToken>()
                 )
@@ -87,7 +95,7 @@ public sealed class CreateMentorCommandHandlerTests
                 s.RegisterAsync(
                     command.FullName,
                     command.Email,
-                    command.Password,
+                    It.IsAny<string>(),
                     command.PhoneNumber,
                     It.IsAny<CancellationToken>()
                 )
@@ -129,7 +137,7 @@ public sealed class CreateMentorCommandHandlerTests
                 s.RegisterAsync(
                     command.FullName,
                     command.Email,
-                    command.Password,
+                    It.IsAny<string>(),
                     command.PhoneNumber,
                     It.IsAny<CancellationToken>()
                 )
@@ -190,6 +198,24 @@ public sealed class CreateMentorCommandHandlerTests
         );
     }
 
+    [Fact]
+    public async Task Handle_EnqueuesWelcomeEmailAfterSuccessfulCreate()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var command = MentorTestData.BuildCreateMentorCommand();
+        SetupHappyPath(command, userId);
+
+        // Act
+        await _sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        _backgroundJobService.Verify(
+            s => s.Enqueue<IEmailJob>(It.IsAny<Expression<Func<IEmailJob, Task>>>()),
+            Times.Once
+        );
+    }
+
     // ── Failure / rollback paths ───────────────────────────────────────────
 
     [Fact]
@@ -242,7 +268,7 @@ public sealed class CreateMentorCommandHandlerTests
                 s.RegisterAsync(
                     command.FullName,
                     command.Email,
-                    command.Password,
+                    It.IsAny<string>(),
                     command.PhoneNumber,
                     It.IsAny<CancellationToken>()
                 )
@@ -303,6 +329,41 @@ public sealed class CreateMentorCommandHandlerTests
         // Assert
         _unitOfWork.Verify(
             u => u.CommitTransactionAsync(It.IsAny<CancellationToken>()),
+            Times.Never
+        );
+    }
+
+    [Fact]
+    public async Task Handle_WhenExceptionOccurs_DoesNotEnqueueEmail()
+    {
+        // Arrange
+        var command = MentorTestData.BuildCreateMentorCommand();
+
+        _unitOfWork
+            .Setup(u => u.BeginTransactionAsync(It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+        _identityService
+            .Setup(s =>
+                s.RegisterAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ThrowsAsync(new Exception("Unexpected error"));
+        _unitOfWork
+            .Setup(u => u.RollbackTransactionAsync(It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        var act = () => _sut.Handle(command, CancellationToken.None);
+        await act.Should().ThrowAsync<Exception>();
+
+        // Assert
+        _backgroundJobService.Verify(
+            s => s.Enqueue<IEmailJob>(It.IsAny<Expression<Func<IEmailJob, Task>>>()),
             Times.Never
         );
     }

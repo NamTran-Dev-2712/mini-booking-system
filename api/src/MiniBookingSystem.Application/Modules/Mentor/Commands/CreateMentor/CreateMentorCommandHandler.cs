@@ -4,16 +4,23 @@ public class CreateMentorCommandHandler : IRequestHandler<CreateMentorCommand, G
 {
     private readonly IIdentityService _identityService;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IBackgroundJobService _backgroundJobService;
 
-    public CreateMentorCommandHandler(IIdentityService identityService, IUnitOfWork unitOfWork)
+    public CreateMentorCommandHandler(
+        IIdentityService identityService,
+        IUnitOfWork unitOfWork,
+        IBackgroundJobService backgroundJobService
+    )
     {
         _identityService = identityService;
         _unitOfWork = unitOfWork;
+        _backgroundJobService = backgroundJobService;
     }
 
     public async Task<Guid> Handle(CreateMentorCommand request, CancellationToken cancellationToken)
     {
-        // start a transaction to ensure both user and mentor are created successfully
+        var generatedPassword = PasswordGenerator.Generate(16);
+
         await _unitOfWork.BeginTransactionAsync(cancellationToken);
 
         try
@@ -21,7 +28,7 @@ public class CreateMentorCommandHandler : IRequestHandler<CreateMentorCommand, G
             var userId = await _identityService.RegisterAsync(
                 request.FullName,
                 request.Email,
-                request.Password,
+                generatedPassword,
                 request.PhoneNumber,
                 cancellationToken
             );
@@ -43,8 +50,16 @@ public class CreateMentorCommandHandler : IRequestHandler<CreateMentorCommand, G
             await _unitOfWork.Mentor.AddAsync(mentor);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            // commit the transaction after both user and mentor are created successfully
             await _unitOfWork.CommitTransactionAsync(cancellationToken);
+
+            _backgroundJobService.Enqueue<IEmailJob>(job =>
+                job.SendMentorWelcomeEmailAsync(
+                    request.Email,
+                    request.FullName,
+                    request.Email,
+                    generatedPassword
+                )
+            );
 
             return userId;
         }

@@ -1,3 +1,4 @@
+using Hangfire;
 using Scalar.AspNetCore;
 using Serilog;
 
@@ -63,12 +64,15 @@ try
 
     app.UseOutputCache();
 
+    app.UseHangfireDashboard("/hangfire");
+
     app.MapControllers();
 
     // Seed initial data (roles, mentors, etc.)
     await DatabaseSeeder.SeedAllAsync(app.Services);
 
     Log.Information("Docs: http://localhost:5296/scalar/v1");
+    Log.Information("Hangfire Dashboard: http://localhost:5296/hangfire");
     Log.Information("Application started successfully.");
 
     app.Run();

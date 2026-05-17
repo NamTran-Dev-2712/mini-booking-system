@@ -1,12 +1,14 @@
 using System.Net.Http.Headers;
 using System.Text;
+using Hangfire;
+using Hangfire.Redis.StackExchange;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using Resend;
 using StackExchange.Redis;
 
 public static class DependencyInjection
@@ -149,6 +151,37 @@ public static class DependencyInjection
         // Register background jobs
         services.AddHostedService<ExpiredBookingCleanupJob>();
         services.AddHostedService<CompletedBookingJob>();
+
+        // Register Email Infrastructure (Resend)
+        services.Configure<ResendOptions>(configuration.GetSection(ConfigurationValue.Resend));
+        var resendOptions =
+            configuration.GetSection(ConfigurationValue.Resend).Get<ResendOptions>()
+            ?? throw new InvalidOperationException(
+                "Resend settings are not configured. Add a 'Resend' section to appsettings."
+            );
+        if (string.IsNullOrWhiteSpace(resendOptions.ApiKey))
+            throw new InvalidOperationException(
+                "Resend:ApiKey must be configured. "
+                    + "Set it via User Secrets (dev) or environment variable Resend__ApiKey (prod)."
+            );
+
+        services.AddResend(o => o.ApiToken = resendOptions.ApiKey);
+        services.AddScoped<IEmailService, ResendEmailService>();
+        services.AddSingleton<IEmailTemplateService, FluidTemplateService>();
+        services.AddScoped<IEmailJob, EmailJob>();
+
+        // Register Hangfire with Redis storage
+        services.AddHangfire(cfg =>
+            cfg.SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+                .UseSimpleAssemblyNameTypeSerializer()
+                .UseRecommendedSerializerSettings()
+                .UseRedisStorage(
+                    configuration.GetSection(ConfigurationValue.RedisConnectionString).Value,
+                    new RedisStorageOptions { Prefix = "minibooking:hangfire:", Db = 0 }
+                )
+        );
+        services.AddHangfireServer();
+        services.AddScoped<IBackgroundJobService, HangfireBackgroundJobService>();
 
         return services;
     }

@@ -102,7 +102,6 @@ internal static class MentorTestData
         new(
             FullName: Valid.FullName,
             Email: Valid.Email,
-            Password: Valid.Password,
             PhoneNumber: Valid.PhoneNumber,
             DisplayName: displayName,
             Bio: Valid.Bio,

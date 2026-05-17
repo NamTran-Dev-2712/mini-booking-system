@@ -84,41 +84,6 @@ public sealed class CreateMentorValidatorTests
         result.ShouldHaveValidationErrorFor(x => x.Email).WithErrorMessage("Invalid email format.");
     }
 
-    // ── Password rules ─────────────────────────────────────────────────────
-
-    [Theory]
-    [InlineData("")]
-    [InlineData("   ")]
-    public void Validate_WhenPasswordIsEmpty_HasRequiredError(string password)
-    {
-        var result = _validator.TestValidate(ValidCommand() with { Password = password });
-        result
-            .ShouldHaveValidationErrorFor(x => x.Password)
-            .WithErrorMessage("Password is required.");
-    }
-
-    [Theory]
-    [InlineData("Ab1@")] // 4 chars
-    [InlineData("A1@bcde")] // 7 chars
-    public void Validate_WhenPasswordTooShort_HasMinLengthError(string password)
-    {
-        var result = _validator.TestValidate(ValidCommand() with { Password = password });
-        result
-            .ShouldHaveValidationErrorFor(x => x.Password)
-            .WithErrorMessage("Password must be at least 8 characters long.");
-    }
-
-    [Theory]
-    [InlineData("alllowercase1@")] // no uppercase
-    [InlineData("ALLUPPERCASE1@")] // no lowercase
-    [InlineData("NoSpecialChar1")] // no special char
-    [InlineData("NoDigitHere!@")] // no digit
-    public void Validate_WhenPasswordNotStrong_HasPatternError(string password)
-    {
-        var result = _validator.TestValidate(ValidCommand() with { Password = password });
-        result.ShouldHaveValidationErrorFor(x => x.Password);
-    }
-
     // ── PhoneNumber rules ──────────────────────────────────────────────────
 
     [Theory]

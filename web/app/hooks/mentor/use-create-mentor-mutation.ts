@@ -14,7 +14,9 @@ export function useCreateMentorMutation() {
     onSuccess: () => {
       // Invalidate all list variants so the new mentor appears
       qc.invalidateQueries({ queryKey: queryKeys.mentors.lists() });
-      toast.success("Mentor created successfully");
+      toast.success("Mentor created successfully", {
+        description: "Login credentials have been sent to the mentor's email.",
+      });
     },
 
     onError: (err) => {

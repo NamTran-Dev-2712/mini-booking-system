@@ -1,7 +1,6 @@
 export interface CreateMentorRequest {
   fullName: string;
   email: string;
-  password: string;
   phoneNumber: string;
   displayName?: string | null;
   bio?: string | null;

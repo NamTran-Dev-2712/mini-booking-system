@@ -1,6 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
-import { useState } from "react";
+import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { Button } from "~/components/ui/button";
 import {
@@ -41,8 +40,6 @@ interface UpdateMentorFormProps {
 type MentorFormProps = CreateMentorFormProps | UpdateMentorFormProps;
 
 export function MentorForm(props: MentorFormProps) {
-  const [showPassword, setShowPassword] = useState(false);
-
   const isCreate = props.mode === "create";
 
   // Dynamically pick schema based on mode
@@ -52,7 +49,6 @@ export function MentorForm(props: MentorFormProps) {
       ? {
           fullName: "",
           email: "",
-          password: "",
           phoneNumber: "",
           displayName: "",
           bio: "",
@@ -123,54 +119,19 @@ export function MentorForm(props: MentorFormProps) {
               />
             </div>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password *</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Input
-                          type={showPassword ? "text" : "password"}
-                          placeholder="••••••••"
-                          {...field}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword((v) => !v)}
-                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                          aria-label={
-                            showPassword ? "Hide password" : "Show password"
-                          }
-                        >
-                          {showPassword ? (
-                            <EyeOff className="size-4" />
-                          ) : (
-                            <Eye className="size-4" />
-                          )}
-                        </button>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="phoneNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Phone Number *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="0912345678" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="phoneNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Phone Number *</FormLabel>
+                  <FormControl>
+                    <Input placeholder="0912345678" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </>
         )}
 

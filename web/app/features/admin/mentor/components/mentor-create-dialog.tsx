@@ -41,7 +41,6 @@ export function MentorCreateDialog({
     await mutateAsync({
       fullName: data.fullName,
       email: data.email,
-      password: data.password,
       phoneNumber: data.phoneNumber,
       displayName: data.displayName || null,
       bio: data.bio || null,
@@ -65,8 +64,10 @@ export function MentorCreateDialog({
         <DialogHeader className="shrink-0 border-b px-6 py-5">
           <DialogTitle className="text-lg">Create Mentor</DialogTitle>
           <DialogDescription>
-            Add a new mentor account to the system. Fields marked with{" "}
-            <span className="text-destructive">*</span> are required.
+            Add a new mentor account to the system. Login credentials will be
+            automatically generated and sent to the mentor's email. Fields
+            marked with <span className="text-destructive">*</span> are
+            required.
           </DialogDescription>
         </DialogHeader>
 

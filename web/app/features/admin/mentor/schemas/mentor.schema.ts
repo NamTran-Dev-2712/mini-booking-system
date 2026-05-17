@@ -1,14 +1,10 @@
 import { z } from "zod";
 
 // Vietnamese full name: letters (including diacritics) and spaces only
-const vietnameseNameRegex = /^[a-zA-ZÀ-ỹ\u00C0-\u024F\u1E00-\u1EFF\s]+$/u;
+const vietnameseNameRegex = /^[a-zA-ZÀ-ỹÀ-ɏḀ-ỿ\s]+$/u;
 
 // Vietnamese phone: 0[3|5|7|8|9] followed by 8 digits
 const vietnamesePhoneRegex = /^(0[35789]\d{8})$/;
-
-// Strong password: ≥8 chars, uppercase, lowercase, digit, special char
-const strongPasswordRegex =
-  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
 
 // URL validation
 const urlRegex = /^https?:\/\/.+/;
@@ -27,15 +23,6 @@ export const createMentorSchema = z
       ),
 
     email: z.string().min(1, "Email is required").email("Invalid email format"),
-
-    password: z
-      .string()
-      .min(1, "Password is required")
-      .min(8, "Password must be at least 8 characters")
-      .regex(
-        strongPasswordRegex,
-        "Password must contain uppercase, lowercase, digit, and special character",
-      ),
 
     phoneNumber: z
       .string()

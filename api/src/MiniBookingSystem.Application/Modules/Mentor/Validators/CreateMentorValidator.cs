@@ -20,16 +20,6 @@ public class CreateMentorCommandValidator : AbstractValidator<CreateMentorComman
             .EmailAddress()
             .WithMessage("Invalid email format.");
 
-        RuleFor(x => x.Password)
-            .NotEmpty()
-            .WithMessage("Password is required.")
-            .MinimumLength(8)
-            .WithMessage("Password must be at least 8 characters long.")
-            .Matches(ValidationPatterns.StrongPassword)
-            .WithMessage(
-                "Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character."
-            );
-
         RuleFor(x => x.PhoneNumber)
             .NotEmpty()
             .WithMessage("Phone number is required.")
