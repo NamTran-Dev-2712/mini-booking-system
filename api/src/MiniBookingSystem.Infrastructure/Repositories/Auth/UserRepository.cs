@@ -128,4 +128,9 @@ public class UserRepository : IUserRepository
             throw new BadRequestException("Failed to update user.", errors);
         }
     }
+
+    public async Task<int> CountActiveAsync(CancellationToken cancellationToken = default)
+    {
+        return await _userManager.Users.CountAsync(u => !u.IsDeleted, cancellationToken);
+    }
 }

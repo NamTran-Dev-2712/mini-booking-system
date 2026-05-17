@@ -6,6 +6,7 @@ public sealed class ProcessSePayWebhookCommandHandlerTests
     private readonly Mock<IPaymentTransactionRepository> _paymentTransactionRepo;
     private readonly Mock<IPaymentWebhookLogRepository> _webhookLogRepo;
     private readonly Mock<ISePayQrService> _sePayQrService;
+    private readonly Mock<ICacheService> _cacheService;
     private readonly Mock<ILogger<ProcessSePayWebhookCommandHandler>> _logger;
     private readonly ProcessSePayWebhookCommandHandler _sut;
 
@@ -15,6 +16,7 @@ public sealed class ProcessSePayWebhookCommandHandlerTests
         _paymentTransactionRepo = new Mock<IPaymentTransactionRepository>(MockBehavior.Strict);
         _webhookLogRepo = new Mock<IPaymentWebhookLogRepository>(MockBehavior.Strict);
         _sePayQrService = new Mock<ISePayQrService>(MockBehavior.Strict);
+        _cacheService = new Mock<ICacheService>(MockBehavior.Strict);
         // ILogger uses Loose because Log* are extension methods
         _logger = new Mock<ILogger<ProcessSePayWebhookCommandHandler>>();
 
@@ -24,6 +26,7 @@ public sealed class ProcessSePayWebhookCommandHandlerTests
         _sut = new ProcessSePayWebhookCommandHandler(
             _unitOfWork.Object,
             _sePayQrService.Object,
+            _cacheService.Object,
             _logger.Object
         );
     }
@@ -36,6 +39,10 @@ public sealed class ProcessSePayWebhookCommandHandlerTests
             .ReturnsAsync((PaymentWebhookLog log, CancellationToken _) => log);
 
         _unitOfWork.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+
+        _cacheService
+            .Setup(c => c.RemoveAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
     }
 
     private void SetupNotDuplicate(long id)

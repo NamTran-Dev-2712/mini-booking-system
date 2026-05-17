@@ -664,3 +664,4 @@ redis_data/
 .kiro
 build
 .claude
+*.lscache

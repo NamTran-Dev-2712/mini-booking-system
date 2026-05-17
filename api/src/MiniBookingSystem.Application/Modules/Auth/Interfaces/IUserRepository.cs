@@ -22,4 +22,5 @@ public interface IUserRepository
         string newRole,
         CancellationToken cancellationToken = default
     );
+    Task<int> CountActiveAsync(CancellationToken cancellationToken = default);
 }

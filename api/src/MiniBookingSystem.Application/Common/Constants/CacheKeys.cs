@@ -44,6 +44,15 @@ public static class CacheKeys
 
     public const string AiMentorContext = "booking:ai:mentor-context";
 
+    // Dashboard
+    public static string AdminDashboard() => $"{App}:{SchemaVersion}:dashboard:admin";
+
+    public static string MentorDashboard(Guid userId) =>
+        $"{App}:{SchemaVersion}:dashboard:mentor:{userId}";
+
+    public static string UserDashboard(Guid userId) =>
+        $"{App}:{SchemaVersion}:dashboard:user:{userId}";
+
     private static string Normalize(string? value) =>
         string.IsNullOrWhiteSpace(value) ? "none" : value.Trim().ToLowerInvariant();
 }

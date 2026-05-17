@@ -1,4 +1,7 @@
 import { UserCircle } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { Separator } from "~/components/ui/separator";
+import { UserProfileForm } from "~/features/user/profile/profile.form";
 import { useCurrentUser } from "~/hooks/use-auth";
 
 export function meta() {
@@ -17,18 +20,23 @@ export default function UserProfile() {
         </p>
       </div>
 
-      <div className="rounded-xl border bg-card p-6 shadow-sm">
-        <div className="flex items-center gap-4">
-          <div className="flex size-16 items-center justify-center rounded-full bg-primary/10">
-            <UserCircle className="size-8 text-primary" />
+      <Card>
+        <CardHeader className="pb-4">
+          <div className="flex items-center gap-3">
+            <div className="flex size-12 items-center justify-center rounded-full bg-primary/10">
+              <UserCircle className="size-6 text-primary" />
+            </div>
+            <div>
+              <CardTitle className="text-base">{user?.fullName}</CardTitle>
+              <p className="text-sm text-muted-foreground">{user?.email}</p>
+            </div>
           </div>
-          <div>
-            <p className="text-lg font-semibold">{user?.fullName}</p>
-            <p className="text-sm text-muted-foreground">{user?.email}</p>
-            <p className="text-sm text-muted-foreground">{user?.phoneNumber}</p>
-          </div>
-        </div>
-      </div>
+        </CardHeader>
+        <Separator />
+        <CardContent className="pt-6">
+          <UserProfileForm />
+        </CardContent>
+      </Card>
     </div>
   );
 }

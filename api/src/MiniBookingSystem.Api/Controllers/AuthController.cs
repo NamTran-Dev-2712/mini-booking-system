@@ -1,4 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -89,6 +90,40 @@ public class AuthController : BaseApiController
         authResult = authResult with { AccessToken = string.Empty, RefreshToken = string.Empty };
 
         return OkResponse(authResult);
+    }
+
+    [HttpPut("profile")]
+    [Authorize]
+    public async Task<IActionResult> UpdateProfile(
+        UpdateProfileRequest request,
+        CancellationToken cancellationToken
+    )
+    {
+        var userId = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+
+        if (string.IsNullOrEmpty(userId))
+        {
+            throw new UnauthorizedException("User ID claim is missing");
+        }
+
+        var roles = User.FindAll(ClaimTypes.Role).Select(c => c.Value);
+
+        var command = new UpdateProfileCommand(
+            Guid.Parse(userId),
+            roles,
+            request.FullName,
+            request.PhoneNumber,
+            request.DisplayName,
+            request.Bio,
+            request.Specialization,
+            request.ExperienceYears,
+            request.BasePrice,
+            request.AvatarUrl
+        );
+
+        await _mediator.Send(command, cancellationToken);
+
+        return OkResponse<object>(null!, "Profile updated successfully");
     }
 
     [HttpPost("logout")]

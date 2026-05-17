@@ -1,16 +1,20 @@
 import {
+  BookOpen,
   CalendarDays,
+  CheckCircle,
   Clock,
   DollarSign,
   GraduationCap,
   TrendingUp,
-  Users,
 } from "lucide-react";
 import { useNavigate } from "react-router";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Skeleton } from "~/components/ui/skeleton";
+import { AreaChartCard } from "~/components/shared/dashboard/area-chart-card";
+import { StatCard } from "~/components/shared/dashboard/stat-card";
+import { useMentorDashboardQuery } from "~/hooks/dashboard/use-mentor-dashboard-query";
 import { useMyMentorProfile } from "~/hooks/mentor/use-my-mentor-profile";
 import { useCurrentUser } from "~/hooks/use-auth";
 import { SLOT_STATUS, SLOT_STATUS_LABEL } from "~/types/mentor/mentor";
@@ -27,6 +31,15 @@ function formatPrice(price: number) {
   }).format(price);
 }
 
+function formatCurrency(value: number) {
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+    maximumFractionDigits: 0,
+    notation: "compact",
+  }).format(value);
+}
+
 function formatSlotTime(iso: string) {
   return new Date(iso).toLocaleString("vi-VN", {
     weekday: "short",
@@ -37,39 +50,17 @@ function formatSlotTime(iso: string) {
   });
 }
 
-function StatCard({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: React.ElementType;
-  label: string;
-  value: string | number;
-}) {
-  return (
-    <Card>
-      <CardContent className="flex items-center gap-4 p-5">
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-          <Icon className="size-5 text-primary" />
-        </div>
-        <div>
-          <p className="text-sm text-muted-foreground">{label}</p>
-          <p className="text-2xl font-bold">{value}</p>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
 function DashboardSkeleton() {
   return (
     <div className="space-y-6">
       <Skeleton className="h-8 w-64" />
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Skeleton className="h-24" />
         <Skeleton className="h-24" />
         <Skeleton className="h-24" />
         <Skeleton className="h-24" />
       </div>
+      <Skeleton className="h-[280px]" />
       <Skeleton className="h-48" />
     </div>
   );
@@ -78,9 +69,10 @@ function DashboardSkeleton() {
 export default function MentorDashboard() {
   const user = useCurrentUser();
   const navigate = useNavigate();
-  const { mentor, isPending } = useMyMentorProfile();
+  const { mentor, isPending: isMentorPending } = useMyMentorProfile();
+  const { data, isPending: isDashboardPending } = useMentorDashboardQuery();
 
-  if (isPending) return <DashboardSkeleton />;
+  if (isMentorPending || isDashboardPending) return <DashboardSkeleton />;
 
   const now = new Date();
   const upcomingSlots = (mentor?.slots ?? [])
@@ -92,13 +84,6 @@ export default function MentorDashboard() {
         new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
     )
     .slice(0, 5);
-
-  const totalBookedSlots = (mentor?.slots ?? []).reduce(
-    (sum, s) => sum + s.currentBookings,
-    0,
-  );
-
-  const skillsCount = mentor?.skills.length ?? 0;
 
   return (
     <div className="space-y-6">
@@ -112,24 +97,36 @@ export default function MentorDashboard() {
         </p>
       </div>
 
-      {/* Stats */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {/* Stats from API */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          icon={BookOpen}
+          label="Total Bookings"
+          value={data?.totalBookings ?? 0}
+        />
         <StatCard
           icon={CalendarDays}
-          label="Upcoming Sessions"
-          value={upcomingSlots.length}
+          label="Upcoming Slots"
+          value={data?.upcomingSlots ?? 0}
         />
         <StatCard
-          icon={Users}
-          label="Total Bookings"
-          value={totalBookedSlots}
+          icon={CheckCircle}
+          label="Completed"
+          value={data?.completedSessions ?? 0}
         />
         <StatCard
-          icon={GraduationCap}
-          label="Active Skills"
-          value={skillsCount}
+          icon={DollarSign}
+          label="Revenue"
+          value={formatCurrency(data?.totalRevenue ?? 0)}
         />
       </div>
+
+      {/* Booking Trend Chart */}
+      <AreaChartCard
+        title="Booking Trend"
+        data={data?.bookingTrend ?? []}
+        color="var(--chart-4)"
+      />
 
       {/* Upcoming slots */}
       <Card>

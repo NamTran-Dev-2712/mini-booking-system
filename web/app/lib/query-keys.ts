@@ -15,6 +15,10 @@ import type { GetMentorsRequest } from "~/services/mentor/dtos/queries/get-mento
 import type { GetUserBookingsRequest } from "~/types/booking/booking";
 
 export const queryKeys = {
+  auth: {
+    profile: () => ["auth", "profile"] as const,
+  },
+
   mentors: {
     /** Root — invalidate to clear everything mentor-related */
     all: () => ["mentors"] as const,
@@ -43,5 +47,11 @@ export const queryKeys = {
 
   payments: {
     status: (bookingId: string) => ["payments", "status", bookingId] as const,
+  },
+
+  dashboard: {
+    admin: () => ["dashboard", "admin"] as const,
+    mentor: () => ["dashboard", "mentor"] as const,
+    user: () => ["dashboard", "user"] as const,
   },
 } as const;

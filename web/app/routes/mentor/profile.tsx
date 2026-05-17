@@ -1,3 +1,5 @@
+import { Pencil } from "lucide-react";
+import { useState } from "react";
 import {
   Briefcase,
   CalendarDays,
@@ -9,9 +11,18 @@ import {
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Badge } from "~/components/ui/badge";
+import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "~/components/ui/dialog";
 import { Separator } from "~/components/ui/separator";
 import { Skeleton } from "~/components/ui/skeleton";
+import { MentorProfileForm } from "~/features/mentor/profile/profile.form";
 import { useMyMentorProfile } from "~/hooks/mentor/use-my-mentor-profile";
 import { useCurrentUser } from "~/hooks/use-auth";
 
@@ -30,6 +41,7 @@ function formatPrice(price: number) {
 export default function MentorProfile() {
   const user = useCurrentUser();
   const { mentor, isPending } = useMyMentorProfile();
+  const [editOpen, setEditOpen] = useState(false);
 
   if (isPending) {
     return (
@@ -58,11 +70,27 @@ export default function MentorProfile() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h2 className="text-2xl font-semibold tracking-tight">Profile</h2>
-        <p className="text-muted-foreground">
-          Your mentor profile information.
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-semibold tracking-tight">Profile</h2>
+          <p className="text-muted-foreground">
+            Your mentor profile information.
+          </p>
+        </div>
+        <Dialog open={editOpen} onOpenChange={setEditOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline" size="sm" className="gap-1.5">
+              <Pencil className="size-4" />
+              Edit Profile
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Edit Profile</DialogTitle>
+            </DialogHeader>
+            <MentorProfileForm />
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Profile card */}

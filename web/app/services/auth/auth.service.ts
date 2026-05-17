@@ -5,6 +5,7 @@ import type { LoginRequest } from "./dtos/commands/login/login.request";
 import type { LoginResponse } from "./dtos/commands/login/login.response";
 import type { RegisterRequest } from "./dtos/commands/register/register.request";
 import type { RegisterResponse } from "./dtos/commands/register/register.response";
+import type { UpdateProfileRequest } from "./dtos/commands/update-profile/update-profile.request";
 import type { ProfileResponse } from "./dtos/queries/profile/profile.response";
 
 export const authService = {
@@ -26,6 +27,10 @@ export const authService = {
     const res: AxiosResponse<ApiResponse<ProfileResponse>> =
       await apiClient.get("/api/auth/profile");
     return res.data.data!;
+  },
+
+  async updateProfile(data: UpdateProfileRequest): Promise<void> {
+    await apiClient.put("/api/auth/profile", data);
   },
 
   async logout(): Promise<void> {
