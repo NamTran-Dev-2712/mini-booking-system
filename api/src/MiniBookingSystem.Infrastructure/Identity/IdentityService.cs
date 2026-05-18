@@ -30,6 +30,7 @@ public class IdentityService : IIdentityService
         string email,
         string password,
         string phoneNumber,
+        string? avatarUrl = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -53,6 +54,7 @@ public class IdentityService : IIdentityService
             Email = email,
             UserName = email,
             PhoneNumber = phoneNumber,
+            AvatarUrl = avatarUrl,
         };
 
         var createResult = await _userManager.CreateAsync(user, password);
@@ -154,6 +156,7 @@ public class IdentityService : IIdentityService
             FullName: user.FullName,
             Email: user.Email ?? string.Empty,
             PhoneNumber: user.PhoneNumber ?? string.Empty,
+            AvatarUrl: user.AvatarUrl,
             CreatedAt: user.CreatedAt,
             Roles: roles
         );

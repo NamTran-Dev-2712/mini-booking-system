@@ -32,6 +32,7 @@ public sealed class GetMentorDetailQueryHandlerTests
                     MentorTestData.Valid.FullName,
                     MentorTestData.Valid.Email,
                     MentorTestData.Valid.PhoneNumber,
+                    null,
                     DateTime.UtcNow,
                     new[] { "Mentor" }
                 )

@@ -5,6 +5,7 @@ public interface IIdentityService
         string email,
         string password,
         string phoneNumber,
+        string? avatarUrl = null,
         CancellationToken cancellationToken = default
     );
 

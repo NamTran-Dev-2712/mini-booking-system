@@ -11,10 +11,10 @@ import {
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
 import { Skeleton } from "~/components/ui/skeleton";
-import { useUserProfileForm } from "./profile.hook";
+import { useAdminProfileForm } from "./profile.hook";
 
-export function UserProfileForm() {
-  const { form, onSubmit, isPending, isSubmitting } = useUserProfileForm();
+export function AdminProfileForm() {
+  const { form, onSubmit, isPending, isSubmitting } = useAdminProfileForm();
 
   if (isPending) {
     return (
@@ -40,7 +40,7 @@ export function UserProfileForm() {
                 <AvatarUpload
                   currentUrl={field.value}
                   onUploaded={(url) => field.onChange(url)}
-                  fallback={form.watch("fullName")?.charAt(0) || "U"}
+                  fallback={form.watch("fullName")?.charAt(0) || "A"}
                 />
               </FormControl>
               <FormMessage />

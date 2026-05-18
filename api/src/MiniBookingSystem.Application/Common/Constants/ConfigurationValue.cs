@@ -10,4 +10,5 @@ public static class ConfigurationValue
     public const string BaseUrl = "BaseUrl";
     public const string BaseUrlApi = "BaseUrl:Api";
     public const string BaseUrlFrontend = "BaseUrl:Frontend";
+    public const string Uploads = "Uploads";
 }

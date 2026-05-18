@@ -1,4 +1,5 @@
 import { Loader2 } from "lucide-react";
+import { AvatarUpload } from "~/components/shared/avatar-upload";
 import { Button } from "~/components/ui/button";
 import {
   Form,
@@ -126,9 +127,16 @@ export function MentorProfileForm() {
               name="avatarUrl"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Avatar URL</FormLabel>
                   <FormControl>
-                    <Input placeholder="https://..." {...field} />
+                    <AvatarUpload
+                      currentUrl={field.value}
+                      onUploaded={(url) => field.onChange(url)}
+                      fallback={
+                        form.watch("displayName")?.charAt(0) ||
+                        form.watch("specialization")?.charAt(0) ||
+                        "M"
+                      }
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

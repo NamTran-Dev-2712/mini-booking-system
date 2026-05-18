@@ -33,6 +33,7 @@ export const registerSchema = z
         "Password must contain at least one special character",
       ),
     confirmPassword: z.string().min(1, "Password confirmation is required"),
+    avatarUrl: z.string().optional().or(z.literal("")),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",

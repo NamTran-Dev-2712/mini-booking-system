@@ -58,7 +58,11 @@ export const createMentorSchema = z
 
     avatarUrl: z
       .string()
-      .regex(urlRegex, "Invalid avatar URL")
+      .refine(
+        (val) =>
+          !val || val.startsWith("/uploads/") || /^https?:\/\/.+/.test(val),
+        "Invalid avatar URL",
+      )
       .optional()
       .or(z.literal("")),
   })

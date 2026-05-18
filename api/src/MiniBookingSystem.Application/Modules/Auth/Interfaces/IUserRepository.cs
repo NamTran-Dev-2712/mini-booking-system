@@ -14,6 +14,11 @@ public interface IUserRepository
         string email,
         CancellationToken cancellationToken = default
     );
+    Task UpdateAvatarAsync(
+        Guid userId,
+        string avatarUrl,
+        CancellationToken cancellationToken = default
+    );
     Task UpdateUserAsync(
         Guid userId,
         string? fullName,

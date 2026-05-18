@@ -17,6 +17,7 @@ export function useRegisterForm() {
       phoneNumber: "",
       password: "",
       confirmPassword: "",
+      avatarUrl: "",
     },
   });
 
@@ -27,6 +28,7 @@ export function useRegisterForm() {
         email: data.email,
         password: data.password,
         phoneNumber: data.phoneNumber,
+        avatarUrl: data.avatarUrl || null,
       });
       toast.success("Account created successfully! Please sign in.");
       navigate("/login");

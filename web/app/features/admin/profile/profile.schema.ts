@@ -3,7 +3,7 @@ import { z } from "zod";
 const vietnameseFullName = /^[\p{L}]+(?:\s[\p{L}]+)*$/u;
 const vietnamesePhone = /^(0|\+84|84)(3|5|7|8|9)\d{8}$/;
 
-export const userProfileSchema = z.object({
+export const adminProfileSchema = z.object({
   fullName: z
     .string()
     .min(1, "Full name is required")
@@ -28,4 +28,4 @@ export const userProfileSchema = z.object({
     .or(z.literal("")),
 });
 
-export type UserProfileFormData = z.infer<typeof userProfileSchema>;
+export type AdminProfileFormData = z.infer<typeof adminProfileSchema>;

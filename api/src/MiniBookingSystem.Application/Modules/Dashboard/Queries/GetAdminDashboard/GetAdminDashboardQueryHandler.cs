@@ -55,22 +55,27 @@ public class GetAdminDashboardQueryHandler
                 cancellationToken
             ) ?? [];
 
-        var revenueOverTime = (
+        var revenueRawData =
             await _unitOfWork.PaymentTransaction.ToListAsync(
                 paymentQuery
                     .Where(p => p.PaidAt != null && p.PaidAt >= fromDate)
-                    .GroupBy(p => new { p.PaidAt!.Value.Year, p.PaidAt!.Value.Month })
-                    .Select(g => new
+                    .Select(p => new
                     {
-                        g.Key.Year,
-                        g.Key.Month,
-                        Total = g.Sum(p => p.Amount),
-                    })
-                    .OrderBy(g => g.Year)
-                    .ThenBy(g => g.Month),
+                        p.PaidAt!.Value.Year,
+                        p.PaidAt!.Value.Month,
+                        p.Amount,
+                    }),
                 cancellationToken
-            ) ?? []
-        ).Select(g => new TimeSeriesPoint($"{g.Year}-{g.Month:D2}", g.Total)).ToList();
+            ) ?? [];
+
+        var revenueOverTime = revenueRawData
+            .GroupBy(p => new { p.Year, p.Month })
+            .Select(g => new TimeSeriesPoint(
+                $"{g.Key.Year}-{g.Key.Month:D2}",
+                g.Sum(p => p.Amount)
+            ))
+            .OrderBy(t => t.Label)
+            .ToList();
 
         var result = new AdminDashboardDTO(
             totalUsers,

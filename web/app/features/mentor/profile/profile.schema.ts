@@ -41,8 +41,12 @@ export const mentorProfileSchema = z.object({
     .min(0, "Must be at least 0"),
   avatarUrl: z
     .string()
-    .url("Must be a valid URL")
     .max(500, "URL must not exceed 500 characters")
+    .refine(
+      (val) =>
+        !val || val.startsWith("/uploads/") || /^https?:\/\/.+/.test(val),
+      "Must be a valid URL",
+    )
     .optional()
     .or(z.literal("")),
 });

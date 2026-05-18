@@ -56,18 +56,19 @@ public class GetUserDashboardQueryHandler : IRequestHandler<GetUserDashboardQuer
 
         var totalSpending = spendingList.FirstOrDefault();
 
-        var bookingHistory =
+        var bookingRawData =
             await _unitOfWork.Booking.ToListAsync(
                 bookingQuery
                     .Where(b => b.BookedAt >= fromDate)
-                    .GroupBy(b => new { b.BookedAt.Year, b.BookedAt.Month })
-                    .Select(g => new TimeSeriesPoint(
-                        g.Key.Year + "-" + g.Key.Month.ToString("D2"),
-                        g.Count()
-                    ))
-                    .OrderBy(t => t.Label),
+                    .Select(b => new { b.BookedAt.Year, b.BookedAt.Month }),
                 cancellationToken
             ) ?? [];
+
+        var bookingHistory = bookingRawData
+            .GroupBy(b => new { b.Year, b.Month })
+            .Select(g => new TimeSeriesPoint($"{g.Key.Year}-{g.Key.Month:D2}", g.Count()))
+            .OrderBy(t => t.Label)
+            .ToList();
 
         var result = new UserDashboardDTO(
             totalBookings,

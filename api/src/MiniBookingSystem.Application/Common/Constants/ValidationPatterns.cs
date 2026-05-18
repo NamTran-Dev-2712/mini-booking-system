@@ -23,6 +23,10 @@ public static class ValidationPatterns
     {
         if (string.IsNullOrWhiteSpace(url))
             return true;
+
+        if (url.StartsWith("/uploads/"))
+            return true;
+
         return Uri.TryCreate(url, UriKind.Absolute, out var outUri)
             && (outUri.Scheme == Uri.UriSchemeHttp || outUri.Scheme == Uri.UriSchemeHttps);
     }

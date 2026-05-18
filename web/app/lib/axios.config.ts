@@ -81,7 +81,8 @@ apiClient.interceptors.response.use(
     const isLoginEndpoint = originalRequest.url?.includes("/api/auth/login");
     const isPublicAuthEndpoint =
       originalRequest.url?.includes("/api/auth/forgot-password") ||
-      originalRequest.url?.includes("/api/auth/reset-password");
+      originalRequest.url?.includes("/api/auth/reset-password") ||
+      originalRequest.url?.includes("/api/auth/avatar");
 
     if (
       status === 401 &&

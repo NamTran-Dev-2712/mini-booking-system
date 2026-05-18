@@ -32,6 +32,7 @@ public sealed class RegisterCommandHandlerTests
                     command.Email,
                     command.Password,
                     command.PhoneNumber,
+                    command.AvatarUrl,
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -66,6 +67,7 @@ public sealed class RegisterCommandHandlerTests
                     command.Email,
                     command.Password,
                     command.PhoneNumber,
+                    command.AvatarUrl,
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -82,6 +84,7 @@ public sealed class RegisterCommandHandlerTests
                     command.Email,
                     command.Password,
                     command.PhoneNumber,
+                    command.AvatarUrl,
                     It.IsAny<CancellationToken>()
                 ),
             Times.Once
@@ -108,6 +111,7 @@ public sealed class RegisterCommandHandlerTests
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
+                    It.IsAny<string?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -140,6 +144,7 @@ public sealed class RegisterCommandHandlerTests
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
+                    It.IsAny<string?>(),
                     It.IsAny<CancellationToken>()
                 )
             )

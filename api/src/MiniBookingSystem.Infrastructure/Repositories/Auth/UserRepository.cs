@@ -145,4 +145,25 @@ public class UserRepository : IUserRepository
 
         return new UserBasicInfo(user.Id, user.FullName, user.Email!);
     }
+
+    public async Task UpdateAvatarAsync(
+        Guid userId,
+        string avatarUrl,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user is null)
+            throw new NotFoundException("User", userId.ToString());
+
+        user.AvatarUrl = avatarUrl;
+        user.UpdatedAt = DateTime.UtcNow;
+
+        var result = await _userManager.UpdateAsync(user);
+        if (!result.Succeeded)
+        {
+            var errors = result.Errors.Select(e => e.Description).ToList();
+            throw new BadRequestException("Failed to update avatar.", errors);
+        }
+    }
 }

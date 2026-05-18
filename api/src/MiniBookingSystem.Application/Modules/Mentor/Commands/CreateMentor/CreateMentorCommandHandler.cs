@@ -20,6 +20,7 @@ public class CreateMentorCommandHandler : IRequestHandler<CreateMentorCommand, G
     public async Task<Guid> Handle(CreateMentorCommand request, CancellationToken cancellationToken)
     {
         var generatedPassword = PasswordGenerator.Generate(16);
+        var phoneNumber = PhoneNumberNormalizer.Normalize(request.PhoneNumber);
 
         await _unitOfWork.BeginTransactionAsync(cancellationToken);
 
@@ -29,7 +30,8 @@ public class CreateMentorCommandHandler : IRequestHandler<CreateMentorCommand, G
                 request.FullName,
                 request.Email,
                 generatedPassword,
-                request.PhoneNumber,
+                phoneNumber,
+                request.AvatarUrl,
                 cancellationToken
             );
 

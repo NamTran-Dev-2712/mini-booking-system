@@ -665,3 +665,4 @@ redis_data/
 build
 .claude
 *.lscache
+uploads/

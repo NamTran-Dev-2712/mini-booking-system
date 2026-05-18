@@ -1,16 +1,17 @@
-import { Mail, Phone } from "lucide-react";
+import { Mail, Phone, Shield } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
+import { Badge } from "~/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Separator } from "~/components/ui/separator";
-import { UserProfileForm } from "~/features/user/profile/profile.form";
+import { AdminProfileForm } from "~/features/admin/profile/profile.form";
 import { useProfileQuery } from "~/hooks/auth/use-profile-query";
 import { useCurrentUser } from "~/hooks/use-auth";
 
 export function meta() {
-  return [{ title: "Profile — MiniBooking" }];
+  return [{ title: "Profile — MiniBooking Admin" }];
 }
 
-export default function UserProfile() {
+export default function AdminProfile() {
   const user = useCurrentUser();
   const { data: profile } = useProfileQuery();
 
@@ -27,7 +28,7 @@ export default function UserProfile() {
       <div>
         <h2 className="text-2xl font-semibold tracking-tight">Profile</h2>
         <p className="text-muted-foreground">
-          Manage your personal information.
+          Manage your administrator account.
         </p>
       </div>
 
@@ -46,7 +47,13 @@ export default function UserProfile() {
             </Avatar>
 
             <div className="min-w-0 flex-1 text-center sm:text-left">
-              <h3 className="text-xl font-semibold">{user?.fullName}</h3>
+              <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
+                <h3 className="text-xl font-semibold">{user?.fullName}</h3>
+                <Badge variant="default" className="gap-1">
+                  <Shield className="size-3" />
+                  Admin
+                </Badge>
+              </div>
               <div className="mt-2 flex flex-wrap items-center justify-center gap-4 text-sm sm:justify-start">
                 <div className="flex items-center gap-1.5 text-muted-foreground">
                   <Mail className="size-3.5" />
@@ -71,7 +78,7 @@ export default function UserProfile() {
         </CardHeader>
         <Separator />
         <CardContent className="pt-6">
-          <UserProfileForm />
+          <AdminProfileForm />
         </CardContent>
       </Card>
     </div>

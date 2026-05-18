@@ -25,6 +25,9 @@ public class UpdateProfileCommandHandler : IRequestHandler<UpdateProfileCommand,
     )
     {
         var isMentor = request.Roles.Contains(ApplicationRoles.Mentor);
+        var phoneNumber = request.PhoneNumber is not null
+            ? PhoneNumberNormalizer.Normalize(request.PhoneNumber)
+            : null;
 
         if (isMentor)
         {
@@ -32,12 +35,12 @@ public class UpdateProfileCommandHandler : IRequestHandler<UpdateProfileCommand,
 
             try
             {
-                if (request.FullName is not null || request.PhoneNumber is not null)
+                if (request.FullName is not null || phoneNumber is not null)
                 {
                     await _unitOfWork.User.UpdateUserAsync(
                         request.UserId,
                         request.FullName,
-                        request.PhoneNumber,
+                        phoneNumber,
                         cancellationToken
                     );
                 }
@@ -76,12 +79,21 @@ public class UpdateProfileCommandHandler : IRequestHandler<UpdateProfileCommand,
         }
         else
         {
-            if (request.FullName is not null || request.PhoneNumber is not null)
+            if (request.FullName is not null || phoneNumber is not null)
             {
                 await _unitOfWork.User.UpdateUserAsync(
                     request.UserId,
                     request.FullName,
-                    request.PhoneNumber,
+                    phoneNumber,
+                    cancellationToken
+                );
+            }
+
+            if (request.AvatarUrl is not null)
+            {
+                await _unitOfWork.User.UpdateAvatarAsync(
+                    request.UserId,
+                    request.AvatarUrl,
                     cancellationToken
                 );
             }

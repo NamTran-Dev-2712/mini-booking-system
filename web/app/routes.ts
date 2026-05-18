@@ -53,6 +53,7 @@ export default [
     route("admin/bookings", "routes/admin/bookings.tsx"),
     route("admin/payments", "routes/admin/payments.tsx"),
     route("admin/health", "routes/admin/health.tsx"),
+    route("admin/profile", "routes/admin/profile.tsx"),
   ]),
 
   // ── Error pages ────────────────────────────────────────────────────────────

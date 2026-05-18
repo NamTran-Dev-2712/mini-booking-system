@@ -1,4 +1,5 @@
 using Hangfire;
+using Microsoft.Extensions.FileProviders;
 using Scalar.AspNetCore;
 using Serilog;
 
@@ -52,6 +53,20 @@ try
     app.UseForwardedHeaders();
 
     app.UseHttpsRedirection();
+
+    // Serve uploaded avatar files
+    var uploadsPath = Path.Combine(
+        app.Environment.ContentRootPath,
+        builder.Configuration["Uploads:AvatarsPath"] ?? "uploads/avatars"
+    );
+    Directory.CreateDirectory(uploadsPath);
+    app.UseStaticFiles(
+        new StaticFileOptions
+        {
+            FileProvider = new PhysicalFileProvider(uploadsPath),
+            RequestPath = "/uploads/avatars",
+        }
+    );
 
     app.UseCors("DefaultCors");
 

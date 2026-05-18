@@ -11,11 +11,14 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, UserDTO>
 
     public async Task<UserDTO> Handle(RegisterCommand request, CancellationToken cancellationToken)
     {
+        var phoneNumber = PhoneNumberNormalizer.Normalize(request.PhoneNumber);
+
         var userId = await _identityService.RegisterAsync(
             request.FullName,
             request.Email,
             request.Password,
-            request.PhoneNumber,
+            phoneNumber,
+            request.AvatarUrl,
             cancellationToken
         );
 
@@ -23,7 +26,8 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, UserDTO>
             Id: userId,
             FullName: request.FullName,
             Email: request.Email,
-            PhoneNumber: request.PhoneNumber,
+            PhoneNumber: phoneNumber,
+            AvatarUrl: request.AvatarUrl,
             CreatedAt: DateTime.UtcNow,
             Roles: ["User"]
         );

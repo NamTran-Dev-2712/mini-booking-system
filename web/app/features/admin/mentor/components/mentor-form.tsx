@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
+import { AvatarUpload } from "~/components/shared/avatar-upload";
 import { Button } from "~/components/ui/button";
 import {
   Form,
@@ -282,13 +283,15 @@ export function MentorForm(props: MentorFormProps) {
           name="avatarUrl"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Avatar URL</FormLabel>
               <FormControl>
-                <Input
-                  type="url"
-                  placeholder="https://..."
-                  {...field}
-                  value={field.value ?? ""}
+                <AvatarUpload
+                  currentUrl={field.value}
+                  onUploaded={(url) => field.onChange(url)}
+                  fallback={
+                    form.watch("displayName")?.charAt(0) ||
+                    form.watch("fullName")?.charAt(0) ||
+                    "M"
+                  }
                 />
               </FormControl>
               <FormMessage />

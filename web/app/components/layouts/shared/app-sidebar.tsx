@@ -1,9 +1,10 @@
 import { CalendarDays, LogOut } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
-import { Avatar, AvatarFallback } from "~/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 import { Separator } from "~/components/ui/separator";
+import { useProfileQuery } from "~/hooks/auth/use-profile-query";
 import { getApiErrorMessage } from "~/lib/api-error";
 import { cn } from "~/lib/utils";
 import { authService } from "~/services/auth/auth.service";
@@ -20,6 +21,9 @@ export function AppSidebar({ navItems, onNavigate }: AppSidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, clearUser } = useAuthStore();
+  const { data: profile } = useProfileQuery();
+
+  const avatarUrl = (profile as any)?.avatarUrl ?? undefined;
 
   const initials = (user?.fullName ?? "?")
     .split(" ")
@@ -97,6 +101,7 @@ export function AppSidebar({ navItems, onNavigate }: AppSidebarProps) {
       {/* User footer */}
       <div className="flex items-center gap-3 p-4">
         <Avatar className="size-9 shrink-0">
+          <AvatarImage src={avatarUrl} alt={user?.fullName} />
           <AvatarFallback className="bg-primary/10 text-sm font-semibold text-primary">
             {initials}
           </AvatarFallback>

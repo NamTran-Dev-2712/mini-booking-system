@@ -3,4 +3,5 @@ export interface RegisterRequest {
   email: string;
   password: string;
   phoneNumber: string;
+  avatarUrl?: string | null;
 }

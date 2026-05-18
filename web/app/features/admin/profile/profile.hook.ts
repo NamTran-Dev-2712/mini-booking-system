@@ -3,14 +3,17 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useProfileQuery } from "~/hooks/auth/use-profile-query";
 import { useUpdateProfileMutation } from "~/hooks/auth/use-update-profile-mutation";
-import { userProfileSchema, type UserProfileFormData } from "./profile.schema";
+import {
+  adminProfileSchema,
+  type AdminProfileFormData,
+} from "./profile.schema";
 
-export function useUserProfileForm() {
+export function useAdminProfileForm() {
   const { data: profile, isPending } = useProfileQuery();
   const mutation = useUpdateProfileMutation();
 
-  const form = useForm<UserProfileFormData>({
-    resolver: zodResolver(userProfileSchema),
+  const form = useForm<AdminProfileFormData>({
+    resolver: zodResolver(adminProfileSchema),
     defaultValues: {
       fullName: "",
       phoneNumber: "",
@@ -28,7 +31,7 @@ export function useUserProfileForm() {
     }
   }, [profile, form]);
 
-  function onSubmit(data: UserProfileFormData) {
+  function onSubmit(data: AdminProfileFormData) {
     mutation.mutate({
       fullName: data.fullName,
       phoneNumber: data.phoneNumber,

@@ -1,6 +1,7 @@
 ﻿import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router";
+import { AvatarUpload } from "~/components/shared/avatar-upload";
 import { Button } from "~/components/ui/button";
 import {
   Form,
@@ -24,6 +25,23 @@ export function RegisterForm() {
     <div className="space-y-6">
       <Form {...form}>
         <form onSubmit={onSubmit} className="space-y-4">
+          <FormField
+            control={form.control}
+            name="avatarUrl"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <AvatarUpload
+                    currentUrl={field.value}
+                    onUploaded={(url) => field.onChange(url)}
+                    fallback={form.watch("fullName")?.charAt(0) || "U"}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <FormField
             control={form.control}
             name="fullName"

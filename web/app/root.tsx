@@ -53,9 +53,9 @@ export default function App() {
         </TooltipProvider>
       </HydrationBoundary>
       {/* TanStack Query Devtools — để bật lại, uncomment block dưới đây */}
-      {import.meta.env.DEV && (
+      {/* {import.meta.env.DEV && (
         <ReactQueryDevtools buttonPosition="bottom-left" />
-      )}
+      )} */}
     </QueryClientProvider>
   );
 }

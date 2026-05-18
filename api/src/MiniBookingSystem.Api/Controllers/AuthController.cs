@@ -161,4 +161,37 @@ public class AuthController : BaseApiController
 
         return OkResponse<object>(null!, "Password has been reset successfully.");
     }
+
+    [HttpPost("avatar")]
+    [EnableRateLimiting(CacheKeys.AuthRateLimitPolicy)]
+    [RequestSizeLimit(5 * 1024 * 1024)]
+    public async Task<IActionResult> UploadAvatar(
+        IFormFile file,
+        [FromServices] IFileStorageService fileStorageService,
+        [FromServices] Microsoft.Extensions.Options.IOptions<UploadOptions> uploadOptions,
+        CancellationToken cancellationToken
+    )
+    {
+        var options = uploadOptions.Value;
+
+        if (file.Length == 0)
+            throw new BadRequestException("File is empty.");
+
+        if (file.Length > options.MaxFileSizeBytes)
+            throw new BadRequestException(
+                $"File size exceeds the maximum allowed size of {options.MaxFileSizeBytes / (1024 * 1024)}MB."
+            );
+
+        if (!options.AllowedContentTypes.Contains(file.ContentType))
+            throw new BadRequestException($"File type '{file.ContentType}' is not allowed.");
+
+        await using var stream = file.OpenReadStream();
+        var avatarUrl = await fileStorageService.UploadAvatarAsync(
+            stream,
+            file.ContentType,
+            cancellationToken
+        );
+
+        return OkResponse(new { avatarUrl });
+    }
 }

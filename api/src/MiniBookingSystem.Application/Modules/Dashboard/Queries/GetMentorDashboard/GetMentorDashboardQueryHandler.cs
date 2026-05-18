@@ -65,18 +65,19 @@ public class GetMentorDashboardQueryHandler
 
         var totalRevenue = revenueList.FirstOrDefault();
 
-        var bookingTrend =
+        var bookingTrendRaw =
             await _unitOfWork.Booking.ToListAsync(
                 bookingQuery
                     .Where(b => b.BookedAt >= fromDate)
-                    .GroupBy(b => new { b.BookedAt.Year, b.BookedAt.Month })
-                    .Select(g => new TimeSeriesPoint(
-                        g.Key.Year + "-" + g.Key.Month.ToString("D2"),
-                        g.Count()
-                    ))
-                    .OrderBy(t => t.Label),
+                    .Select(b => new { b.BookedAt.Year, b.BookedAt.Month }),
                 cancellationToken
             ) ?? [];
+
+        var bookingTrend = bookingTrendRaw
+            .GroupBy(b => new { b.Year, b.Month })
+            .Select(g => new TimeSeriesPoint($"{g.Key.Year}-{g.Key.Month:D2}", g.Count()))
+            .OrderBy(t => t.Label)
+            .ToList();
 
         var result = new MentorDashboardDTO(
             totalBookings,

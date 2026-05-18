@@ -183,6 +183,10 @@ public static class DependencyInjection
         services.AddHangfireServer();
         services.AddScoped<IBackgroundJobService, HangfireBackgroundJobService>();
 
+        // Register File Storage
+        services.Configure<UploadOptions>(configuration.GetSection(ConfigurationValue.Uploads));
+        services.AddSingleton<IFileStorageService, LocalFileStorageService>();
+
         return services;
     }
 }
