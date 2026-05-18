@@ -18,6 +18,8 @@ export default [
   layout("routes/auth/_layout.tsx", [
     route("login", "routes/auth/login.tsx"),
     route("register", "routes/auth/register.tsx"),
+    route("forgot-password", "routes/auth/forgot-password.tsx"),
+    route("reset-password", "routes/auth/reset-password.tsx"),
   ]),
 
   // ── User (role: User) ──────────────────────────────────────────────────────

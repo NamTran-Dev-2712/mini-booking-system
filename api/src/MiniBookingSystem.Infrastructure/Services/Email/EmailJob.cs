@@ -52,4 +52,28 @@ public sealed class EmailJob : IEmailJob
 
         _logger.LogInformation("Welcome email sent successfully to {Email}", email);
     }
+
+    [AutomaticRetry(Attempts = 5, DelaysInSeconds = new[] { 60, 300, 900, 3600, 7200 })]
+    public async Task SendPasswordResetEmailAsync(
+        string to,
+        string fullName,
+        string otpCode,
+        string resetUrl
+    )
+    {
+        _logger.LogInformation("Sending password reset email to {Email}", to);
+
+        var model = new
+        {
+            FullName = fullName,
+            OtpCode = otpCode,
+            ResetUrl = resetUrl,
+        };
+
+        var htmlBody = await _templateService.RenderAsync("password-reset", model);
+
+        await _emailService.SendEmailAsync(to, "Password Reset - MiniBookingSystem", htmlBody);
+
+        _logger.LogInformation("Password reset email sent successfully to {Email}", to);
+    }
 }

@@ -25,4 +25,10 @@ public interface IIdentityService
         string refreshToken,
         CancellationToken cancellationToken = default
     );
+
+    Task ResetPasswordAsync(
+        Guid userId,
+        string newPassword,
+        CancellationToken cancellationToken = default
+    );
 }

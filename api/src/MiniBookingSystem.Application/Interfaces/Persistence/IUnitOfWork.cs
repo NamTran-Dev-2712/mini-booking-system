@@ -10,6 +10,7 @@ public interface IUnitOfWork
     IBookingRepository Booking { get; }
     IPaymentTransactionRepository PaymentTransaction { get; }
     IPaymentWebhookLogRepository PaymentWebhookLog { get; }
+    IPasswordResetTokenRepository PasswordResetToken { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     Task BeginTransactionAsync(CancellationToken cancellationToken = default);

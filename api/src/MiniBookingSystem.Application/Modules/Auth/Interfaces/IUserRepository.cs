@@ -10,6 +10,10 @@ public interface IUserRepository
         Guid? excludeUserId,
         CancellationToken cancellationToken = default
     );
+    Task<UserBasicInfo?> FindByEmailAsync(
+        string email,
+        CancellationToken cancellationToken = default
+    );
     Task UpdateUserAsync(
         Guid userId,
         string? fullName,

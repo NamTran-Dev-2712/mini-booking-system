@@ -79,12 +79,16 @@ apiClient.interceptors.response.use(
     const isRefreshEndpoint =
       originalRequest.url?.includes("/api/auth/refresh");
     const isLoginEndpoint = originalRequest.url?.includes("/api/auth/login");
+    const isPublicAuthEndpoint =
+      originalRequest.url?.includes("/api/auth/forgot-password") ||
+      originalRequest.url?.includes("/api/auth/reset-password");
 
     if (
       status === 401 &&
       !originalRequest._retry &&
       !isRefreshEndpoint &&
-      !isLoginEndpoint
+      !isLoginEndpoint &&
+      !isPublicAuthEndpoint
     ) {
       if (isRefreshing) {
         // Another refresh is already in-flight — queue this request

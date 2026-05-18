@@ -8,6 +8,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
         : base(options) { }
 
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
     public DbSet<Booking> Bookings => Set<Booking>();
     public DbSet<Mentor> Mentors => Set<Mentor>();
     public DbSet<MentorSkill> MentorSkills => Set<MentorSkill>();

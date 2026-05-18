@@ -133,4 +133,16 @@ public class UserRepository : IUserRepository
     {
         return await _userManager.Users.CountAsync(u => !u.IsDeleted, cancellationToken);
     }
+
+    public async Task<UserBasicInfo?> FindByEmailAsync(
+        string email,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var user = await _userManager.FindByEmailAsync(email);
+        if (user is null || user.IsDeleted)
+            return null;
+
+        return new UserBasicInfo(user.Id, user.FullName, user.Email!);
+    }
 }

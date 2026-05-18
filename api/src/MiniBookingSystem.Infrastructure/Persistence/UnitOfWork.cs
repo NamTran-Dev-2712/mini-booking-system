@@ -20,6 +20,7 @@ public class UnitOfWork : IUnitOfWork
     private IBookingRepository? _bookingRepository;
     private IPaymentTransactionRepository? _paymentTransactionRepository;
     private IPaymentWebhookLogRepository? _paymentWebhookLogRepository;
+    private IPasswordResetTokenRepository? _passwordResetTokenRepository;
 
     // lazy loading of repositories
     public IUserRepository User => _userRepository ??= new UserRepository(_userManager);
@@ -33,6 +34,8 @@ public class UnitOfWork : IUnitOfWork
         _paymentTransactionRepository ??= new PaymentRepository(_context);
     public IPaymentWebhookLogRepository PaymentWebhookLog =>
         _paymentWebhookLogRepository ??= new PaymentWebhookLogRepository(_context);
+    public IPasswordResetTokenRepository PasswordResetToken =>
+        _passwordResetTokenRepository ??= new PasswordResetTokenRepository(_context);
 
     public IGenericRepository<T> Repository<T>()
         where T : class

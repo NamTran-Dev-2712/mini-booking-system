@@ -207,4 +207,26 @@ public class IdentityService : IIdentityService
             Roles: roles
         );
     }
+
+    public async Task ResetPasswordAsync(
+        Guid userId,
+        string newPassword,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user is null)
+            throw new NotFoundException("User", userId);
+
+        var passwordHash = _userManager.PasswordHasher.HashPassword(user, newPassword);
+        user.PasswordHash = passwordHash;
+        user.SecurityStamp = Guid.NewGuid().ToString();
+
+        var result = await _userManager.UpdateAsync(user);
+        if (!result.Succeeded)
+        {
+            var errors = result.Errors.Select(e => e.Description).ToList();
+            throw new BadRequestException("Failed to reset password.", errors);
+        }
+    }
 }

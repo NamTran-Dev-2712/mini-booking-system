@@ -134,4 +134,31 @@ public class AuthController : BaseApiController
 
         return NoContentResponse("Logged out successfully");
     }
+
+    [HttpPost("forgot-password")]
+    [EnableRateLimiting(CacheKeys.AuthRateLimitPolicy)]
+    public async Task<IActionResult> ForgotPassword(
+        ForgotPasswordCommand command,
+        CancellationToken cancellationToken
+    )
+    {
+        await _mediator.Send(command, cancellationToken);
+
+        return OkResponse<object>(
+            null!,
+            "If an account exists with this email, you will receive a password reset link shortly."
+        );
+    }
+
+    [HttpPost("reset-password")]
+    [EnableRateLimiting(CacheKeys.AuthRateLimitPolicy)]
+    public async Task<IActionResult> ResetPassword(
+        ResetPasswordCommand command,
+        CancellationToken cancellationToken
+    )
+    {
+        await _mediator.Send(command, cancellationToken);
+
+        return OkResponse<object>(null!, "Password has been reset successfully.");
+    }
 }
