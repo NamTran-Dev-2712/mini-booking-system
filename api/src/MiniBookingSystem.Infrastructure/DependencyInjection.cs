@@ -151,6 +151,7 @@ public static class DependencyInjection
         // Register background jobs
         services.AddHostedService<ExpiredBookingCleanupJob>();
         services.AddHostedService<CompletedBookingJob>();
+        services.AddHostedService<RefreshTokenCleanupJob>();
 
         // Register Email Infrastructure (Resend)
         services.Configure<ResendOptions>(configuration.GetSection(ConfigurationValue.Resend));

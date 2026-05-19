@@ -3,6 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Badge } from "~/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Separator } from "~/components/ui/separator";
+import { ChangePasswordForm } from "~/features/auth/change-password/change-password.form";
 import { AdminProfileForm } from "~/features/admin/profile/profile.form";
 import { useProfileQuery } from "~/hooks/auth/use-profile-query";
 import { useCurrentUser } from "~/hooks/use-auth";
@@ -79,6 +80,17 @@ export default function AdminProfile() {
         <Separator />
         <CardContent className="pt-6">
           <AdminProfileForm />
+        </CardContent>
+      </Card>
+
+      {/* Change Password */}
+      <Card>
+        <CardHeader className="pb-4">
+          <CardTitle className="text-base">Change Password</CardTitle>
+        </CardHeader>
+        <Separator />
+        <CardContent className="pt-6">
+          <ChangePasswordForm />
         </CardContent>
       </Card>
     </div>

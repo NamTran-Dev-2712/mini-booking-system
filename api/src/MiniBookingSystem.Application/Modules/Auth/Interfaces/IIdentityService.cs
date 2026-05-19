@@ -32,4 +32,11 @@ public interface IIdentityService
         string newPassword,
         CancellationToken cancellationToken = default
     );
+
+    Task ChangePasswordAsync(
+        Guid userId,
+        string currentPassword,
+        string newPassword,
+        CancellationToken cancellationToken = default
+    );
 }

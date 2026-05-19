@@ -2,6 +2,7 @@ import { Mail, Phone } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Separator } from "~/components/ui/separator";
+import { ChangePasswordForm } from "~/features/auth/change-password/change-password.form";
 import { UserProfileForm } from "~/features/user/profile/profile.form";
 import { useProfileQuery } from "~/hooks/auth/use-profile-query";
 import { useCurrentUser } from "~/hooks/use-auth";
@@ -72,6 +73,17 @@ export default function UserProfile() {
         <Separator />
         <CardContent className="pt-6">
           <UserProfileForm />
+        </CardContent>
+      </Card>
+
+      {/* Change Password */}
+      <Card>
+        <CardHeader className="pb-4">
+          <CardTitle className="text-base">Change Password</CardTitle>
+        </CardHeader>
+        <Separator />
+        <CardContent className="pt-6">
+          <ChangePasswordForm />
         </CardContent>
       </Card>
     </div>

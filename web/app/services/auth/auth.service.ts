@@ -1,6 +1,7 @@
 import type { AxiosResponse } from "axios";
 import apiClient from "~/lib/axios.config";
 import type { ApiResponse } from "~/types/global/api.response";
+import type { ChangePasswordRequest } from "./dtos/commands/change-password/request";
 import type { ForgotPasswordRequest } from "./dtos/commands/forgot-password/request";
 import type { LoginRequest } from "./dtos/commands/login/login.request";
 import type { LoginResponse } from "./dtos/commands/login/login.response";
@@ -51,5 +52,9 @@ export const authService = {
 
   async resetPassword(data: ResetPasswordRequest): Promise<void> {
     await apiClient.post("/api/auth/reset-password", data);
+  },
+
+  async changePassword(data: ChangePasswordRequest): Promise<void> {
+    await apiClient.post("/api/auth/change-password", data);
   },
 };

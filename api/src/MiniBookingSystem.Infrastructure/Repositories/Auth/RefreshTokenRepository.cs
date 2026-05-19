@@ -64,4 +64,16 @@ public class RefreshTokenRepository : GenericRepository<RefreshToken>, IRefreshT
         );
         return token;
     }
+
+    public async Task<int> DeleteExpiredAndRevokedAsync(
+        DateTime cutoffUtc,
+        CancellationToken cancellationToken = default
+    )
+    {
+        return await _dbContext
+            .RefreshTokens.Where(t =>
+                (t.ExpiresAt < cutoffUtc) || (t.RevokedAt != null && t.RevokedAt < cutoffUtc)
+            )
+            .ExecuteDeleteAsync(cancellationToken);
+    }
 }

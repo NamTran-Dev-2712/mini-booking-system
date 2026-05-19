@@ -11,6 +11,7 @@ import { Badge } from "~/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Separator } from "~/components/ui/separator";
 import { Skeleton } from "~/components/ui/skeleton";
+import { ChangePasswordForm } from "~/features/auth/change-password/change-password.form";
 import { MentorProfileForm } from "~/features/mentor/profile/profile.form";
 import { useMyMentorProfile } from "~/hooks/mentor/use-my-mentor-profile";
 import { useCurrentUser } from "~/hooks/use-auth";
@@ -213,6 +214,17 @@ export default function MentorProfile() {
         <Separator />
         <CardContent className="pt-6">
           <MentorProfileForm />
+        </CardContent>
+      </Card>
+
+      {/* Change Password */}
+      <Card>
+        <CardHeader className="pb-4">
+          <CardTitle className="text-base">Change Password</CardTitle>
+        </CardHeader>
+        <Separator />
+        <CardContent className="pt-6">
+          <ChangePasswordForm />
         </CardContent>
       </Card>
     </div>

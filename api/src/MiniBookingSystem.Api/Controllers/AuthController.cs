@@ -135,6 +135,31 @@ public class AuthController : BaseApiController
         return NoContentResponse("Logged out successfully");
     }
 
+    [HttpPost("change-password")]
+    [Authorize]
+    public async Task<IActionResult> ChangePassword(
+        ChangePasswordRequest request,
+        CancellationToken cancellationToken
+    )
+    {
+        var userId = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+
+        if (string.IsNullOrEmpty(userId))
+            throw new UnauthorizedException("User ID claim is missing");
+
+        var command = new ChangePasswordCommand(
+            Guid.Parse(userId),
+            request.CurrentPassword,
+            request.NewPassword
+        );
+
+        await _mediator.Send(command, cancellationToken);
+
+        ClearAuthCookies();
+
+        return OkResponse<object>(null!, "Password changed successfully. Please login again.");
+    }
+
     [HttpPost("forgot-password")]
     [EnableRateLimiting(CacheKeys.AuthRateLimitPolicy)]
     public async Task<IActionResult> ForgotPassword(

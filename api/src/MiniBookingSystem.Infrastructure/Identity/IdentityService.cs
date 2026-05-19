@@ -232,4 +232,28 @@ public class IdentityService : IIdentityService
             throw new BadRequestException("Failed to reset password.", errors);
         }
     }
+
+    public async Task ChangePasswordAsync(
+        Guid userId,
+        string currentPassword,
+        string newPassword,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user is null)
+            throw new NotFoundException("User", userId);
+
+        var result = await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
+        if (!result.Succeeded)
+        {
+            var errors = result.Errors.Select(e => e.Description).ToList();
+            if (errors.Any(e => e.Contains("Incorrect password")))
+                throw new UnauthorizedException("Current password is incorrect.");
+
+            throw new BadRequestException("Failed to change password.", errors);
+        }
+
+        await _refreshTokenRepository.RemoveRefreshTokenAsync(userId.ToString());
+    }
 }
