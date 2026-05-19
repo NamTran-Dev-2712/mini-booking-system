@@ -81,6 +81,7 @@ public sealed class UpdateSlotMentorCommandHandlerTests
     {
         // Arrange
         var command = MentorTestData.BuildUpdateSlotCommand(
+            name: "Afternoon Session",
             description: "Updated description",
             maxBookings: 3
         );
@@ -90,6 +91,7 @@ public sealed class UpdateSlotMentorCommandHandlerTests
         await _sut.Handle(command, CancellationToken.None);
 
         // Assert
+        slot.Name.Should().Be(command.Name);
         slot.StartTime.Should().Be(command.StartTime);
         slot.EndTime.Should().Be(command.EndTime);
         slot.Price.Should().Be(command.Price);

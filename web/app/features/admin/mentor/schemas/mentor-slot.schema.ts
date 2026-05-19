@@ -2,6 +2,10 @@ import { z } from "zod";
 
 export const mentorSlotSchema = z
   .object({
+    name: z
+      .string()
+      .min(1, "Name is required")
+      .max(200, "Name cannot exceed 200 characters"),
     startTime: z.string().min(1, "Start time is required"),
     endTime: z.string().min(1, "End time is required"),
     price: z

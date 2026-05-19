@@ -2,11 +2,12 @@ public record AuthResult(
     string UserId,
     string FullName,
     string Email,
-    string PhoneNumber,
+    string? PhoneNumber,
     string AccessToken,
     string RefreshToken,
     DateTime ExpiresIn,
     DateTime RefreshTokenExpiresAt,
     DateTime CreatedAt,
-    IEnumerable<string> Roles
+    IEnumerable<string> Roles,
+    bool RequiresProfileCompletion = false
 );

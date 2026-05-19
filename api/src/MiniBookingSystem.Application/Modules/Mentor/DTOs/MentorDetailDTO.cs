@@ -13,6 +13,7 @@ public class MentorSkillDTO
 public class MentorSlotDTO
 {
     public Guid Id { get; init; }
+    public string Name { get; init; } = default!;
     public DateTime StartTime { get; init; }
     public DateTime EndTime { get; init; }
     public MentorSlotStatus Status { get; init; }

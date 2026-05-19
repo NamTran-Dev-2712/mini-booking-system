@@ -29,6 +29,32 @@ public sealed class CreateSlotMentorValidatorTests
             .WithErrorMessage("MentorId is required.");
     }
 
+    // ── Name rules ────────────────────────────────────────────────────────
+
+    [Fact]
+    public void Validate_WhenNameIsEmpty_HasRequiredError()
+    {
+        var result = _validator.TestValidate(ValidCommand() with { Name = "" });
+        result.ShouldHaveValidationErrorFor(x => x.Name).WithErrorMessage("Name is required.");
+    }
+
+    [Fact]
+    public void Validate_WhenNameExceeds200Characters_HasMaxLengthError()
+    {
+        var result = _validator.TestValidate(ValidCommand() with { Name = new string('a', 201) });
+        result
+            .ShouldHaveValidationErrorFor(x => x.Name)
+            .WithErrorMessage("Name cannot exceed 200 characters.");
+    }
+
+    [Fact]
+    public void Validate_WhenNameIsValid_HasNoError()
+    {
+        _validator
+            .TestValidate(ValidCommand() with { Name = "Morning Session" })
+            .ShouldNotHaveValidationErrorFor(x => x.Name);
+    }
+
     // ── StartTime rules ────────────────────────────────────────────────────
 
     [Fact]

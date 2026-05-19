@@ -122,11 +122,11 @@ export function MentorSlotsTab({
                         <div className="flex items-center gap-2">
                           <Clock className="size-4 shrink-0 text-muted-foreground" />
                           <div>
-                            <p className="text-sm font-medium">
+                            <p className="text-sm font-semibold">{slot.name}</p>
+                            <p className="text-xs text-muted-foreground">
                               {format(new Date(slot.startTime), "HH:mm")} —{" "}
                               {format(new Date(slot.endTime), "HH:mm")}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
+                              {" · "}
                               {Math.round(
                                 (new Date(slot.endTime).getTime() -
                                   new Date(slot.startTime).getTime()) /

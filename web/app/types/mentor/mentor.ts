@@ -43,6 +43,7 @@ export interface MentorSkill {
 
 export interface MentorSlot {
   id: string;
+  name: string;
   startTime: string; // ISO string
   endTime: string; // ISO string
   status: SlotStatus;

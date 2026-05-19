@@ -22,6 +22,9 @@ export default [
     route("reset-password", "routes/auth/reset-password.tsx"),
   ]),
 
+  // ── Complete Profile (outside auth layout to avoid redirectIfAuthenticated) ─
+  route("auth/complete-profile", "routes/auth/complete-profile.tsx"),
+
   // ── User (role: User) ──────────────────────────────────────────────────────
   layout("routes/user/_layout.tsx", [
     route("user", "routes/user/dashboard.tsx"),

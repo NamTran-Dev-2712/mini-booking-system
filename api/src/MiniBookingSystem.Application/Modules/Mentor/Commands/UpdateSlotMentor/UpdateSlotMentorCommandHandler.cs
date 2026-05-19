@@ -38,6 +38,7 @@ public class UpdateSlotMentorCommandHandler : IRequestHandler<UpdateSlotMentorCo
         if (mentorSlot == null)
             throw new NotFoundException($"Slot", request.Id.ToString());
 
+        mentorSlot.Name = request.Name;
         mentorSlot.StartTime = request.StartTime;
         mentorSlot.EndTime = request.EndTime;
         mentorSlot.Price = request.Price;

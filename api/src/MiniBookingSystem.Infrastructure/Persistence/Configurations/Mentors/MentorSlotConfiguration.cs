@@ -9,6 +9,8 @@ public class MentorSlotConfiguration : IEntityTypeConfiguration<MentorSlot>
 
         builder.HasKey(ms => ms.Id);
 
+        builder.Property(ms => ms.Name).IsRequired().HasMaxLength(200);
+
         builder.Property(ms => ms.StartTime).IsRequired();
 
         builder.Property(ms => ms.EndTime).IsRequired();

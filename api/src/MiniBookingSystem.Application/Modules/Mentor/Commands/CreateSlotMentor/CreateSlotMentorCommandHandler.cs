@@ -37,6 +37,7 @@ public class CreateSlotMentorCommandHandler : IRequestHandler<CreateSlotMentorCo
         {
             Id = Guid.NewGuid(),
             MentorId = request.MentorId,
+            Name = request.Name,
             StartTime = request.StartTime,
             EndTime = request.EndTime,
             Price = request.Price,

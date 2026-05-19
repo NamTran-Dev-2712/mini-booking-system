@@ -57,4 +57,12 @@ export const authService = {
   async changePassword(data: ChangePasswordRequest): Promise<void> {
     await apiClient.post("/api/auth/change-password", data);
   },
+
+  initiateGoogleLogin(): void {
+    window.location.href = `${apiClient.defaults.baseURL}/api/auth/google`;
+  },
+
+  async completeProfile(data: { phoneNumber: string }): Promise<void> {
+    await apiClient.post("/api/auth/complete-profile", data);
+  },
 };

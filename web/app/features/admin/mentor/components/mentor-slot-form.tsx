@@ -53,6 +53,7 @@ export function MentorSlotForm({
     resolver: zodResolver(mentorSlotSchema),
     defaultValues: slot
       ? {
+          name: slot.name,
           startTime: toDatetimeLocal(slot.startTime),
           endTime: toDatetimeLocal(slot.endTime),
           price: slot.price,
@@ -60,6 +61,7 @@ export function MentorSlotForm({
           description: slot.description ?? "",
         }
       : {
+          name: "",
           startTime: "",
           endTime: "",
           price: 0,
@@ -70,6 +72,7 @@ export function MentorSlotForm({
 
   async function onSubmit(data: MentorSlotFormData) {
     const payload = {
+      name: data.name,
       startTime: fromDatetimeLocal(data.startTime),
       endTime: fromDatetimeLocal(data.endTime),
       price: data.price,
@@ -98,6 +101,20 @@ export function MentorSlotForm({
         className="space-y-4"
         id="slot-form"
       >
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Name *</FormLabel>
+              <FormControl>
+                <Input placeholder="e.g. Morning Session" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <FormField
             control={form.control}

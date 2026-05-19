@@ -15,6 +15,20 @@ public interface IIdentityService
         CancellationToken cancellationToken = default
     );
 
+    Task<AuthResult> GoogleLoginAsync(
+        string email,
+        string? name,
+        string? avatarUrl,
+        string googleUserId,
+        CancellationToken cancellationToken = default
+    );
+
+    Task CompleteProfileAsync(
+        Guid userId,
+        string phoneNumber,
+        CancellationToken cancellationToken = default
+    );
+
     Task<bool> CheckPasswordAsync(
         string email,
         string password,

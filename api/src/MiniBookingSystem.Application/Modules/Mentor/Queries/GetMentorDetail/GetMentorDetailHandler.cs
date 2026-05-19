@@ -66,6 +66,7 @@ public class GetMentorDetailHandler : IRequestHandler<GetMentorDetailQuery, Ment
                 .Select(ms => new MentorSlotDTO
                 {
                     Id = ms.Id,
+                    Name = ms.Name,
                     StartTime = ms.StartTime,
                     EndTime = ms.EndTime,
                     Status = ms.Status,

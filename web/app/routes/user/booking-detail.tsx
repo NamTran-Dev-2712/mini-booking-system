@@ -296,6 +296,7 @@ export default function BookingDetailPage({ params }: Route.ComponentProps) {
             <div className="flex items-center gap-3 text-sm">
               <Calendar className="size-4 text-muted-foreground" />
               <div>
+                <p className="font-semibold">{booking.mentorSlot.name}</p>
                 <p className="font-medium">
                   {formatDateTime(booking.mentorSlot.startTime)}
                 </p>

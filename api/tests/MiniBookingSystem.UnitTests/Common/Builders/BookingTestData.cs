@@ -89,6 +89,7 @@ internal static class BookingTestData
             MentorSlot = new MentorSlotDTO
             {
                 Id = Valid.SlotId,
+                Name = "Test Slot",
                 StartTime = DateTime.UtcNow.AddDays(1),
                 EndTime = DateTime.UtcNow.AddDays(1).AddHours(1),
                 Status = MentorSlotStatus.Available,

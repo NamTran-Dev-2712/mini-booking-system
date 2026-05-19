@@ -143,6 +143,47 @@ public sealed class CreateSlotMentorCommandHandlerTests
         _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
+    [Fact]
+    public async Task Handle_SetsNameFromCommand()
+    {
+        // Arrange
+        var command = MentorTestData.BuildCreateSlotCommand(name: "Morning Session");
+        MentorSlot? captured = null;
+
+        _mentorRepo
+            .Setup(r => r.GetByIdAsync(command.MentorId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(MentorTestData.BuildMentor(id: command.MentorId));
+        _mentorSlotRepo
+            .Setup(r =>
+                r.IsSlotOverlappingAsync(
+                    command.MentorId,
+                    command.StartTime,
+                    command.EndTime,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(false);
+        _mentorSlotRepo
+            .Setup(r => r.AddAsync(It.IsAny<MentorSlot>(), It.IsAny<CancellationToken>()))
+            .Callback<MentorSlot, CancellationToken>((ms, _) => captured = ms)
+            .ReturnsAsync((MentorSlot ms, CancellationToken _) => ms);
+        _unitOfWork.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        _cacheService
+            .Setup(c =>
+                c.RemoveAsync(
+                    CacheKeys.MentorDetail(command.MentorId),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Returns(Task.CompletedTask);
+
+        // Act
+        await _sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        captured!.Name.Should().Be("Morning Session");
+    }
+
     // ── Error paths ────────────────────────────────────────────────────────
 
     [Fact]

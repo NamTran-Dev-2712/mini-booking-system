@@ -1,5 +1,6 @@
 ﻿import { Button } from "~/components/ui/button";
 import { Separator } from "~/components/ui/separator";
+import { authService } from "~/services/auth/auth.service";
 
 function GitHubIcon({ className }: { className?: string }) {
   return (
@@ -33,7 +34,7 @@ export function SocialForm({ action: _action }: SocialFormProps) {
           variant="outline"
           className="w-full"
           onClick={() => {
-            // TODO: OAuth Google
+            authService.initiateGoogleLogin();
           }}
         >
           <svg className="size-4 mr-2" viewBox="0 0 24 24" aria-hidden="true">

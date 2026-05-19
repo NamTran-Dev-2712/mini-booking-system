@@ -11,7 +11,14 @@ public class UpdateSlotMentorCommandValidator : AbstractValidator<UpdateSlotMent
         // 2. Validate MentorId
         RuleFor(x => x.MentorId).NotEmpty().WithMessage("MentorId is required.");
 
-        // 3. Validate StartTime
+        // 3. Validate Name
+        RuleFor(x => x.Name)
+            .NotEmpty()
+            .WithMessage("Name is required.")
+            .MaximumLength(200)
+            .WithMessage("Name cannot exceed 200 characters.");
+
+        // 4. Validate StartTime
         RuleFor(x => x.StartTime)
             .NotEmpty()
             .WithMessage("StartTime is required.")

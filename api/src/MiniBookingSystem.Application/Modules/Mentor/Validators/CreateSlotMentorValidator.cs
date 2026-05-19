@@ -5,10 +5,17 @@ public class CreateSlotMentorCommandValidator : AbstractValidator<CreateSlotMent
 {
     public CreateSlotMentorCommandValidator()
     {
-        // 1. Validate M entorId
+        // 1. Validate MentorId
         RuleFor(x => x.MentorId).NotEmpty().WithMessage("MentorId is required.");
 
-        // 2. Validate StartTime
+        // 2. Validate Name
+        RuleFor(x => x.Name)
+            .NotEmpty()
+            .WithMessage("Name is required.")
+            .MaximumLength(200)
+            .WithMessage("Name cannot exceed 200 characters.");
+
+        // 3. Validate StartTime
         RuleFor(x => x.StartTime)
             .NotEmpty()
             .WithMessage("StartTime is required.")

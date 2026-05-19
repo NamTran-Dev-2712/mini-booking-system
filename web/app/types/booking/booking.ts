@@ -19,6 +19,7 @@ export const BOOKING_STATUS_LABEL: Record<BookingStatusValue, string> = {
 
 export interface BookingMentorSlot {
   id: string;
+  name: string;
   startTime: string;
   endTime: string;
   status: number;

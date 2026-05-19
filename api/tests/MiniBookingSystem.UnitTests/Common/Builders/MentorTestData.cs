@@ -71,6 +71,7 @@ internal static class MentorTestData
     public static MentorSlot BuildMentorSlot(
         Guid? id = null,
         Guid? mentorId = null,
+        string? name = null,
         MentorSlotStatus status = MentorSlotStatus.Available,
         DateTime? startTime = null,
         DateTime? endTime = null,
@@ -83,6 +84,7 @@ internal static class MentorTestData
         {
             Id = id ?? Valid.SlotId,
             MentorId = mentorId ?? Valid.MentorId,
+            Name = name ?? "Test Slot",
             StartTime = start,
             EndTime = endTime ?? start.AddHours(1),
             Price = Valid.BasePrice,
@@ -118,6 +120,7 @@ internal static class MentorTestData
 
     public static CreateSlotMentorCommand BuildCreateSlotCommand(
         Guid? mentorId = null,
+        string? name = null,
         DateTime? start = null,
         DateTime? end = null,
         decimal? price = null,
@@ -129,6 +132,7 @@ internal static class MentorTestData
         var e = end ?? s.AddHours(1);
         return new(
             MentorId: mentorId ?? Valid.MentorId,
+            Name: name ?? "Test Slot",
             StartTime: s,
             EndTime: e,
             Description: description,
@@ -153,6 +157,7 @@ internal static class MentorTestData
     public static UpdateSlotMentorCommand BuildUpdateSlotCommand(
         Guid? slotId = null,
         Guid? mentorId = null,
+        string? name = null,
         string? description = null,
         int maxBookings = 1
     )
@@ -161,6 +166,7 @@ internal static class MentorTestData
         return new(
             Id: slotId ?? Valid.SlotId,
             MentorId: mentorId ?? Valid.MentorId,
+            Name: name ?? "Updated Slot",
             StartTime: start,
             EndTime: start.AddHours(2),
             Price: 700_000m,
@@ -185,6 +191,7 @@ internal static class MentorTestData
                 new MentorSlotDTO
                 {
                     Id = Valid.SlotId,
+                    Name = "Test Slot",
                     StartTime = DateTime.UtcNow.AddDays(1),
                     EndTime = DateTime.UtcNow.AddDays(1).AddHours(1),
                     Status = MentorSlotStatus.Available,

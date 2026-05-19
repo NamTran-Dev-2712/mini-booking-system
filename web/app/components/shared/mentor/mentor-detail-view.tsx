@@ -77,6 +77,7 @@ function SlotCard({
       )}
     >
       <div className="space-y-1">
+        <p className="text-sm font-semibold">{slot.name}</p>
         <div className="flex items-center gap-2 text-sm font-medium">
           <Clock className="size-3.5 text-muted-foreground" />
           <span>{formatSlotTime(slot.startTime)}</span>

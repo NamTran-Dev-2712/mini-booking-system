@@ -145,6 +145,9 @@ function BookingCard({
               </Badge>
             </div>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+              <span className="font-medium text-foreground">
+                {booking.mentorSlot.name}
+              </span>
               <span className="flex items-center gap-1">
                 <Clock className="size-3" />
                 {formatSlotTime(booking.mentorSlot.startTime)}

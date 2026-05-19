@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using MediatR;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -10,10 +11,12 @@ using Microsoft.AspNetCore.RateLimiting;
 public class AuthController : BaseApiController
 {
     private readonly ISender _mediator;
+    private readonly IConfiguration _configuration;
 
-    public AuthController(ISender mediator)
+    public AuthController(ISender mediator, IConfiguration configuration)
     {
         _mediator = mediator;
+        _configuration = configuration;
     }
 
     [HttpPost("register")]
@@ -218,5 +221,79 @@ public class AuthController : BaseApiController
         );
 
         return OkResponse(new { avatarUrl });
+    }
+
+    [HttpGet("google")]
+    public IActionResult GoogleLogin()
+    {
+        var redirectUrl = Url.Action(nameof(GoogleCallback), "Auth", null, Request.Scheme)!;
+        var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
+        return Challenge(properties, "Google");
+    }
+
+    [HttpGet("google/callback")]
+    public async Task<IActionResult> GoogleCallback(CancellationToken cancellationToken)
+    {
+        var frontendUrl = _configuration["BaseUrl:Frontend"] ?? "http://localhost:5173";
+
+        var result = await HttpContext.AuthenticateAsync("Identity.External");
+        if (!result.Succeeded)
+            return Redirect($"{frontendUrl}/login?error=google_failed");
+
+        var principal = result.Principal!;
+        var email = principal.FindFirstValue(ClaimTypes.Email);
+        if (string.IsNullOrEmpty(email))
+            return Redirect($"{frontendUrl}/login?error=google_no_email");
+
+        var name = principal.FindFirstValue(ClaimTypes.Name);
+        var avatarUrl =
+            principal.FindFirstValue("urn:google:picture") ?? principal.FindFirstValue("picture");
+        var googleUserId = principal.FindFirstValue(ClaimTypes.NameIdentifier)!;
+
+        var authResult = await _mediator.Send(
+            new GoogleLoginCommand(email, name, avatarUrl, googleUserId),
+            cancellationToken
+        );
+
+        SetAuthCookie(
+            authResult.AccessToken,
+            authResult.RefreshToken,
+            authResult.ExpiresIn,
+            authResult.RefreshTokenExpiresAt
+        );
+
+        // Clean up external cookie
+        await HttpContext.SignOutAsync("Identity.External");
+
+        if (authResult.RequiresProfileCompletion)
+            return Redirect($"{frontendUrl}/auth/complete-profile");
+
+        var role = authResult.Roles.FirstOrDefault() ?? "User";
+        var dashboard = role switch
+        {
+            "Admin" => "/admin",
+            "Mentor" => "/mentor",
+            _ => "/user",
+        };
+        return Redirect($"{frontendUrl}{dashboard}");
+    }
+
+    [HttpPost("complete-profile")]
+    [Authorize]
+    public async Task<IActionResult> CompleteProfile(
+        [FromBody] CompleteProfileRequest request,
+        CancellationToken cancellationToken
+    )
+    {
+        var userId = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+        if (string.IsNullOrEmpty(userId))
+            throw new UnauthorizedException("User ID claim is missing");
+
+        await _mediator.Send(
+            new CompleteProfileCommand(Guid.Parse(userId), request.PhoneNumber),
+            cancellationToken
+        );
+
+        return OkResponse<object>(null!, "Profile completed successfully.");
     }
 }

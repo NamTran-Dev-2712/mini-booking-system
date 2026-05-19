@@ -115,7 +115,7 @@ export function BookingConfirmDialog({
           <div className="rounded-lg border bg-muted/50 p-4 space-y-3">
             <div className="flex items-center gap-2 text-sm">
               <CalendarDays className="size-4 text-muted-foreground" />
-              <span className="font-medium">Session Time</span>
+              <span className="font-medium">{slot.name}</span>
             </div>
             <div className="pl-6 space-y-1 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">

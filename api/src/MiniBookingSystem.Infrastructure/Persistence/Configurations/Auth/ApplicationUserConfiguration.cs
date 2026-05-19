@@ -16,9 +16,12 @@ public class ApplicationUserConfiguration : IEntityTypeConfiguration<Application
         builder.Property(u => u.UpdatedAt);
         builder.Property(u => u.DeletedAt);
 
-        builder.Property(u => u.PhoneNumber).IsRequired().HasMaxLength(15);
+        builder.Property(u => u.PhoneNumber).HasMaxLength(15);
 
-        builder.HasIndex(u => u.PhoneNumber).IsUnique().HasFilter("is_deleted = false");
+        builder
+            .HasIndex(u => u.PhoneNumber)
+            .IsUnique()
+            .HasFilter("phone_number IS NOT NULL AND is_deleted = false");
 
         // Relationships được config tại entity sở hữu FK (dependent side):
         // - Mentor → ApplicationUser  : trong MentorConfiguration

@@ -90,6 +90,27 @@ public static class DependencyInjection
                         return Task.CompletedTask;
                     },
                 };
+            })
+            .AddCookie(
+                "Identity.External",
+                options =>
+                {
+                    options.Cookie.Name = "ExternalLogin";
+                    options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
+                }
+            )
+            .AddGoogle(options =>
+            {
+                options.ClientId =
+                    configuration["Google:ClientId"]
+                    ?? throw new InvalidOperationException("Google:ClientId is not configured.");
+                options.ClientSecret =
+                    configuration["Google:ClientSecret"]
+                    ?? throw new InvalidOperationException(
+                        "Google:ClientSecret is not configured."
+                    );
+                options.SignInScheme = "Identity.External";
+                options.CallbackPath = "/signin-google";
             });
 
         // Configure cache options

@@ -2,17 +2,20 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace MiniBookingSystem.Infrastructure.Migrations
+namespace MiniBookingSystem.Infrastructure.Persistence.DbContext.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260519071855_AddNameToMentorSlot")]
+    partial class AddNameToMentorSlot
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -154,6 +157,7 @@ namespace MiniBookingSystem.Infrastructure.Migrations
                         .HasColumnName("password_hash");
 
                     b.Property<string>("PhoneNumber")
+                        .IsRequired()
                         .HasMaxLength(15)
                         .HasColumnType("character varying(15)")
                         .HasColumnName("phone_number");
@@ -192,7 +196,7 @@ namespace MiniBookingSystem.Infrastructure.Migrations
                     b.HasIndex("PhoneNumber")
                         .IsUnique()
                         .HasDatabaseName("ix_users_phone_number")
-                        .HasFilter("phone_number IS NOT NULL AND is_deleted = false");
+                        .HasFilter("is_deleted = false");
 
                     b.ToTable("users", (string)null);
                 });

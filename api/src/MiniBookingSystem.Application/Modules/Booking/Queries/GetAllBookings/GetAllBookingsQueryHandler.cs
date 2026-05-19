@@ -43,6 +43,7 @@ public class GetAllBookingsQueryHandler
             MentorSlot = new MentorSlotDTO
             {
                 Id = b.MentorSlot.Id,
+                Name = b.MentorSlot.Name,
                 Price = b.MentorSlot.Price,
                 StartTime = b.MentorSlot.StartTime,
                 EndTime = b.MentorSlot.EndTime,
