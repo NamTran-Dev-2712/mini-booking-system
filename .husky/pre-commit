@@ -1,0 +1,16 @@
+#!/bin/sh
+
+# Pre-commit hook: format, build, typecheck, test
+# Fails fast — first failure blocks the commit
+
+# 1. Format staged files (Prettier for web, CSharpier for .NET)
+bunx lint-staged || exit 1
+
+# 2. Build .NET solution
+dotnet build api/MiniBookingSystem.slnx --no-restore -c Release -consoleLoggerParameters:NoSummary -v quiet || exit 1
+
+# 3. Typecheck web
+(cd web && bun run typecheck) || exit 1
+
+# 4. Run .NET unit tests
+dotnet test api/MiniBookingSystem.slnx --no-build -c Release -v quiet || exit 1

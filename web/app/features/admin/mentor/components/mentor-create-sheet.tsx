@@ -40,7 +40,6 @@ export function MentorCreateSheet({
     await mutateAsync({
       fullName: data.fullName,
       email: data.email,
-      password: data.password,
       phoneNumber: data.phoneNumber,
       displayName: data.displayName || null,
       bio: data.bio || null,
