@@ -2,26 +2,30 @@
 set -euo pipefail
 
 # Health check script
-# Usage: ./health-check.sh [base_url]
+# Usage: ./health-check.sh
 # Returns exit code 0 if healthy, 1 if not
 
-BASE_URL="${1:-http://localhost}"
+DEPLOY_DIR="/opt/mini-booking-system"
+source "${DEPLOY_DIR}/.env.production"
+
 MAX_RETRIES=5
 RETRY_INTERVAL=3
 
 echo "=== Health Check ==="
-echo "URL: $BASE_URL"
+echo "API:      $API_DOMAIN"
+echo "Frontend: $FRONTEND_DOMAIN"
 echo "===================="
 
 check_endpoint() {
     local url="$1"
-    local name="$2"
+    local host_header="$2"
+    local name="$3"
     local retries=0
 
     while [ $retries -lt $MAX_RETRIES ]; do
-        HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$url" 2>/dev/null || echo "000")
+        HTTP_STATUS=$(curl -sk -o /dev/null -w "%{http_code}" -H "Host: ${host_header}" "$url" 2>/dev/null || echo "000")
         if [ "$HTTP_STATUS" = "200" ]; then
-            echo "  [OK] $name ($url) - HTTP $HTTP_STATUS"
+            echo "  [OK] $name - HTTP $HTTP_STATUS"
             return 0
         fi
         retries=$((retries + 1))
@@ -29,17 +33,17 @@ check_endpoint() {
         sleep $RETRY_INTERVAL
     done
 
-    echo "  [FAIL] $name ($url) - HTTP $HTTP_STATUS"
+    echo "  [FAIL] $name - HTTP $HTTP_STATUS"
     return 1
 }
 
 FAILED=0
 
-# Check API health
-check_endpoint "${BASE_URL}/api/health" "API Health" || FAILED=1
+# Check API health via nginx (using Host header to match server_name)
+check_endpoint "http://localhost/health" "$API_DOMAIN" "API Health" || FAILED=1
 
-# Check frontend
-check_endpoint "${BASE_URL}/" "Frontend" || FAILED=1
+# Check frontend via nginx
+check_endpoint "http://localhost/" "$FRONTEND_DOMAIN" "Frontend" || FAILED=1
 
 if [ $FAILED -eq 0 ]; then
     echo ""

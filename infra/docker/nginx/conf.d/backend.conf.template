@@ -1,7 +1,7 @@
-# HTTP → HTTPS redirect
+# api.trannam.xyz → Backend (.NET API)
 server {
     listen 80;
-    server_name ${DOMAIN};
+    server_name ${API_DOMAIN};
 
     location /.well-known/acme-challenge/ {
         root /var/www/certbot;
@@ -12,14 +12,12 @@ server {
     }
 }
 
-# Main HTTPS server
 server {
     listen 443 ssl http2;
-    server_name ${DOMAIN};
+    server_name ${API_DOMAIN};
 
-    # SSL
-    ssl_certificate /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
+    ssl_certificate /etc/letsencrypt/live/${API_DOMAIN}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${API_DOMAIN}/privkey.pem;
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384;
     ssl_prefer_server_ciphers off;
@@ -27,17 +25,14 @@ server {
     ssl_session_timeout 1d;
     ssl_session_tickets off;
 
-    # HSTS
     add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
 
-    # API health (no rate limit, no log)
-    location = /api/health {
+    location = /health {
         proxy_pass http://api_upstream/health;
         access_log off;
     }
 
-    # API auth (strict rate limit)
-    location /api/auth/ {
+    location /auth/ {
         limit_req zone=api_auth burst=3 nodelay;
         proxy_pass http://api_upstream/auth/;
         proxy_set_header Host $host;
@@ -46,8 +41,7 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
-    # Hangfire dashboard
-    location /api/hangfire {
+    location /hangfire {
         proxy_pass http://api_upstream/hangfire;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -55,8 +49,13 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
-    # API routes
-    location /api/ {
+    location /uploads/ {
+        proxy_pass http://api_upstream/uploads/;
+        expires 1h;
+        add_header Cache-Control "public";
+    }
+
+    location / {
         limit_req zone=general burst=20 nodelay;
         proxy_pass http://api_upstream/;
         proxy_set_header Host $host;
@@ -65,32 +64,5 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_read_timeout 30s;
         proxy_connect_timeout 5s;
-    }
-
-    # Uploaded files
-    location /api/uploads/ {
-        proxy_pass http://api_upstream/uploads/;
-        expires 1h;
-        add_header Cache-Control "public";
-    }
-
-    # Frontend static assets (immutable, long cache)
-    location /assets/ {
-        proxy_pass http://web_upstream;
-        expires 7d;
-        add_header Cache-Control "public, immutable";
-    }
-
-    # Frontend (React Router SSR)
-    location / {
-        limit_req zone=general burst=50 nodelay;
-        proxy_pass http://web_upstream;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
     }
 }
