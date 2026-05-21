@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore
+        run: dotnet restore api/MiniBookingSystem.slnx
+
+      - name: Build
+        run: dotnet build api/MiniBookingSystem.slnx -c Release --no-restore
+
+      - name: Test
+        run: dotnet test api/MiniBookingSystem.slnx -c Release --no-build --verbosity normal
+
+  frontend-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+        working-directory: web
+
+      - name: Typecheck
+        run: bun run typecheck
+        working-directory: web
+
+      - name: Build
+        run: bun run build
+        working-directory: web
+        env:
+          VITE_API_URL: http://localhost:5296
+
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: [backend-test, frontend-check]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build API image
+        run: docker build -f infra/docker/api.Dockerfile -t test-api .
+
+      - name: Build Web image
+        run: docker build -f infra/docker/web.Dockerfile --build-arg VITE_API_URL=http://localhost -t test-web .

@@ -12,10 +12,10 @@ try
 
     var builder = WebApplication.CreateBuilder(args);
 
-    // Configure Serilog
-    // builder.Host.UseSerilog((context, services, configuration) => configuration
-    //     .ReadFrom.Configuration(context.Configuration)
-    //     .ReadFrom.Services(services));
+    builder.Host.UseSerilog(
+        (context, services, configuration) =>
+            configuration.ReadFrom.Configuration(context.Configuration).ReadFrom.Services(services)
+    );
 
     builder.Services.AddOpenApi();
     builder.Services.AddDataProtection();
@@ -42,7 +42,7 @@ try
         });
     }
 
-    // app.UseSerilogRequestLogging();
+    app.UseSerilogRequestLogging();
 
     app.MapHealthChecks("/health");
 
