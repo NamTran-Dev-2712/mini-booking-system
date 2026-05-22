@@ -144,9 +144,9 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./infra/docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./infra/docker/nginx/conf.d:/etc/nginx/conf.d:ro
-      - ./infra/docker/nginx/active-upstream.conf:/etc/nginx/active-upstream.conf:ro
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./docker/nginx/active-upstream.conf:/etc/nginx/active-upstream.conf:ro
       - ssl_certs:/etc/letsencrypt:ro
       - certbot_webroot:/var/www/certbot:ro
     networks:
