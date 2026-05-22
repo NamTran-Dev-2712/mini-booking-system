@@ -10,6 +10,8 @@ API_DOMAIN="${2:?Usage: ./setup-ssl.sh <frontend_domain> <api_domain> <email>}"
 EMAIL="${3:?Usage: ./setup-ssl.sh <frontend_domain> <api_domain> <email>}"
 DEPLOY_DIR="/opt/mini-booking-system"
 COMPOSE_FILE="${DEPLOY_DIR}/infra/docker-compose.prod.yml"
+ENV_FILE="${DEPLOY_DIR}/.env.production"
+COMPOSE_CMD="docker compose -f $COMPOSE_FILE --env-file $ENV_FILE"
 
 cd "$DEPLOY_DIR"
 
@@ -18,6 +20,11 @@ echo "Frontend: $FRONTEND_DOMAIN"
 echo "API:      $API_DOMAIN"
 echo "Email:    $EMAIL"
 echo "=================="
+
+# Load environment variables for docker compose
+set -a
+source .env.production
+set +a
 
 # Step 1: Create temporary nginx config for ACME challenge (both domains)
 echo "[1/5] Creating temporary HTTP-only nginx config..."
@@ -55,12 +62,12 @@ EOF
 
 # Step 2: Start nginx
 echo "[2/5] Starting nginx..."
-docker compose -f "$COMPOSE_FILE" up -d nginx
+$COMPOSE_CMD up -d nginx
 sleep 5
 
 # Step 3: Request certificates for both domains
 echo "[3/5] Requesting SSL certificate for $FRONTEND_DOMAIN..."
-docker compose -f "$COMPOSE_FILE" run --rm certbot \
+$COMPOSE_CMD run --rm certbot \
     certbot certonly \
     --webroot \
     --webroot-path=/var/www/certbot \
@@ -70,7 +77,7 @@ docker compose -f "$COMPOSE_FILE" run --rm certbot \
     -d "$FRONTEND_DOMAIN"
 
 echo "[4/5] Requesting SSL certificate for $API_DOMAIN..."
-docker compose -f "$COMPOSE_FILE" run --rm certbot \
+$COMPOSE_CMD run --rm certbot \
     certbot certonly \
     --webroot \
     --webroot-path=/var/www/certbot \

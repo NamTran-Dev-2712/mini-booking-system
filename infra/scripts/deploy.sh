@@ -7,6 +7,7 @@ set -euo pipefail
 IMAGE_TAG="${1:-latest}"
 DEPLOY_DIR="/opt/mini-booking-system"
 COMPOSE_FILE="${DEPLOY_DIR}/infra/docker-compose.prod.yml"
+ENV_FILE="${DEPLOY_DIR}/.env.production"
 STATE_FILE="${DEPLOY_DIR}/.active-color"
 NGINX_DIR="${DEPLOY_DIR}/infra/docker/nginx"
 MAX_RETRIES=10
@@ -19,6 +20,8 @@ set -a
 source .env.production
 set +a
 export IMAGE_TAG
+
+COMPOSE_CMD="docker compose -f $COMPOSE_FILE --env-file $ENV_FILE"
 
 # Determine current and target colors
 CURRENT_COLOR=$(cat "$STATE_FILE" 2>/dev/null || echo "blue")
@@ -37,11 +40,11 @@ echo "========================="
 # Step 1: Pull new images
 echo "[1/6] Pulling images (tag: $IMAGE_TAG)..."
 export IMAGE_TAG
-docker compose -f "$COMPOSE_FILE" --profile "$TARGET_COLOR" pull
+$COMPOSE_CMD --profile "$TARGET_COLOR" pull
 
 # Step 2: Start target color containers
 echo "[2/6] Starting $TARGET_COLOR containers..."
-docker compose -f "$COMPOSE_FILE" --profile "$TARGET_COLOR" up -d
+$COMPOSE_CMD --profile "$TARGET_COLOR" up -d
 
 # Step 3: Wait for health checks
 echo "[3/6] Waiting for $TARGET_COLOR to become healthy..."
@@ -63,7 +66,7 @@ done
 if [ $RETRIES -eq $MAX_RETRIES ]; then
     echo "ERROR: $TARGET_COLOR containers failed health check!"
     echo "Stopping failed containers..."
-    docker compose -f "$COMPOSE_FILE" --profile "$TARGET_COLOR" down
+    $COMPOSE_CMD --profile "$TARGET_COLOR" down
     exit 1
 fi
 
@@ -81,14 +84,14 @@ if [ "$HTTP_STATUS" != "200" ]; then
     echo "Rolling back nginx..."
     cp "${NGINX_DIR}/upstream-${CURRENT_COLOR}.conf" "${NGINX_DIR}/active-upstream.conf"
     docker exec nginx_prod nginx -s reload
-    docker compose -f "$COMPOSE_FILE" --profile "$TARGET_COLOR" down
+    $COMPOSE_CMD --profile "$TARGET_COLOR" down
     exit 1
 fi
 
 # Step 6: Stop old color (after graceful drain)
 echo "[6/7] Draining $CURRENT_COLOR (60s)..."
 sleep 60
-docker compose -f "$COMPOSE_FILE" --profile "$CURRENT_COLOR" down
+$COMPOSE_CMD --profile "$CURRENT_COLOR" down
 
 # Step 7: Cleanup old Docker images to prevent disk exhaustion
 echo "[7/7] Cleaning up unused Docker images..."

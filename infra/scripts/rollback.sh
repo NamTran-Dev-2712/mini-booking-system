@@ -6,8 +6,10 @@ set -euo pipefail
 
 DEPLOY_DIR="/opt/mini-booking-system"
 COMPOSE_FILE="${DEPLOY_DIR}/infra/docker-compose.prod.yml"
+ENV_FILE="${DEPLOY_DIR}/.env.production"
 STATE_FILE="${DEPLOY_DIR}/.active-color"
 NGINX_DIR="${DEPLOY_DIR}/infra/docker/nginx"
+COMPOSE_CMD="docker compose -f $COMPOSE_FILE --env-file $ENV_FILE"
 
 cd "$DEPLOY_DIR"
 
@@ -30,7 +32,7 @@ echo "================="
 
 # Ensure rollback containers are running
 echo "[1/4] Ensuring $ROLLBACK_COLOR containers are up..."
-docker compose -f "$COMPOSE_FILE" --profile "$ROLLBACK_COLOR" up -d
+$COMPOSE_CMD --profile "$ROLLBACK_COLOR" up -d
 
 # Wait for health
 echo "[2/4] Checking $ROLLBACK_COLOR health..."
@@ -48,7 +50,7 @@ docker exec nginx_prod nginx -s reload
 
 # Stop failed color
 echo "[4/4] Stopping $CURRENT_COLOR..."
-docker compose -f "$COMPOSE_FILE" --profile "$CURRENT_COLOR" down
+$COMPOSE_CMD --profile "$CURRENT_COLOR" down
 
 # Update state
 echo "$ROLLBACK_COLOR" > "$STATE_FILE"
