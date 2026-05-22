@@ -28,6 +28,18 @@ set +a
 
 # Step 1: Create temporary nginx config for ACME challenge (both domains)
 echo "[1/5] Creating temporary HTTP-only nginx config..."
+
+# Use placeholder upstream so nginx can start without app containers
+cat > "${DEPLOY_DIR}/infra/docker/nginx/active-upstream.conf" <<'UPSTREAM'
+upstream api_upstream {
+    server 127.0.0.1:8080;
+}
+
+upstream web_upstream {
+    server 127.0.0.1:3000;
+}
+UPSTREAM
+
 cat > "${DEPLOY_DIR}/infra/docker/nginx/conf.d/frontend.conf" <<EOF
 server {
     listen 80;
