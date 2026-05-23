@@ -79,9 +79,11 @@ sleep 5
 
 # Step 3: Request certificates for both domains
 echo "[3/5] Requesting SSL certificate for $FRONTEND_DOMAIN..."
-$COMPOSE_CMD run --rm certbot \
-    certbot certonly \
-    --webroot \
+docker run --rm \
+    -v infra_certbot_webroot:/var/www/certbot \
+    -v infra_ssl_certs:/etc/letsencrypt \
+    certbot/certbot:latest \
+    certonly --webroot \
     --webroot-path=/var/www/certbot \
     --email "$EMAIL" \
     --agree-tos \
@@ -89,9 +91,11 @@ $COMPOSE_CMD run --rm certbot \
     -d "$FRONTEND_DOMAIN"
 
 echo "[4/5] Requesting SSL certificate for $API_DOMAIN..."
-$COMPOSE_CMD run --rm certbot \
-    certbot certonly \
-    --webroot \
+docker run --rm \
+    -v infra_certbot_webroot:/var/www/certbot \
+    -v infra_ssl_certs:/etc/letsencrypt \
+    certbot/certbot:latest \
+    certonly --webroot \
     --webroot-path=/var/www/certbot \
     --email "$EMAIL" \
     --agree-tos \
