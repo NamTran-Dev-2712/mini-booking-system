@@ -4,11 +4,17 @@ public class CreateBookingCommandHandler : IRequestHandler<CreateBookingCommand,
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICacheService _cacheService;
+    private readonly ILocalizationService _localizer;
 
-    public CreateBookingCommandHandler(IUnitOfWork unitOfWork, ICacheService cacheService)
+    public CreateBookingCommandHandler(
+        IUnitOfWork unitOfWork,
+        ICacheService cacheService,
+        ILocalizationService localizer
+    )
     {
         _unitOfWork = unitOfWork;
         _cacheService = cacheService;
+        _localizer = localizer;
     }
 
     public async Task<Guid> Handle(
@@ -53,7 +59,7 @@ public class CreateBookingCommandHandler : IRequestHandler<CreateBookingCommand,
                 cancellationToken
             );
             if (hasActive)
-                throw new ConflictException("You already have an active booking for this slot.");
+                throw new ConflictException(_localizer.GetMessage("Booking.AlreadyBooked"));
 
             var mentorSlot = await _unitOfWork.MentorSlot.GetSlotByIdForUpdateAsync(
                 request.MentorSlotId

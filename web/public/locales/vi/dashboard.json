@@ -1,0 +1,49 @@
+{
+  "title": "Tổng quan",
+  "welcome": "Chào mừng, {{name}}",
+  "subtitle": "Tổng quan hệ thống và các chỉ số chính.",
+  "userSubtitle": "Tổng quan lịch hẹn và hoạt động của bạn.",
+  "mentorSubtitle": "Quản lý buổi học và lịch trống của bạn.",
+  "stats": {
+    "totalBookings": "Tổng lịch hẹn",
+    "activeBookings": "Lịch hẹn đang hoạt động",
+    "completedSessions": "Buổi học hoàn thành",
+    "totalRevenue": "Tổng doanh thu",
+    "totalMentors": "Tổng Mentor",
+    "totalUsers": "Tổng người dùng",
+    "pendingPayments": "Thanh toán chờ xử lý",
+    "upcomingSessions": "Buổi học sắp tới",
+    "upcoming": "Sắp tới",
+    "completed": "Hoàn thành",
+    "totalSpending": "Tổng chi tiêu",
+    "upcomingSlots": "Khung giờ sắp tới",
+    "revenue": "Doanh thu"
+  },
+  "charts": {
+    "bookingsOverview": "Tổng quan lịch hẹn",
+    "revenueOverview": "Tổng quan doanh thu",
+    "thisWeek": "Tuần này",
+    "thisMonth": "Tháng này",
+    "thisYear": "Năm nay",
+    "bookingHistory": "Lịch sử đặt lịch",
+    "bookingTrend": "Xu hướng đặt lịch",
+    "bookingsByStatus": "Lịch hẹn theo trạng thái",
+    "revenueOverTime": "Doanh thu theo thời gian"
+  },
+  "recent": {
+    "recentBookings": "Lịch hẹn gần đây",
+    "recentPayments": "Thanh toán gần đây",
+    "viewAll": "Xem tất cả"
+  },
+  "upcomingSessions": {
+    "title": "Buổi học sắp tới",
+    "empty": "Không có buổi học sắp tới. Tạo khung giờ để bắt đầu.",
+    "viewAll": "Xem tất cả"
+  },
+  "quickActions": {
+    "title": "Thao tác nhanh",
+    "createSlot": "Tạo khung giờ",
+    "manageSkills": "Quản lý kỹ năng",
+    "viewProfile": "Xem hồ sơ"
+  }
+}

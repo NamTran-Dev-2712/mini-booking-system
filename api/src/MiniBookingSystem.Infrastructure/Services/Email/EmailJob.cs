@@ -76,4 +76,35 @@ public sealed class EmailJob : IEmailJob
 
         _logger.LogInformation("Password reset email sent successfully to {Email}", to);
     }
+
+    [AutomaticRetry(Attempts = 5, DelaysInSeconds = new[] { 60, 300, 900, 3600, 7200 })]
+    public async Task SendAdminWelcomeEmailAsync(
+        string to,
+        string fullName,
+        string email,
+        string password
+    )
+    {
+        _logger.LogInformation("Sending admin welcome email to {Email}", email);
+
+        var loginUrl = _configuration[ConfigurationValue.BaseUrlFrontend] + "/login";
+
+        var model = new
+        {
+            FullName = fullName,
+            Email = email,
+            Password = password,
+            LoginUrl = loginUrl,
+        };
+
+        var htmlBody = await _templateService.RenderAsync("admin-welcome", model);
+
+        await _emailService.SendEmailAsync(
+            to,
+            "Welcome to MiniBookingSystem - Your Admin Account",
+            htmlBody
+        );
+
+        _logger.LogInformation("Admin welcome email sent successfully to {Email}", email);
+    }
 }

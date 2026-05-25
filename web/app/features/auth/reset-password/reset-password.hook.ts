@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { useNavigate, useSearchParams } from "react-router";
 import { toast } from "sonner";
 import { getApiErrorMessage } from "~/lib/api-error";
+import i18n from "~/lib/i18n";
 import { authService } from "~/services/auth/auth.service";
 import {
   resetPasswordSchema,
@@ -35,8 +36,8 @@ export function useResetPasswordForm() {
         otpCode: data.otpCode,
         newPassword: data.newPassword,
       });
-      toast.success("Password reset successfully", {
-        description: "You can now login with your new password.",
+      toast.success(i18n.t("toast.passwordReset"), {
+        description: i18n.t("toast.passwordResetDesc"),
       });
       navigate("/login");
     } catch (error) {

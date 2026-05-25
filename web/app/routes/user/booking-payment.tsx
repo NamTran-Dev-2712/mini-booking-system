@@ -1,5 +1,6 @@
 import { CheckCircle2, Clock, Loader2, QrCode, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import type { Route } from "./+types/booking-payment";
@@ -67,11 +68,11 @@ function CountdownTimer({ expiredAt }: { expiredAt: string }) {
 }
 
 function PaymentSuccess({ bookingId }: { bookingId: string }) {
+  const { t } = useTranslation("payment");
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    // Invalidate stale booking data so the detail page shows the confirmed status
     queryClient.invalidateQueries({
       queryKey: queryKeys.bookings.detail(bookingId),
     });
@@ -89,9 +90,9 @@ function PaymentSuccess({ bookingId }: { bookingId: string }) {
         <CheckCircle2 className="size-8 text-green-600" />
       </div>
       <div className="space-y-1">
-        <h3 className="text-lg font-semibold">Payment Successful!</h3>
+        <h3 className="text-lg font-semibold">{t("success.title")}</h3>
         <p className="text-sm text-muted-foreground">
-          Your booking has been confirmed. Redirecting...
+          {t("success.description")}
         </p>
       </div>
     </div>
@@ -105,6 +106,7 @@ function PaymentExpired({
   bookingId: string;
   mentorId?: string;
 }) {
+  const { t } = useTranslation("payment");
   const navigate = useNavigate();
 
   return (
@@ -113,9 +115,9 @@ function PaymentExpired({
         <Clock className="size-8 text-orange-600" />
       </div>
       <div className="space-y-1">
-        <h3 className="text-lg font-semibold">Payment Expired</h3>
+        <h3 className="text-lg font-semibold">{t("expired.title")}</h3>
         <p className="text-sm text-muted-foreground">
-          The payment window has closed. Please create a new booking.
+          {t("expired.description")}
         </p>
       </div>
       <div className="flex gap-2">
@@ -124,16 +126,19 @@ function PaymentExpired({
             variant="outline"
             onClick={() => navigate(`/user/mentors/${mentorId}`)}
           >
-            Back to Mentor
+            {t("expired.backToMentor")}
           </Button>
         )}
-        <Button onClick={() => navigate("/user/bookings")}>My Bookings</Button>
+        <Button onClick={() => navigate("/user/bookings")}>
+          {t("expired.myBookings")}
+        </Button>
       </div>
     </div>
   );
 }
 
 function PaymentFailed({ reason }: { reason?: string | null }) {
+  const { t } = useTranslation("payment");
   const navigate = useNavigate();
 
   return (
@@ -142,12 +147,14 @@ function PaymentFailed({ reason }: { reason?: string | null }) {
         <XCircle className="size-8 text-red-600" />
       </div>
       <div className="space-y-1">
-        <h3 className="text-lg font-semibold">Payment Failed</h3>
+        <h3 className="text-lg font-semibold">{t("failed.title")}</h3>
         <p className="text-sm text-muted-foreground">
-          {reason || "Something went wrong with your payment."}
+          {reason || t("failed.defaultReason")}
         </p>
       </div>
-      <Button onClick={() => navigate("/user/bookings")}>My Bookings</Button>
+      <Button onClick={() => navigate("/user/bookings")}>
+        {t("failed.myBookings")}
+      </Button>
     </div>
   );
 }
@@ -159,6 +166,7 @@ function QrPaymentView({
   payment: CreatePaymentResponse;
   bookingId: string;
 }) {
+  const { t } = useTranslation("payment");
   const { data: status } = usePaymentStatusQuery(bookingId);
   const booking = useBookingDetailQuery(bookingId);
   const mentorId = booking.data?.mentor?.id;
@@ -188,38 +196,40 @@ function QrPaymentView({
         </div>
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Loader2 className="size-4 animate-spin" />
-          <span>Waiting for payment...</span>
+          <span>{t("qr.waitingForPayment")}</span>
         </div>
       </div>
 
       {/* Payment info */}
       <div className="space-y-3 rounded-lg border bg-muted/50 p-4">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">Amount</span>
+          <span className="text-muted-foreground">{t("detail.amount")}</span>
           <span className="text-lg font-semibold">
             {formatPrice(payment.amount)}
           </span>
         </div>
         <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">Order Code</span>
+          <span className="text-muted-foreground">{t("detail.orderCode")}</span>
           <Badge variant="outline" className="font-mono text-xs">
             {payment.providerOrderCode}
           </Badge>
         </div>
         <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">Time Remaining</span>
+          <span className="text-muted-foreground">
+            {t("detail.timeRemaining")}
+          </span>
           <CountdownTimer expiredAt={payment.expiredAt} />
         </div>
       </div>
 
       {/* Instructions */}
       <div className="rounded-lg border p-4 space-y-2">
-        <p className="text-sm font-medium">How to pay:</p>
+        <p className="text-sm font-medium">{t("qr.howToPay")}</p>
         <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
-          <li>Open your banking app</li>
-          <li>Scan the QR code above</li>
-          <li>Verify the amount and transfer</li>
-          <li>Wait for confirmation (auto-detected)</li>
+          <li>{t("qr.step1")}</li>
+          <li>{t("qr.step2")}</li>
+          <li>{t("qr.step3")}</li>
+          <li>{t("qr.step4")}</li>
         </ol>
       </div>
     </div>
@@ -227,6 +237,7 @@ function QrPaymentView({
 }
 
 export default function BookingPaymentPage({ params }: Route.ComponentProps) {
+  const { t } = useTranslation("payment");
   const bookingId = params.id;
   const navigate = useNavigate();
   const createPayment = useCreatePaymentMutation();
@@ -246,7 +257,7 @@ export default function BookingPaymentPage({ params }: Route.ComponentProps) {
         <CardHeader className="text-center">
           <CardTitle className="flex items-center justify-center gap-2">
             <QrCode className="size-5" />
-            Payment
+            {t("page.title")}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -262,13 +273,13 @@ export default function BookingPaymentPage({ params }: Route.ComponentProps) {
             <div className="flex flex-col items-center gap-4 py-8 text-center">
               <XCircle className="size-10 text-destructive" />
               <p className="text-sm text-muted-foreground">
-                Failed to create payment. The booking may have expired.
+                {t("page.failedToCreate")}
               </p>
               <Button
                 variant="outline"
                 onClick={() => navigate("/user/bookings")}
               >
-                Back to Bookings
+                {t("expired.myBookings")}
               </Button>
             </div>
           )}

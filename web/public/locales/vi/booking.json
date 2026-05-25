@@ -1,0 +1,68 @@
+{
+  "list": {
+    "title": "Lịch hẹn của tôi",
+    "subtitle": "Xem và quản lý các buổi học với mentor.",
+    "empty": "Không tìm thấy lịch hẹn",
+    "emptyDescription": "Đặt lịch với mentor để bắt đầu.",
+    "emptyStatus": "Không có lịch hẹn với trạng thái này.",
+    "adminTitle": "Lịch hẹn",
+    "adminSubtitle": "Xem và quản lý tất cả lịch hẹn trên nền tảng.",
+    "comingSoon": "Tính năng quản lý lịch hẹn sắp ra mắt"
+  },
+  "detail": {
+    "title": "Chi tiết lịch hẹn",
+    "mentor": "Mentor",
+    "date": "Ngày",
+    "time": "Giờ",
+    "duration": "Thời lượng",
+    "status": "Trạng thái",
+    "notes": "Ghi chú",
+    "createdAt": "Ngày tạo",
+    "sessionDetails": "Chi tiết buổi học",
+    "timeline": "Dòng thời gian",
+    "bookingCreated": "Đã tạo lịch hẹn",
+    "paymentConfirmed": "Đã xác nhận thanh toán",
+    "sessionCompleted": "Buổi học hoàn thành",
+    "bookingExpired": "Lịch hẹn hết hạn",
+    "cancelled": "Đã hủy",
+    "notFound": "Không tìm thấy lịch hẹn hoặc tải thất bại.",
+    "to": "đến"
+  },
+  "status": {
+    "pending": "Chờ xử lý",
+    "confirmed": "Đã xác nhận",
+    "completed": "Hoàn thành",
+    "cancelled": "Đã hủy",
+    "expired": "Hết hạn"
+  },
+  "tabs": {
+    "all": "Tất cả",
+    "pending": "Chờ xử lý",
+    "confirmed": "Đã xác nhận",
+    "completed": "Hoàn thành",
+    "cancelled": "Đã hủy",
+    "expired": "Hết hạn"
+  },
+  "actions": {
+    "book": "Đặt lịch",
+    "cancel": "Hủy lịch hẹn",
+    "cancelConfirm": "Bạn có chắc muốn hủy lịch hẹn này? Hành động này không thể hoàn tác.",
+    "cancelReason": "Lý do (tùy chọn)",
+    "cancelReasonPlaceholder": "Tại sao bạn muốn hủy?",
+    "keepBooking": "Giữ lịch hẹn",
+    "pay": "Thanh toán ngay",
+    "viewPayment": "Xem thanh toán",
+    "backToBookings": "Quay lại lịch hẹn"
+  },
+  "create": {
+    "title": "Đặt lịch hẹn",
+    "selectSlot": "Chọn khung giờ",
+    "notes": "Ghi chú thêm (tùy chọn)",
+    "submit": "Xác nhận đặt lịch",
+    "success": "Đặt lịch thành công"
+  },
+  "cancel": {
+    "title": "Hủy lịch hẹn",
+    "success": "Đã hủy lịch hẹn."
+  }
+}

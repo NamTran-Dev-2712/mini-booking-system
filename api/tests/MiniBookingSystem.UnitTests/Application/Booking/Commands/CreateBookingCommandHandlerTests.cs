@@ -6,6 +6,7 @@ public sealed class CreateBookingCommandHandlerTests
     private readonly Mock<IBookingRepository> _bookingRepo;
     private readonly Mock<IMentorSlotRepository> _mentorSlotRepo;
     private readonly Mock<ICacheService> _cacheService;
+    private readonly Mock<ILocalizationService> _localizer;
     private readonly CreateBookingCommandHandler _sut;
 
     public CreateBookingCommandHandlerTests()
@@ -14,11 +15,20 @@ public sealed class CreateBookingCommandHandlerTests
         _bookingRepo = new Mock<IBookingRepository>(MockBehavior.Strict);
         _mentorSlotRepo = new Mock<IMentorSlotRepository>(MockBehavior.Strict);
         _cacheService = new Mock<ICacheService>(MockBehavior.Strict);
+        _localizer = new Mock<ILocalizationService>();
+        _localizer.Setup(l => l.GetMessage(It.IsAny<string>())).Returns((string key) => key);
+        _localizer
+            .Setup(l => l.GetMessage("Booking.AlreadyBooked"))
+            .Returns("You already have an active booking for this slot.");
 
         _unitOfWork.Setup(u => u.Booking).Returns(_bookingRepo.Object);
         _unitOfWork.Setup(u => u.MentorSlot).Returns(_mentorSlotRepo.Object);
 
-        _sut = new CreateBookingCommandHandler(_unitOfWork.Object, _cacheService.Object);
+        _sut = new CreateBookingCommandHandler(
+            _unitOfWork.Object,
+            _cacheService.Object,
+            _localizer.Object
+        );
     }
 
     private MentorSlot SetupHappyPath(

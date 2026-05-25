@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { MentorListContainer } from "~/components/shared/mentor/mentor-list-container";
 
 export function meta() {
@@ -12,17 +13,19 @@ export function meta() {
 }
 
 export default function PublicMentors() {
+  const { t } = useTranslation("mentor");
+
   return (
     <div className="container mx-auto px-4 py-10 space-y-8">
-      {/* Page header */}
       <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">Find a Mentor</h1>
+        <h1 className="text-3xl font-bold tracking-tight">
+          {t("list.findAMentor")}
+        </h1>
         <p className="text-muted-foreground text-lg">
-          Browse our expert mentors and book a session that fits your goals.
+          {t("list.browseSubtitle")}
         </p>
       </div>
 
-      {/* Mentor listing with filter + pagination */}
       <MentorListContainer detailBasePath="/mentors" defaultPageSize={9} />
     </div>
   );

@@ -21,13 +21,20 @@ public sealed class GetMentorDashboardQueryHandlerTests
         _bookingRepo = new Mock<IBookingRepository>(MockBehavior.Strict);
         _paymentRepo = new Mock<IPaymentTransactionRepository>(MockBehavior.Strict);
         _cacheService = new Mock<ICacheService>(MockBehavior.Strict);
+        var localizer = new Mock<ILocalizationService>();
+        localizer.Setup(l => l.GetMessage(It.IsAny<string>())).Returns((string key) => key);
+        localizer.Setup(l => l.GetMessage("Mentor.NotFound")).Returns("Mentor not found.");
 
         _unitOfWork.Setup(u => u.Mentor).Returns(_mentorRepo.Object);
         _unitOfWork.Setup(u => u.MentorSlot).Returns(_mentorSlotRepo.Object);
         _unitOfWork.Setup(u => u.Booking).Returns(_bookingRepo.Object);
         _unitOfWork.Setup(u => u.PaymentTransaction).Returns(_paymentRepo.Object);
 
-        _sut = new GetMentorDashboardQueryHandler(_unitOfWork.Object, _cacheService.Object);
+        _sut = new GetMentorDashboardQueryHandler(
+            _unitOfWork.Object,
+            _cacheService.Object,
+            localizer.Object
+        );
     }
 
     private void SetupCacheMiss()
@@ -135,7 +142,7 @@ public sealed class GetMentorDashboardQueryHandlerTests
         var query = new GetMentorDashboardQuery(TestUserId);
         var act = () => _sut.Handle(query, CancellationToken.None);
 
-        await act.Should().ThrowAsync<NotFoundException>().WithMessage("*Mentor profile*");
+        await act.Should().ThrowAsync<NotFoundException>().WithMessage("*Mentor not found*");
     }
 
     // ── Cache miss — aggregation ──────────────────────────────────────────

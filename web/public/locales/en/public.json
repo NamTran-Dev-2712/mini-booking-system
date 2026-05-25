@@ -1,0 +1,90 @@
+{
+  "hero": {
+    "badge": "Free • No Installation Required",
+    "title": "Connect with Mentors",
+    "titleHighlight": "Easier Than Ever",
+    "description": "MiniBooking helps you find expert mentors, schedule sessions, and grow your skills — all on one seamless platform.",
+    "getStarted": "Get Started Free",
+    "learnMore": "Learn More"
+  },
+  "stats": {
+    "students": "Students",
+    "mentors": "Mentors",
+    "sessions": "Sessions"
+  },
+  "features": {
+    "title": "Why Choose MiniBooking?",
+    "subtitle": "Built for simplicity, powerful enough for all your mentorship needs.",
+    "instantBooking": {
+      "title": "Instant Booking",
+      "description": "Find available mentors and book sessions instantly — no waiting or phone calls needed."
+    },
+    "securePrivate": {
+      "title": "Secure & Private",
+      "description": "End-to-end encrypted data. Your privacy and mentor information are protected."
+    },
+    "fastEasy": {
+      "title": "Fast & Easy",
+      "description": "Intuitive interface. Just 3 simple steps to schedule your mentorship session."
+    }
+  },
+  "howItWorks": {
+    "title": "Just 3 Simple Steps",
+    "subtitle": "From search to confirmation — faster than you think.",
+    "search": {
+      "title": "Search",
+      "description": "Browse mentors by expertise, experience level, and availability."
+    },
+    "book": {
+      "title": "Book",
+      "description": "View real-time availability and select your preferred time slot."
+    },
+    "connect": {
+      "title": "Connect",
+      "description": "Receive instant confirmation and automatic reminders before your session."
+    }
+  },
+  "cta": {
+    "title": "Ready to Get Started?",
+    "subtitle": "Join thousands of students connecting with expert mentors every day.",
+    "button": "Create Free Account"
+  },
+  "about": {
+    "badge": "About Us",
+    "title": "Building the Future",
+    "titleHighlight": "of Mentorship",
+    "description": "MiniBooking was founded with one goal: make connecting with mentors easy and effective for everyone, everywhere.",
+    "mission": {
+      "badge": "Our Mission",
+      "title": "Connecting Students with Expert Mentors",
+      "p1": "We believe mentorship is the key to growth. MiniBooking exists to remove the friction in scheduling mentorship sessions — so you can focus on learning and developing your skills.",
+      "p2": "Whether you're a student seeking guidance or a professional sharing knowledge, our platform adapts to your needs without requiring any technical expertise.",
+      "screenshot": "Product screenshot"
+    },
+    "values": {
+      "title": "Our Core Values",
+      "subtitle": "The principles that guide every decision we make.",
+      "simplicity": {
+        "title": "Simplicity",
+        "description": "We believe technology should serve people, not the other way around. Every feature is designed for maximum ease of use."
+      },
+      "dedication": {
+        "title": "Dedication",
+        "description": "Every user feedback inspires us to improve. We listen, we learn, and we act on what matters most."
+      },
+      "innovation": {
+        "title": "Innovation",
+        "description": "Constantly seeking better ways to solve problems. Innovation is in our DNA and drives everything we build."
+      }
+    },
+    "team": {
+      "title": "Our Team",
+      "subtitle": "The people behind MiniBooking."
+    },
+    "stats": {
+      "trustedStudents": "Trusted Students",
+      "expertMentors": "Expert Mentors",
+      "successfulSessions": "Successful Sessions"
+    }
+  }
+}

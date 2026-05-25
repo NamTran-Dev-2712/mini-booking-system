@@ -1,4 +1,5 @@
 import { BookOpen, CalendarDays, DollarSign, Users } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Skeleton } from "~/components/ui/skeleton";
 import { AreaChartCard } from "~/components/shared/dashboard/area-chart-card";
 import { BarChartCard } from "~/components/shared/dashboard/bar-chart-card";
@@ -37,6 +38,7 @@ function DashboardSkeleton() {
 }
 
 export default function AdminDashboard() {
+  const { t } = useTranslation("dashboard");
   const { data, isPending } = useAdminDashboardQuery();
 
   if (isPending) return <DashboardSkeleton />;
@@ -48,43 +50,41 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-semibold tracking-tight">Dashboard</h2>
-        <p className="text-muted-foreground">
-          System overview and key metrics.
-        </p>
+        <h2 className="text-2xl font-semibold tracking-tight">{t("title")}</h2>
+        <p className="text-muted-foreground">{t("subtitle")}</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           icon={Users}
-          label="Total Users"
+          label={t("stats.totalUsers")}
           value={data?.totalUsers ?? 0}
         />
         <StatCard
           icon={Users}
-          label="Total Mentors"
+          label={t("stats.totalMentors")}
           value={data?.totalMentors ?? 0}
         />
         <StatCard
           icon={BookOpen}
-          label="Total Bookings"
+          label={t("stats.totalBookings")}
           value={data?.totalBookings ?? 0}
         />
         <StatCard
           icon={DollarSign}
-          label="Total Revenue"
+          label={t("stats.totalRevenue")}
           value={formatCurrency(data?.totalRevenue ?? 0)}
         />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <BarChartCard
-          title="Bookings by Status"
+          title={t("charts.bookingsByStatus")}
           data={bookingStatusData}
           color="var(--chart-2)"
         />
         <AreaChartCard
-          title="Revenue Over Time"
+          title={t("charts.revenueOverTime")}
           data={data?.revenueOverTime ?? []}
           color="var(--chart-1)"
           valueFormatter={(v) => formatCurrency(v)}

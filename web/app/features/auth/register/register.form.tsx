@@ -1,5 +1,6 @@
 ﻿import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { AvatarUpload } from "~/components/shared/avatar-upload";
 import { Button } from "~/components/ui/button";
@@ -16,6 +17,7 @@ import { SocialForm } from "~/features/auth/shared/social.form";
 import { useRegisterForm } from "./register.hook";
 
 export function RegisterForm() {
+  const { t } = useTranslation("auth");
   const { form, onSubmit } = useRegisterForm();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -47,7 +49,7 @@ export function RegisterForm() {
             name="fullName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Full Name</FormLabel>
+                <FormLabel>{t("register.fullNameLabel")}</FormLabel>
                 <FormControl>
                   <Input
                     placeholder="John Doe"
@@ -65,7 +67,7 @@ export function RegisterForm() {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel>{t("register.email")}</FormLabel>
                 <FormControl>
                   <Input
                     type="email"
@@ -84,7 +86,7 @@ export function RegisterForm() {
             name="phoneNumber"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Phone Number</FormLabel>
+                <FormLabel>{t("register.phoneNumberLabel")}</FormLabel>
                 <FormControl>
                   <Input
                     type="tel"
@@ -103,12 +105,12 @@ export function RegisterForm() {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Password</FormLabel>
+                <FormLabel>{t("register.password")}</FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Input
                       type={showPassword ? "text" : "password"}
-                      placeholder="At least 8 characters"
+                      placeholder={t("register.passwordPlaceholder")}
                       autoComplete="new-password"
                       {...field}
                     />
@@ -117,7 +119,9 @@ export function RegisterForm() {
                       onClick={() => setShowPassword((v) => !v)}
                       className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                       aria-label={
-                        showPassword ? "Hide password" : "Show password"
+                        showPassword
+                          ? t("errors.hidePassword")
+                          : t("errors.showPassword")
                       }
                     >
                       {showPassword ? (
@@ -138,12 +142,12 @@ export function RegisterForm() {
             name="confirmPassword"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Confirm Password</FormLabel>
+                <FormLabel>{t("register.confirmPasswordLabel")}</FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Input
                       type={showConfirm ? "text" : "password"}
-                      placeholder="Re-enter password"
+                      placeholder={t("register.confirmPasswordPlaceholder")}
                       autoComplete="new-password"
                       {...field}
                     />
@@ -152,7 +156,9 @@ export function RegisterForm() {
                       onClick={() => setShowConfirm((v) => !v)}
                       className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                       aria-label={
-                        showConfirm ? "Hide password" : "Show password"
+                        showConfirm
+                          ? t("errors.hidePassword")
+                          : t("errors.showPassword")
                       }
                     >
                       {showConfirm ? (
@@ -170,7 +176,7 @@ export function RegisterForm() {
 
           <Button type="submit" className="w-full mt-2" disabled={isSubmitting}>
             {isSubmitting && <Loader2 className="mr-2 size-4 animate-spin" />}
-            Create Account
+            {t("register.submit")}
           </Button>
         </form>
       </Form>
@@ -178,23 +184,23 @@ export function RegisterForm() {
       <SocialForm action="register" />
 
       <p className="text-center text-sm text-muted-foreground">
-        Already have an account?{" "}
+        {t("register.hasAccount")}{" "}
         <Link
           to="/login"
           className="font-medium text-foreground underline-offset-4 hover:underline"
         >
-          Sign in
+          {t("register.hasAccountLink")}
         </Link>
       </p>
 
       <p className="text-center text-xs text-muted-foreground">
-        By signing up, you agree to our{" "}
+        {t("register.termsText")}{" "}
         <span className="underline underline-offset-4 cursor-pointer hover:text-foreground transition-colors">
-          Terms of Service
+          {t("register.termsOfService")}
         </span>{" "}
-        and{" "}
+        {t("register.and")}{" "}
         <span className="underline underline-offset-4 cursor-pointer hover:text-foreground transition-colors">
-          Privacy Policy
+          {t("register.privacyPolicy")}
         </span>
         .
       </p>

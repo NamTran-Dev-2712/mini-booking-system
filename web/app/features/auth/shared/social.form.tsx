@@ -1,4 +1,5 @@
-﻿import { Button } from "~/components/ui/button";
+﻿import { useTranslation } from "react-i18next";
+import { Button } from "~/components/ui/button";
 import { Separator } from "~/components/ui/separator";
 import { authService } from "~/services/auth/auth.service";
 
@@ -20,11 +21,15 @@ interface SocialFormProps {
 }
 
 export function SocialForm({ action: _action }: SocialFormProps) {
+  const { t } = useTranslation("auth");
+
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3">
         <Separator className="flex-1" />
-        <span className="text-xs text-muted-foreground">or continue with</span>
+        <span className="text-xs text-muted-foreground">
+          {t("social.orContinueWith")}
+        </span>
         <Separator className="flex-1" />
       </div>
 

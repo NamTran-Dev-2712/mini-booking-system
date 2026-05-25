@@ -27,6 +27,9 @@ try
     builder.Services.AddApplication();
     builder.Services.AddInfrastructure(builder.Configuration);
 
+    // Add localization
+    builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+
     // Add health checks
     builder.Services.AddHealthChecks();
 
@@ -45,6 +48,15 @@ try
     }
 
     app.UseSerilogRequestLogging();
+
+    // Request localization — reads Accept-Language header
+    var supportedCultures = new[] { "en", "vi" };
+    app.UseRequestLocalization(options =>
+    {
+        options.SetDefaultCulture("en");
+        options.AddSupportedCultures(supportedCultures);
+        options.AddSupportedUICultures(supportedCultures);
+    });
 
     app.MapHealthChecks("/health");
 

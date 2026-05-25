@@ -1,0 +1,66 @@
+{
+  "list": {
+    "title": "Payments",
+    "subtitle": "View your payment history and transactions.",
+    "empty": "No payment records yet",
+    "emptyDescription": "Payments will appear here after you book a session",
+    "adminTitle": "Payments",
+    "adminSubtitle": "Monitor payment transactions and revenue.",
+    "comingSoon": "Payment management coming soon"
+  },
+  "detail": {
+    "title": "Payment Details",
+    "amount": "Amount",
+    "status": "Status",
+    "method": "Method",
+    "transactionId": "Transaction ID",
+    "createdAt": "Created at",
+    "paidAt": "Paid at",
+    "orderCode": "Order Code",
+    "timeRemaining": "Time Remaining"
+  },
+  "status": {
+    "pending": "Pending",
+    "completed": "Completed",
+    "failed": "Failed",
+    "refunded": "Refunded",
+    "expired": "Expired"
+  },
+  "qr": {
+    "title": "Scan to Pay",
+    "instruction": "Scan the QR code with your banking app",
+    "amount": "Amount to pay",
+    "bankName": "Bank",
+    "accountNumber": "Account Number",
+    "accountName": "Account Name",
+    "content": "Transfer Content",
+    "warning": "Please include the exact transfer content to process your payment automatically",
+    "expiry": "Payment expires in",
+    "waitingForPayment": "Waiting for payment...",
+    "howToPay": "How to pay:",
+    "step1": "Open your banking app",
+    "step2": "Scan the QR code above",
+    "step3": "Verify the amount and transfer",
+    "step4": "Wait for confirmation (auto-detected)"
+  },
+  "page": {
+    "title": "Payment",
+    "failedToCreate": "Failed to create payment. The booking may have expired.",
+    "expiredTitle": "Expired"
+  },
+  "success": {
+    "title": "Payment Successful!",
+    "description": "Your booking has been confirmed. Redirecting..."
+  },
+  "expired": {
+    "title": "Payment Expired",
+    "description": "The payment window has closed. Please create a new booking.",
+    "backToMentor": "Back to Mentor",
+    "myBookings": "My Bookings"
+  },
+  "failed": {
+    "title": "Payment Failed",
+    "defaultReason": "Something went wrong with your payment.",
+    "myBookings": "My Bookings"
+  }
+}

@@ -7,6 +7,7 @@ import {
   User,
 } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Badge } from "~/components/ui/badge";
@@ -28,17 +29,33 @@ export function meta() {
   return [{ title: "My Bookings — MiniBooking" }];
 }
 
-const STATUS_TABS: {
-  label: string;
+const STATUS_TAB_KEYS: {
+  key: string;
   value: string;
   filter?: BookingStatusValue;
 }[] = [
-  { label: "All", value: "all" },
-  { label: "Pending", value: "pending", filter: BookingStatus.PendingPayment },
-  { label: "Confirmed", value: "confirmed", filter: BookingStatus.Confirmed },
-  { label: "Completed", value: "completed", filter: BookingStatus.Completed },
-  { label: "Cancelled", value: "cancelled", filter: BookingStatus.Cancelled },
-  { label: "Expired", value: "expired", filter: BookingStatus.Expired },
+  { key: "tabs.all", value: "all" },
+  {
+    key: "tabs.pending",
+    value: "pending",
+    filter: BookingStatus.PendingPayment,
+  },
+  {
+    key: "tabs.confirmed",
+    value: "confirmed",
+    filter: BookingStatus.Confirmed,
+  },
+  {
+    key: "tabs.completed",
+    value: "completed",
+    filter: BookingStatus.Completed,
+  },
+  {
+    key: "tabs.cancelled",
+    value: "cancelled",
+    filter: BookingStatus.Cancelled,
+  },
+  { key: "tabs.expired", value: "expired", filter: BookingStatus.Expired },
 ];
 
 const STATUS_VARIANT: Record<
@@ -95,6 +112,8 @@ function BookingCard({
   booking: Booking;
   onClick: () => void;
 }) {
+  const { t } = useTranslation("booking");
+  const { t: tc } = useTranslation("common");
   const navigate = useNavigate();
   const initials =
     (booking.mentor.displayName ?? "")
@@ -158,7 +177,7 @@ function BookingCard({
               </span>
             </div>
             <p className="text-xs text-muted-foreground">
-              Code: {booking.bookingCode}
+              {tc("labels.code")} {booking.bookingCode}
             </p>
           </div>
 
@@ -174,7 +193,7 @@ function BookingCard({
                 }}
               >
                 <CreditCard className="size-3.5" />
-                Pay
+                {t("actions.pay")}
               </Button>
             )}
             <ChevronRight className="size-4 text-muted-foreground" />
@@ -186,6 +205,7 @@ function BookingCard({
 }
 
 export default function UserBookings() {
+  const { t } = useTranslation("booking");
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const user = useAuthStore((s) => s.user);
@@ -193,7 +213,9 @@ export default function UserBookings() {
   const activeTab = searchParams.get("status") ?? "all";
   const page = Number(searchParams.get("page") ?? "1");
 
-  const statusFilter = STATUS_TABS.find((t) => t.value === activeTab)?.filter;
+  const statusFilter = STATUS_TAB_KEYS.find(
+    (t) => t.value === activeTab,
+  )?.filter;
 
   const { data, isPending } = useUserBookingsQuery(user?.userId ?? "", {
     pageNumber: page,
@@ -221,22 +243,22 @@ export default function UserBookings() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-semibold tracking-tight">My Bookings</h2>
-        <p className="text-muted-foreground">
-          View and manage your mentoring sessions.
-        </p>
+        <h2 className="text-2xl font-semibold tracking-tight">
+          {t("list.title")}
+        </h2>
+        <p className="text-muted-foreground">{t("list.subtitle")}</p>
       </div>
 
       {/* Status filter tabs */}
       <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList className="w-full justify-start overflow-x-auto">
-          {STATUS_TABS.map((tab) => (
+          {STATUS_TAB_KEYS.map((tab) => (
             <TabsTrigger
               key={tab.value}
               value={tab.value}
               className="text-xs sm:text-sm"
             >
-              {tab.label}
+              {t(tab.key)}
             </TabsTrigger>
           ))}
         </TabsList>
@@ -253,12 +275,12 @@ export default function UserBookings() {
         <div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-16 text-center">
           <CalendarCheck className="mb-4 size-10 text-muted-foreground/50" />
           <p className="text-sm font-medium text-muted-foreground">
-            No bookings found
+            {t("list.empty")}
           </p>
           <p className="mt-1 text-xs text-muted-foreground/70">
             {activeTab === "all"
-              ? "Book a session with a mentor to get started."
-              : "No bookings with this status."}
+              ? t("list.emptyDescription")
+              : t("list.emptyStatus")}
           </p>
           <Button
             variant="outline"
@@ -266,7 +288,7 @@ export default function UserBookings() {
             className="mt-4"
             onClick={() => navigate("/user/mentors")}
           >
-            Find Mentors
+            {t("actions.book")}
           </Button>
         </div>
       ) : (

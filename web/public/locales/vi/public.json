@@ -1,0 +1,90 @@
+{
+  "hero": {
+    "badge": "Miễn phí • Không cần cài đặt",
+    "title": "Kết nối với Mentor",
+    "titleHighlight": "Dễ dàng hơn bao giờ hết",
+    "description": "MiniBooking giúp bạn tìm mentor chuyên nghiệp, đặt lịch học và phát triển kỹ năng — tất cả trên một nền tảng liền mạch.",
+    "getStarted": "Bắt đầu miễn phí",
+    "learnMore": "Tìm hiểu thêm"
+  },
+  "stats": {
+    "students": "Học viên",
+    "mentors": "Mentor",
+    "sessions": "Buổi học"
+  },
+  "features": {
+    "title": "Tại sao chọn MiniBooking?",
+    "subtitle": "Được xây dựng đơn giản, đủ mạnh cho mọi nhu cầu học tập.",
+    "instantBooking": {
+      "title": "Đặt lịch ngay",
+      "description": "Tìm mentor và đặt lịch ngay lập tức — không cần chờ đợi hay gọi điện."
+    },
+    "securePrivate": {
+      "title": "Bảo mật & Riêng tư",
+      "description": "Dữ liệu được mã hóa đầu cuối. Thông tin cá nhân và mentor của bạn được bảo vệ."
+    },
+    "fastEasy": {
+      "title": "Nhanh & Dễ dùng",
+      "description": "Giao diện trực quan. Chỉ 3 bước đơn giản để đặt lịch học với mentor."
+    }
+  },
+  "howItWorks": {
+    "title": "Chỉ 3 bước đơn giản",
+    "subtitle": "Từ tìm kiếm đến xác nhận — nhanh hơn bạn nghĩ.",
+    "search": {
+      "title": "Tìm kiếm",
+      "description": "Duyệt mentor theo chuyên môn, kinh nghiệm và lịch trống."
+    },
+    "book": {
+      "title": "Đặt lịch",
+      "description": "Xem lịch trống thực tế và chọn khung giờ phù hợp."
+    },
+    "connect": {
+      "title": "Kết nối",
+      "description": "Nhận xác nhận ngay và nhắc nhở tự động trước buổi học."
+    }
+  },
+  "cta": {
+    "title": "Sẵn sàng bắt đầu?",
+    "subtitle": "Tham gia cùng hàng nghìn học viên kết nối với mentor mỗi ngày.",
+    "button": "Tạo tài khoản miễn phí"
+  },
+  "about": {
+    "badge": "Về chúng tôi",
+    "title": "Xây dựng tương lai",
+    "titleHighlight": "của việc học cùng Mentor",
+    "description": "MiniBooking được thành lập với một mục tiêu: giúp kết nối với mentor trở nên dễ dàng và hiệu quả cho tất cả mọi người.",
+    "mission": {
+      "badge": "Sứ mệnh của chúng tôi",
+      "title": "Kết nối học viên với Mentor chuyên nghiệp",
+      "p1": "Chúng tôi tin rằng mentorship là chìa khóa để phát triển. MiniBooking tồn tại để loại bỏ rào cản trong việc đặt lịch học — để bạn tập trung vào việc học và phát triển kỹ năng.",
+      "p2": "Dù bạn là học viên tìm kiếm hướng dẫn hay chuyên gia chia sẻ kiến thức, nền tảng của chúng tôi thích ứng với nhu cầu của bạn mà không cần chuyên môn kỹ thuật.",
+      "screenshot": "Ảnh chụp màn hình sản phẩm"
+    },
+    "values": {
+      "title": "Giá trị cốt lõi",
+      "subtitle": "Những nguyên tắc định hướng mọi quyết định của chúng tôi.",
+      "simplicity": {
+        "title": "Đơn giản",
+        "description": "Chúng tôi tin công nghệ phải phục vụ con người. Mọi tính năng được thiết kế để dễ sử dụng tối đa."
+      },
+      "dedication": {
+        "title": "Tận tâm",
+        "description": "Mọi phản hồi của người dùng truyền cảm hứng để chúng tôi cải thiện. Chúng tôi lắng nghe, học hỏi và hành động."
+      },
+      "innovation": {
+        "title": "Đổi mới",
+        "description": "Không ngừng tìm kiếm cách tốt hơn để giải quyết vấn đề. Đổi mới là DNA của chúng tôi."
+      }
+    },
+    "team": {
+      "title": "Đội ngũ của chúng tôi",
+      "subtitle": "Những người đứng sau MiniBooking."
+    },
+    "stats": {
+      "trustedStudents": "Học viên tin tưởng",
+      "expertMentors": "Mentor chuyên nghiệp",
+      "successfulSessions": "Buổi học thành công"
+    }
+  }
+}

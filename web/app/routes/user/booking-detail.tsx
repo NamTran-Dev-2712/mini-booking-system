@@ -9,6 +9,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import type { Route } from "./+types/booking-detail";
@@ -81,6 +82,7 @@ function CancelDialog({
   onOpenChange: (open: boolean) => void;
   bookingId: string;
 }) {
+  const { t } = useTranslation("booking");
   const [reason, setReason] = useState("");
   const user = useAuthStore((s) => s.user);
   const cancelBooking = useCancelBookingMutation();
@@ -95,7 +97,7 @@ function CancelDialog({
       },
       {
         onSuccess: () => {
-          toast.success("Booking cancelled.");
+          toast.success(t("cancel.success"));
           onOpenChange(false);
         },
         onError: (error) => {
@@ -109,19 +111,16 @@ function CancelDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Cancel Booking</DialogTitle>
-          <DialogDescription>
-            Are you sure you want to cancel this booking? This action cannot be
-            undone.
-          </DialogDescription>
+          <DialogTitle>{t("cancel.title")}</DialogTitle>
+          <DialogDescription>{t("actions.cancelConfirm")}</DialogDescription>
         </DialogHeader>
         <div className="space-y-2 py-2">
           <Label htmlFor="cancel-reason" className="text-sm">
-            Reason (optional)
+            {t("actions.cancelReason")}
           </Label>
           <Textarea
             id="cancel-reason"
-            placeholder="Why are you cancelling?"
+            placeholder={t("actions.cancelReasonPlaceholder")}
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             rows={3}
@@ -134,7 +133,7 @@ function CancelDialog({
             onClick={() => onOpenChange(false)}
             disabled={cancelBooking.isPending}
           >
-            Keep Booking
+            {t("actions.keepBooking")}
           </Button>
           <Button
             variant="destructive"
@@ -144,7 +143,7 @@ function CancelDialog({
             {cancelBooking.isPending && (
               <Loader2 className="size-4 animate-spin" />
             )}
-            Cancel Booking
+            {t("actions.cancel")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -153,6 +152,7 @@ function CancelDialog({
 }
 
 export default function BookingDetailPage({ params }: Route.ComponentProps) {
+  const { t } = useTranslation("booking");
   const navigate = useNavigate();
   const bookingId = params.id;
   const {
@@ -177,7 +177,7 @@ export default function BookingDetailPage({ params }: Route.ComponentProps) {
       <div className="flex flex-col items-center justify-center py-16 text-center">
         <XCircle className="mb-4 size-10 text-muted-foreground/50" />
         <p className="text-sm font-medium text-muted-foreground">
-          Booking not found or failed to load.
+          {t("detail.notFound")}
         </p>
         <Button
           variant="outline"
@@ -185,7 +185,7 @@ export default function BookingDetailPage({ params }: Route.ComponentProps) {
           className="mt-4"
           onClick={() => navigate("/user/bookings")}
         >
-          Back to Bookings
+          {t("actions.backToBookings")}
         </Button>
       </div>
     );
@@ -212,14 +212,14 @@ export default function BookingDetailPage({ params }: Route.ComponentProps) {
         onClick={() => navigate("/user/bookings")}
       >
         <ArrowLeft className="size-4" />
-        Back to Bookings
+        {t("actions.backToBookings")}
       </Button>
 
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
           <div className="flex items-center gap-3">
-            <h2 className="text-xl font-semibold">Booking Detail</h2>
+            <h2 className="text-xl font-semibold">{t("detail.title")}</h2>
             <Badge
               variant={STATUS_VARIANT[booking.status] ?? "secondary"}
               className="text-xs"
@@ -241,14 +241,14 @@ export default function BookingDetailPage({ params }: Route.ComponentProps) {
                 className="gap-1.5"
               >
                 <CreditCard className="size-4" />
-                Pay Now
+                {t("actions.pay")}
               </Button>
               <Button
                 variant="destructive"
                 size="sm"
                 onClick={() => setCancelOpen(true)}
               >
-                Cancel
+                {t("actions.cancel")}
               </Button>
             </>
           )}
@@ -259,7 +259,7 @@ export default function BookingDetailPage({ params }: Route.ComponentProps) {
         {/* Mentor info */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">Mentor</CardTitle>
+            <CardTitle className="text-base">{t("detail.mentor")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-4">
@@ -290,7 +290,9 @@ export default function BookingDetailPage({ params }: Route.ComponentProps) {
         {/* Session info */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">Session Details</CardTitle>
+            <CardTitle className="text-base">
+              {t("detail.sessionDetails")}
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex items-center gap-3 text-sm">
@@ -301,7 +303,7 @@ export default function BookingDetailPage({ params }: Route.ComponentProps) {
                   {formatDateTime(booking.mentorSlot.startTime)}
                 </p>
                 <p className="text-muted-foreground">
-                  to {formatDateTime(booking.mentorSlot.endTime)}
+                  {t("detail.to")} {formatDateTime(booking.mentorSlot.endTime)}
                 </p>
               </div>
             </div>
@@ -319,20 +321,20 @@ export default function BookingDetailPage({ params }: Route.ComponentProps) {
       {/* Timeline */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">Timeline</CardTitle>
+          <CardTitle className="text-base">{t("detail.timeline")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             <TimelineItem
               icon={<Clock className="size-3.5" />}
-              label="Booking Created"
+              label={t("detail.bookingCreated")}
               time={booking.createdAt}
               active
             />
             {booking.status === BookingStatus.Confirmed && (
               <TimelineItem
                 icon={<CheckCircle2 className="size-3.5 text-green-600" />}
-                label="Payment Confirmed"
+                label={t("detail.paymentConfirmed")}
                 time={booking.updatedAt ?? booking.createdAt}
                 active
               />
@@ -340,7 +342,7 @@ export default function BookingDetailPage({ params }: Route.ComponentProps) {
             {booking.status === BookingStatus.Cancelled && (
               <TimelineItem
                 icon={<XCircle className="size-3.5 text-destructive" />}
-                label={`Cancelled${booking.cancellationReason ? `: ${booking.cancellationReason}` : ""}`}
+                label={`${t("detail.cancelled")}${booking.cancellationReason ? `: ${booking.cancellationReason}` : ""}`}
                 time={booking.updatedAt ?? booking.createdAt}
                 active
               />
@@ -348,7 +350,7 @@ export default function BookingDetailPage({ params }: Route.ComponentProps) {
             {booking.status === BookingStatus.Expired && (
               <TimelineItem
                 icon={<Clock className="size-3.5 text-orange-500" />}
-                label="Booking Expired"
+                label={t("detail.bookingExpired")}
                 time={booking.updatedAt ?? booking.createdAt}
                 active
               />
@@ -356,7 +358,7 @@ export default function BookingDetailPage({ params }: Route.ComponentProps) {
             {booking.status === BookingStatus.Completed && (
               <TimelineItem
                 icon={<CheckCircle2 className="size-3.5 text-green-600" />}
-                label="Session Completed"
+                label={t("detail.sessionCompleted")}
                 time={booking.updatedAt ?? booking.createdAt}
                 active
               />

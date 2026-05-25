@@ -1,6 +1,7 @@
 import { HydrationBoundary, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import {
   isRouteErrorResponse,
   Links,
@@ -16,6 +17,7 @@ import type { Route } from "./+types/root";
 import { Toaster } from "~/components/ui/sonner";
 import { getQueryClient } from "~/lib/query-client";
 import { useAuthStore } from "~/stores/auth.store";
+import "~/lib/i18n";
 import "./app.css";
 
 export function loader() {
@@ -30,7 +32,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const data = useLoaderData<typeof loader>();
 
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -52,11 +54,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  // Rehydrate the Zustand store from localStorage on the client.
-  // skipHydration: true prevents this running during SSR.
+  const { i18n } = useTranslation();
+
   useEffect(() => {
     useAuthStore.persist.rehydrate();
   }, []);
+
+  // Keep <html lang> in sync with current language
+  useEffect(() => {
+    document.documentElement.lang = i18n.language;
+  }, [i18n.language]);
 
   const queryClient = getQueryClient();
 

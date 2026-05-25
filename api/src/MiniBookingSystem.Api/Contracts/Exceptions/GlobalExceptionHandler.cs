@@ -1,14 +1,21 @@
 using System.Diagnostics;
 using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.Extensions.Localization;
 
 public class GlobalExceptionHandler : IExceptionHandler
 {
     private readonly ILogger<GlobalExceptionHandler> _logger;
+    private readonly IStringLocalizer _localizer;
 
-    public GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger)
+    public GlobalExceptionHandler(
+        ILogger<GlobalExceptionHandler> logger,
+        IStringLocalizerFactory factory
+    )
     {
         _logger = logger;
+        var assemblyName = typeof(SharedResource).Assembly.GetName().Name!;
+        _localizer = factory.Create("SharedResource", assemblyName);
     }
 
     public async ValueTask<bool> TryHandleAsync(
@@ -19,16 +26,14 @@ public class GlobalExceptionHandler : IExceptionHandler
     {
         var traceId = Activity.Current?.Id ?? httpContext.TraceIdentifier;
 
-        // Default to internal server error (500)
         var statusCode = StatusCodes.Status500InternalServerError;
-        var message = "An unexpected error occurred.";
+        var message = GetLocalizedMessage("Error.Generic");
         List<string>? errors = null;
 
-        // domain validation error (400)
         if (exception is ValidationException validationException)
         {
             statusCode = StatusCodes.Status400BadRequest;
-            message = "Validation failed.";
+            message = GetLocalizedMessage("Error.ValidationFailed");
 
             errors = validationException
                 .Errors.Select(x => $"{x.PropertyName}: {x.ErrorMessage}")
@@ -47,10 +52,7 @@ public class GlobalExceptionHandler : IExceptionHandler
         }
         else
         {
-            // System error log with a higher severity level
             _logger.LogError(exception, "System Exception caught. TraceId: {TraceId}", traceId);
-            // It is possible to hide system error details in the Production environment
-            // message = environment.IsDevelopment() ? exception.Message : message;
         }
 
         var response = ApiResponse<object>.Failure(statusCode, message, errors);
@@ -61,6 +63,12 @@ public class GlobalExceptionHandler : IExceptionHandler
 
         await httpContext.Response.WriteAsJsonAsync(response, cancellationToken);
 
-        return true; // Báo hiệu lỗi đã được xử lý, không forward tiếp
+        return true;
+    }
+
+    private string GetLocalizedMessage(string key)
+    {
+        var result = _localizer[key];
+        return result.ResourceNotFound ? key : result.Value;
     }
 }

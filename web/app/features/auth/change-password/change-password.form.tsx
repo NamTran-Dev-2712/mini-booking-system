@@ -1,5 +1,6 @@
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "~/components/ui/button";
 import {
   Form,
@@ -13,6 +14,7 @@ import { Input } from "~/components/ui/input";
 import { useChangePasswordForm } from "./change-password.hook";
 
 export function ChangePasswordForm() {
+  const { t } = useTranslation("auth");
   const { form, onSubmit } = useChangePasswordForm();
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
@@ -27,7 +29,7 @@ export function ChangePasswordForm() {
           name="currentPassword"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Current Password</FormLabel>
+              <FormLabel>{t("changePassword.currentPassword")}</FormLabel>
               <FormControl>
                 <div className="relative">
                   <Input
@@ -40,7 +42,11 @@ export function ChangePasswordForm() {
                     type="button"
                     onClick={() => setShowCurrent((v) => !v)}
                     className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                    aria-label={showCurrent ? "Hide password" : "Show password"}
+                    aria-label={
+                      showCurrent
+                        ? t("errors.hidePassword")
+                        : t("errors.showPassword")
+                    }
                   >
                     {showCurrent ? (
                       <EyeOff className="size-4" />
@@ -60,7 +66,7 @@ export function ChangePasswordForm() {
           name="newPassword"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>New Password</FormLabel>
+              <FormLabel>{t("changePassword.newPassword")}</FormLabel>
               <FormControl>
                 <div className="relative">
                   <Input
@@ -73,7 +79,11 @@ export function ChangePasswordForm() {
                     type="button"
                     onClick={() => setShowNew((v) => !v)}
                     className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                    aria-label={showNew ? "Hide password" : "Show password"}
+                    aria-label={
+                      showNew
+                        ? t("errors.hidePassword")
+                        : t("errors.showPassword")
+                    }
                   >
                     {showNew ? (
                       <EyeOff className="size-4" />
@@ -93,7 +103,7 @@ export function ChangePasswordForm() {
           name="confirmPassword"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Confirm New Password</FormLabel>
+              <FormLabel>{t("changePassword.confirmPassword")}</FormLabel>
               <FormControl>
                 <div className="relative">
                   <Input
@@ -106,7 +116,11 @@ export function ChangePasswordForm() {
                     type="button"
                     onClick={() => setShowConfirm((v) => !v)}
                     className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                    aria-label={showConfirm ? "Hide password" : "Show password"}
+                    aria-label={
+                      showConfirm
+                        ? t("errors.hidePassword")
+                        : t("errors.showPassword")
+                    }
                   >
                     {showConfirm ? (
                       <EyeOff className="size-4" />
@@ -124,7 +138,7 @@ export function ChangePasswordForm() {
         <div className="flex justify-end">
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting && <Loader2 className="mr-2 size-4 animate-spin" />}
-            Change Password
+            {t("changePassword.submit")}
           </Button>
         </div>
       </form>

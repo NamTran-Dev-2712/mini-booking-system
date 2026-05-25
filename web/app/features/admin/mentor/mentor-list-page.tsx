@@ -7,6 +7,7 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { RefreshCw, UserPlus } from "lucide-react";
 import { useCallback, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Button } from "~/components/ui/button";
@@ -192,18 +193,21 @@ export function MentorListPage() {
   );
 
   // ── Render ───────────────────────────────────────────────────────────────
+  const { t } = useTranslation("mentor");
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-semibold tracking-tight">Mentors</h2>
+          <h2 className="text-2xl font-semibold tracking-tight">
+            {t("list.adminTitle")}
+          </h2>
           <p className="text-sm text-muted-foreground">
-            Create and manage mentor accounts.
+            {t("list.adminSubtitle")}
           </p>
         </div>
         <div className="flex items-center gap-2 self-start sm:self-auto">
-          {/* Refresh button */}
           <Button
             variant="outline"
             size="sm"
@@ -217,25 +221,24 @@ export function MentorListPage() {
             <RefreshCw
               className={`size-3.5 ${isFetching ? "animate-spin" : ""}`}
             />
-            <span className="hidden sm:inline">Refresh</span>
+            <span className="hidden sm:inline">
+              {t("list.adminTitle", { ns: "common", defaultValue: "Refresh" })}
+            </span>
             <Kbd>R</Kbd>
           </Button>
 
-          {/* Column visibility */}
           <DataTableViewOptions table={table} />
 
           <Button onClick={() => setCreateOpen(true)} className="gap-2">
             <UserPlus className="size-4" />
-            New Mentor
+            {t("list.adminTitle", { ns: "common", defaultValue: "New Mentor" })}
             <Kbd className="ml-1">N</Kbd>
           </Button>
         </div>
       </div>
 
-      {/* Filter panel — shared component with search + advanced filters */}
       <MentorFilterPanel filters={filters} onFilterChange={updateFilters} />
 
-      {/* Table — desktop */}
       <div className="hidden md:block">
         <DataTable
           table={table}
@@ -243,13 +246,15 @@ export function MentorListPage() {
           isLoading={isPending}
           emptyState={
             <div className="flex flex-col items-center gap-2 py-8">
-              <p className="text-sm text-muted-foreground">No mentors found.</p>
+              <p className="text-sm text-muted-foreground">
+                {t("list.noMentorsFound")}
+              </p>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setCreateOpen(true)}
               >
-                Create first mentor
+                {t("list.createFirstMentor")}
               </Button>
             </div>
           }
@@ -259,7 +264,6 @@ export function MentorListPage() {
         />
       </div>
 
-      {/* Card list — mobile */}
       <div className="md:hidden">
         <MentorCardList
           mentors={mentors}
@@ -270,7 +274,6 @@ export function MentorListPage() {
         />
       </div>
 
-      {/* Pagination */}
       {data && data.totalPages > 0 && (
         <DataTablePagination
           pageNumber={data.pageNumber}
@@ -286,7 +289,6 @@ export function MentorListPage() {
         />
       )}
 
-      {/* Dialogs / Sheets */}
       <MentorCreateDialog open={createOpen} onOpenChange={setCreateOpen} />
       <MentorEditDialogLoader
         mentor={editMentor}

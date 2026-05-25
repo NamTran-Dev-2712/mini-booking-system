@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { getApiErrorMessage } from "~/lib/api-error";
+import i18n from "~/lib/i18n";
 import { authService } from "~/services/auth/auth.service";
 import { useAuthStore } from "~/stores/auth.store";
 import {
@@ -29,8 +30,8 @@ export function useChangePasswordForm() {
         currentPassword: data.currentPassword,
         newPassword: data.newPassword,
       });
-      toast.success("Password changed successfully", {
-        description: "Please login again with your new password.",
+      toast.success(i18n.t("toast.passwordChanged"), {
+        description: i18n.t("toast.passwordChangedDesc"),
       });
       clearUser();
       navigate("/login");

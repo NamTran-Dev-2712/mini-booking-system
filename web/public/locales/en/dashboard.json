@@ -1,0 +1,49 @@
+{
+  "title": "Dashboard",
+  "welcome": "Welcome, {{name}}",
+  "subtitle": "System overview and key metrics.",
+  "userSubtitle": "Your booking overview and activity.",
+  "mentorSubtitle": "Manage your sessions and availability.",
+  "stats": {
+    "totalBookings": "Total Bookings",
+    "activeBookings": "Active Bookings",
+    "completedSessions": "Completed Sessions",
+    "totalRevenue": "Total Revenue",
+    "totalMentors": "Total Mentors",
+    "totalUsers": "Total Users",
+    "pendingPayments": "Pending Payments",
+    "upcomingSessions": "Upcoming Sessions",
+    "upcoming": "Upcoming",
+    "completed": "Completed",
+    "totalSpending": "Total Spending",
+    "upcomingSlots": "Upcoming Slots",
+    "revenue": "Revenue"
+  },
+  "charts": {
+    "bookingsOverview": "Bookings Overview",
+    "revenueOverview": "Revenue Overview",
+    "thisWeek": "This Week",
+    "thisMonth": "This Month",
+    "thisYear": "This Year",
+    "bookingHistory": "Booking History",
+    "bookingTrend": "Booking Trend",
+    "bookingsByStatus": "Bookings by Status",
+    "revenueOverTime": "Revenue Over Time"
+  },
+  "recent": {
+    "recentBookings": "Recent Bookings",
+    "recentPayments": "Recent Payments",
+    "viewAll": "View All"
+  },
+  "upcomingSessions": {
+    "title": "Upcoming Sessions",
+    "empty": "No upcoming sessions. Create a slot to get started.",
+    "viewAll": "View all"
+  },
+  "quickActions": {
+    "title": "Quick Actions",
+    "createSlot": "Create Slot",
+    "manageSkills": "Manage Skills",
+    "viewProfile": "View Profile"
+  }
+}

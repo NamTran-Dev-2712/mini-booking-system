@@ -10,6 +10,7 @@ import {
   Building2,
   BarChart3,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
 import { Separator } from "~/components/ui/separator";
@@ -24,55 +25,51 @@ export function meta() {
   ];
 }
 
-const features = [
-  {
-    icon: CalendarCheck,
-    title: "Instant Booking",
-    description:
-      "Find available mentors and book sessions instantly — no waiting or phone calls needed.",
-  },
-  {
-    icon: Shield,
-    title: "Secure & Private",
-    description:
-      "End-to-end encrypted data. Your privacy and mentor information are protected.",
-  },
-  {
-    icon: Zap,
-    title: "Fast & Easy",
-    description:
-      "Intuitive interface. Just 3 simple steps to schedule your mentorship session.",
-  },
-];
-
-const stats = [
-  { icon: Users, value: "1,000+", label: "Students" },
-  { icon: Building2, value: "200+", label: "Mentors" },
-  { icon: BarChart3, value: "50K+", label: "Sessions" },
-];
-
-const steps = [
-  {
-    step: "01",
-    title: "Search",
-    description:
-      "Browse mentors by expertise, experience level, and availability.",
-  },
-  {
-    step: "02",
-    title: "Book",
-    description:
-      "View real-time availability and select your preferred time slot.",
-  },
-  {
-    step: "03",
-    title: "Connect",
-    description:
-      "Receive instant confirmation and automatic reminders before your session.",
-  },
-];
-
 export default function HomePage() {
+  const { t } = useTranslation("public");
+
+  const features = [
+    {
+      icon: CalendarCheck,
+      title: t("features.instantBooking.title"),
+      description: t("features.instantBooking.description"),
+    },
+    {
+      icon: Shield,
+      title: t("features.securePrivate.title"),
+      description: t("features.securePrivate.description"),
+    },
+    {
+      icon: Zap,
+      title: t("features.fastEasy.title"),
+      description: t("features.fastEasy.description"),
+    },
+  ];
+
+  const stats = [
+    { icon: Users, value: "1,000+", label: t("stats.students") },
+    { icon: Building2, value: "200+", label: t("stats.mentors") },
+    { icon: BarChart3, value: "50K+", label: t("stats.sessions") },
+  ];
+
+  const steps = [
+    {
+      step: "01",
+      title: t("howItWorks.search.title"),
+      description: t("howItWorks.search.description"),
+    },
+    {
+      step: "02",
+      title: t("howItWorks.book.title"),
+      description: t("howItWorks.book.description"),
+    },
+    {
+      step: "03",
+      title: t("howItWorks.connect.title"),
+      description: t("howItWorks.connect.description"),
+    },
+  ];
+
   return (
     <div className="flex flex-col">
       {/* Hero */}
@@ -84,27 +81,26 @@ export default function HomePage() {
             className="mb-4 inline-flex items-center gap-1"
           >
             <CheckCircle2 className="size-3" />
-            Free • No Installation Required
+            {t("hero.badge")}
           </Badge>
           <h1 className="text-4xl font-bold tracking-tight md:text-6xl lg:text-7xl">
-            Connect with Mentors
+            {t("hero.title")}
             <span className="block text-muted-foreground">
-              Easier Than Ever
+              {t("hero.titleHighlight")}
             </span>
           </h1>
           <p className="mx-auto mt-6 max-w-xl text-base text-muted-foreground md:text-lg">
-            MiniBooking helps you find expert mentors, schedule sessions, and
-            grow your skills — all on one seamless platform.
+            {t("hero.description")}
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Button size="lg" asChild className="h-11 px-6">
               <Link to="/register">
-                Get Started Free
+                {t("hero.getStarted")}
                 <ChevronRight className="ml-1 size-4" />
               </Link>
             </Button>
             <Button variant="outline" size="lg" asChild className="h-11 px-6">
-              <Link to="/about">Learn More</Link>
+              <Link to="/about">{t("hero.learnMore")}</Link>
             </Button>
           </div>
         </div>
@@ -135,11 +131,10 @@ export default function HomePage() {
         <div className="container mx-auto max-w-6xl px-4">
           <div className="mb-12 text-center">
             <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
-              Why Choose MiniBooking?
+              {t("features.title")}
             </h2>
             <p className="mt-3 text-muted-foreground">
-              Built for simplicity, powerful enough for all your mentorship
-              needs.
+              {t("features.subtitle")}
             </p>
           </div>
           <div className="grid gap-6 md:grid-cols-3">
@@ -168,10 +163,10 @@ export default function HomePage() {
         <div className="container mx-auto max-w-6xl px-4">
           <div className="mb-12 text-center">
             <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
-              Just 3 Simple Steps
+              {t("howItWorks.title")}
             </h2>
             <p className="mt-3 text-muted-foreground">
-              From search to confirmation — faster than you think.
+              {t("howItWorks.subtitle")}
             </p>
           </div>
           <div className="grid gap-8 md:grid-cols-3">
@@ -197,10 +192,10 @@ export default function HomePage() {
       <section className="bg-foreground text-background py-16 md:py-20">
         <div className="container mx-auto max-w-6xl px-4 text-center">
           <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
-            Ready to Get Started?
+            {t("cta.title")}
           </h2>
           <p className="mt-3 text-background/60 md:text-lg">
-            Join thousands of students connecting with expert mentors every day.
+            {t("cta.subtitle")}
           </p>
           <Button
             size="lg"
@@ -209,7 +204,7 @@ export default function HomePage() {
             className="mt-8 h-11 px-8"
           >
             <Link to="/register">
-              Create Free Account
+              {t("cta.button")}
               <ChevronRight className="ml-1 size-4" />
             </Link>
           </Button>

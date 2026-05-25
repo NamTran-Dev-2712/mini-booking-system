@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { getApiErrorMessage } from "~/lib/api-error";
+import i18n from "~/lib/i18n";
 import { queryKeys } from "~/lib/query-keys";
 import { mentorService } from "~/services/mentor/mentor.service";
 import type { UpdateMentorRequest } from "~/services/mentor/dtos/commands/update-mentor/request";
@@ -21,7 +22,7 @@ export function useUpdateMentorMutation() {
       // Invalidate both the specific detail and all list variants
       qc.invalidateQueries({ queryKey: queryKeys.mentors.detail(id) });
       qc.invalidateQueries({ queryKey: queryKeys.mentors.lists() });
-      toast.success("Mentor updated successfully");
+      toast.success(i18n.t("toast.mentorUpdated"));
     },
 
     onError: (err) => {

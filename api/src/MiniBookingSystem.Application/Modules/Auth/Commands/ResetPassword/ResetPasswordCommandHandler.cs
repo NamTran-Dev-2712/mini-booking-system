@@ -6,18 +6,21 @@ public class ResetPasswordCommandHandler : IRequestHandler<ResetPasswordCommand,
     private readonly ITokenHasher _tokenHasher;
     private readonly IIdentityService _identityService;
     private readonly IRefreshTokenRepository _refreshTokenRepository;
+    private readonly ILocalizationService _localizer;
 
     public ResetPasswordCommandHandler(
         IUnitOfWork unitOfWork,
         ITokenHasher tokenHasher,
         IIdentityService identityService,
-        IRefreshTokenRepository refreshTokenRepository
+        IRefreshTokenRepository refreshTokenRepository,
+        ILocalizationService localizer
     )
     {
         _unitOfWork = unitOfWork;
         _tokenHasher = tokenHasher;
         _identityService = identityService;
         _refreshTokenRepository = refreshTokenRepository;
+        _localizer = localizer;
     }
 
     public async Task<Unit> Handle(
@@ -27,7 +30,7 @@ public class ResetPasswordCommandHandler : IRequestHandler<ResetPasswordCommand,
     {
         var user = await _unitOfWork.User.FindByEmailAsync(request.Email, cancellationToken);
         if (user is null)
-            throw new BadRequestException("Invalid or expired reset token.");
+            throw new BadRequestException(_localizer.GetMessage("Auth.InvalidResetToken"));
 
         var tokenHash = _tokenHasher.HashToken(request.Token);
         var resetToken = await _unitOfWork.PasswordResetToken.GetByTokenHashAsync(
@@ -36,13 +39,13 @@ public class ResetPasswordCommandHandler : IRequestHandler<ResetPasswordCommand,
         );
 
         if (resetToken is null || resetToken.UserId != user.Id)
-            throw new BadRequestException("Invalid or expired reset token.");
+            throw new BadRequestException(_localizer.GetMessage("Auth.InvalidResetToken"));
 
         if (resetToken.IsExpired)
-            throw new BadRequestException("Reset token has expired. Please request a new one.");
+            throw new BadRequestException(_localizer.GetMessage("Auth.ResetTokenExpired"));
 
         if (resetToken.IsConsumed)
-            throw new BadRequestException("This reset token has already been used.");
+            throw new BadRequestException(_localizer.GetMessage("Auth.ResetTokenUsed"));
 
         if (resetToken.Attempts >= 5)
             throw new BadRequestException(
@@ -55,7 +58,7 @@ public class ResetPasswordCommandHandler : IRequestHandler<ResetPasswordCommand,
         if (otpHash != resetToken.OtpCodeHash)
         {
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-            throw new BadRequestException("Invalid OTP code.");
+            throw new BadRequestException(_localizer.GetMessage("Auth.InvalidOtp"));
         }
 
         await _identityService.ResetPasswordAsync(user.Id, request.NewPassword, cancellationToken);

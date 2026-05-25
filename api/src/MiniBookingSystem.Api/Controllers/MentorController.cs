@@ -43,7 +43,7 @@ public class MentorController : BaseApiController
     )
     {
         if (id != command.MentorId)
-            return FailureResponse<Guid>(400, "ID in URL does not match MentorId in body.");
+            return FailureResponse<Guid>(400, Localizer.GetMessage("Mentor.IdMismatch"));
 
         // check if user is mentor and trying to add skill to other mentor
         if (User.IsInRole(Roles.Mentor.ToString()))
@@ -52,10 +52,10 @@ public class MentorController : BaseApiController
                 c.Type == JwtRegisteredClaimNames.Sub
             );
             if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
-                return FailureResponse<Guid>(401, "Invalid user ID in token.");
+                return FailureResponse<Guid>(401, Localizer.GetMessage("Auth.InvalidTokenClaim"));
 
             if (userId != command.MentorId)
-                return FailureResponse<Guid>(403, "You can only add skills to your own profile.");
+                return FailureResponse<Guid>(403, Localizer.GetMessage("Mentor.AddSkillOwn"));
         }
 
         var result = await _mediator.Send(command, cancellationToken);
@@ -77,18 +77,15 @@ public class MentorController : BaseApiController
                 c.Type == JwtRegisteredClaimNames.Sub
             );
             if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
-                return FailureResponse<Guid>(401, "Invalid user ID in token.");
+                return FailureResponse<Guid>(401, Localizer.GetMessage("Auth.InvalidTokenClaim"));
 
             if (userId != id)
-                return FailureResponse<Guid>(
-                    403,
-                    "You can only remove skills from your own profile."
-                );
+                return FailureResponse<Guid>(403, Localizer.GetMessage("Mentor.RemoveSkillOwn"));
         }
 
         var command = new RemoveSkillMentorCommand(id, skillId);
         await _mediator.Send(command, cancellationToken);
-        return NoContentResponse("Skill removed from mentor successfully");
+        return NoContentResponse("Response.Mentor.SkillRemoved");
     }
 
     [HttpPost("{id:guid}/slots")]
@@ -100,10 +97,10 @@ public class MentorController : BaseApiController
     )
     {
         if (id != command.MentorId)
-            return FailureResponse<Guid>(400, "ID in URL does not match MentorId in body.");
+            return FailureResponse<Guid>(400, Localizer.GetMessage("Mentor.IdMismatch"));
 
         var result = await _mediator.Send(command, cancellationToken);
-        return CreatedResponse(result, "Slot created successfully");
+        return CreatedResponse(result, "Response.Mentor.SlotCreated");
     }
 
     [HttpPut("{id:guid}")]
@@ -115,11 +112,11 @@ public class MentorController : BaseApiController
     )
     {
         if (id != command.Id)
-            return FailureResponse<Guid>(400, "ID in URL does not match ID in body.");
+            return FailureResponse<Guid>(400, Localizer.GetMessage("Mentor.IdBodyMismatch"));
 
         var result = await _mediator.Send(command, cancellationToken);
         await EvictMentorCache(cancellationToken);
-        return OkResponse(result, "Mentor updated successfully");
+        return OkResponse(result, "Response.Mentor.Updated");
     }
 
     [HttpPut("{id:guid}/slots/{slotId:guid}")]
@@ -132,13 +129,13 @@ public class MentorController : BaseApiController
     )
     {
         if (id != command.MentorId)
-            return FailureResponse<Guid>(400, "ID in URL does not match MentorId in body.");
+            return FailureResponse<Guid>(400, Localizer.GetMessage("Mentor.IdMismatch"));
 
         if (slotId != command.Id)
-            return FailureResponse<Guid>(400, "Slot ID in URL does not match ID in body.");
+            return FailureResponse<Guid>(400, Localizer.GetMessage("Mentor.SlotIdMismatch"));
 
         var result = await _mediator.Send(command, cancellationToken);
-        return OkResponse(result, "Slot updated successfully");
+        return OkResponse(result, "Response.Mentor.SlotUpdated");
     }
 
     [HttpDelete("{id:guid}")]
@@ -148,7 +145,7 @@ public class MentorController : BaseApiController
         var command = new DeleteMentorCommand(id);
         await _mediator.Send(command, cancellationToken);
         await EvictMentorCache(cancellationToken);
-        return NoContentResponse("Mentor deleted successfully");
+        return NoContentResponse("Response.Mentor.Deleted");
     }
 
     [HttpGet()]

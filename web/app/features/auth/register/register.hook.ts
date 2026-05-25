@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { getApiErrorMessage } from "~/lib/api-error";
+import i18n from "~/lib/i18n";
 import { authService } from "~/services/auth/auth.service";
 import { registerSchema, type RegisterFormData } from "./register.schema";
 
@@ -30,7 +31,7 @@ export function useRegisterForm() {
         phoneNumber: data.phoneNumber,
         avatarUrl: data.avatarUrl || null,
       });
-      toast.success("Account created successfully! Please sign in.");
+      toast.success(i18n.t("toast.registered"));
       navigate("/login");
     } catch (error) {
       toast.error(getApiErrorMessage(error));

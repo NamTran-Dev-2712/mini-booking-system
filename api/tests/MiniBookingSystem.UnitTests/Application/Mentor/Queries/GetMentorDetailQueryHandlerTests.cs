@@ -38,10 +38,15 @@ public sealed class GetMentorDetailQueryHandlerTests
                 )
             );
 
+        var localizer = new Mock<ILocalizationService>();
+        localizer.Setup(x => x.GetMessage(It.IsAny<string>())).Returns((string key) => key);
+        localizer.Setup(x => x.GetMessage("Mentor.NotFound")).Returns("Mentor not found.");
+
         _sut = new GetMentorDetailHandler(
             _unitOfWork.Object,
             _cacheService.Object,
-            _identityService.Object
+            _identityService.Object,
+            localizer.Object
         );
     }
 
@@ -239,6 +244,6 @@ public sealed class GetMentorDetailQueryHandlerTests
         var act = () => _sut.Handle(query, CancellationToken.None);
 
         // Assert
-        await act.Should().ThrowAsync<NotFoundException>().WithMessage($"*Mentor*{mentorId}*");
+        await act.Should().ThrowAsync<NotFoundException>().WithMessage("*Mentor not found*");
     }
 }

@@ -9,13 +9,15 @@ public class IdentityService : IIdentityService
     private readonly ITokenHasher _tokenHasher;
     private readonly IRefreshTokenRepository _refreshTokenRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ILocalizationService _localizer;
 
     public IdentityService(
         UserManager<ApplicationUser> userManager,
         IJwtTokenService tokenService,
         ITokenHasher tokenHasher,
         IRefreshTokenRepository refreshTokenRepository,
-        IUnitOfWork unitOfWork
+        IUnitOfWork unitOfWork,
+        ILocalizationService localizer
     )
     {
         _userManager = userManager;
@@ -23,6 +25,7 @@ public class IdentityService : IIdentityService
         _tokenHasher = tokenHasher;
         _refreshTokenRepository = refreshTokenRepository;
         _unitOfWork = unitOfWork;
+        _localizer = localizer;
     }
 
     public async Task<Guid> RegisterAsync(
@@ -37,7 +40,7 @@ public class IdentityService : IIdentityService
         // Check for existing user by email
         var existingByEmail = await _userManager.FindByEmailAsync(email);
         if (existingByEmail is not null)
-            throw new ConflictException("Email is already registered.");
+            throw new ConflictException(_localizer.GetMessage("Auth.EmailAlreadyRegistered"));
 
         // Check for existing user by phone number
         var phoneExists = await _unitOfWork.User.IsPhoneNumberTakenAsync(
@@ -46,7 +49,7 @@ public class IdentityService : IIdentityService
         );
 
         if (phoneExists)
-            throw new ConflictException("Phone number is already registered.");
+            throw new ConflictException(_localizer.GetMessage("Auth.PhoneAlreadyRegistered"));
 
         var user = new ApplicationUser
         {
@@ -61,7 +64,7 @@ public class IdentityService : IIdentityService
         if (!createResult.Succeeded)
         {
             var errors = createResult.Errors.Select(e => e.Description).ToList();
-            throw new BadRequestException("User registration failed.", errors);
+            throw new BadRequestException(_localizer.GetMessage("Auth.RegistrationFailed"), errors);
         }
 
         var roleResult = await _userManager.AddToRoleAsync(user, ApplicationRoles.User);
@@ -71,7 +74,7 @@ public class IdentityService : IIdentityService
             await _userManager.DeleteAsync(user);
 
             var errors = roleResult.Errors.Select(e => e.Description).ToList();
-            throw new BadRequestException("Failed to assign default role.", errors);
+            throw new BadRequestException(_localizer.GetMessage("Auth.RoleAssignFailed"), errors);
         }
 
         return user.Id;
@@ -85,11 +88,11 @@ public class IdentityService : IIdentityService
     {
         var user = await _userManager.FindByEmailAsync(email);
         if (user is null)
-            throw new UnauthorizedException("Invalid email or password.");
+            throw new UnauthorizedException(_localizer.GetMessage("Auth.InvalidCredentials"));
 
         var passwordValid = await _userManager.CheckPasswordAsync(user, password);
         if (!passwordValid)
-            throw new UnauthorizedException("Invalid email or password.");
+            throw new UnauthorizedException(_localizer.GetMessage("Auth.InvalidCredentials"));
 
         // Generate tokens
         var roles = await _userManager.GetRolesAsync(user);
@@ -147,7 +150,7 @@ public class IdentityService : IIdentityService
             .FirstOrDefaultAsync(cancellationToken);
 
         if (user is null)
-            throw new NotFoundException("User", userId);
+            throw new NotFoundException(_localizer.GetMessage("Auth.UserNotFound"));
 
         var roles = await _userManager.GetRolesAsync(user);
 
@@ -171,12 +174,12 @@ public class IdentityService : IIdentityService
         var token = await _refreshTokenRepository.GetRefreshTokenAsync(tokenHash);
 
         if (token is null)
-            throw new UnauthorizedException("Invalid refresh token.");
+            throw new UnauthorizedException(_localizer.GetMessage("Auth.InvalidRefreshToken"));
 
         var user = await _userManager.FindByIdAsync(token.UserId.ToString());
 
         if (user is null)
-            throw new UnauthorizedException("User not found for the provided refresh token.");
+            throw new UnauthorizedException(_localizer.GetMessage("Auth.RefreshTokenUserNotFound"));
 
         // Generate new tokens
         var roles = await _userManager.GetRolesAsync(user);
@@ -219,7 +222,7 @@ public class IdentityService : IIdentityService
     {
         var user = await _userManager.FindByIdAsync(userId.ToString());
         if (user is null)
-            throw new NotFoundException("User", userId);
+            throw new NotFoundException(_localizer.GetMessage("Auth.UserNotFound"));
 
         var passwordHash = _userManager.PasswordHasher.HashPassword(user, newPassword);
         user.PasswordHash = passwordHash;
@@ -229,7 +232,10 @@ public class IdentityService : IIdentityService
         if (!result.Succeeded)
         {
             var errors = result.Errors.Select(e => e.Description).ToList();
-            throw new BadRequestException("Failed to reset password.", errors);
+            throw new BadRequestException(
+                _localizer.GetMessage("Auth.PasswordResetFailed"),
+                errors
+            );
         }
     }
 
@@ -242,16 +248,21 @@ public class IdentityService : IIdentityService
     {
         var user = await _userManager.FindByIdAsync(userId.ToString());
         if (user is null)
-            throw new NotFoundException("User", userId);
+            throw new NotFoundException(_localizer.GetMessage("Auth.UserNotFound"));
 
         var result = await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
         if (!result.Succeeded)
         {
             var errors = result.Errors.Select(e => e.Description).ToList();
             if (errors.Any(e => e.Contains("Incorrect password")))
-                throw new UnauthorizedException("Current password is incorrect.");
+                throw new UnauthorizedException(
+                    _localizer.GetMessage("Auth.CurrentPasswordIncorrect")
+                );
 
-            throw new BadRequestException("Failed to change password.", errors);
+            throw new BadRequestException(
+                _localizer.GetMessage("Auth.PasswordChangeFailed"),
+                errors
+            );
         }
 
         await _refreshTokenRepository.RemoveRefreshTokenAsync(userId.ToString());
@@ -283,7 +294,10 @@ public class IdentityService : IIdentityService
                 if (!linkResult.Succeeded)
                 {
                     var errors = linkResult.Errors.Select(e => e.Description).ToList();
-                    throw new BadRequestException("Failed to link Google account.", errors);
+                    throw new BadRequestException(
+                        _localizer.GetMessage("Auth.GoogleLinkFailed"),
+                        errors
+                    );
                 }
             }
             else
@@ -303,7 +317,7 @@ public class IdentityService : IIdentityService
                 {
                     var errors = createResult.Errors.Select(e => e.Description).ToList();
                     throw new BadRequestException(
-                        "Failed to create user from Google login.",
+                        _localizer.GetMessage("Auth.GoogleCreateFailed"),
                         errors
                     );
                 }
@@ -359,21 +373,24 @@ public class IdentityService : IIdentityService
     {
         var user = await _userManager.FindByIdAsync(userId.ToString());
         if (user is null)
-            throw new NotFoundException("User", userId);
+            throw new NotFoundException(_localizer.GetMessage("Auth.UserNotFound"));
 
         var phoneExists = await _unitOfWork.User.IsPhoneNumberTakenAsync(
             phoneNumber,
             cancellationToken
         );
         if (phoneExists)
-            throw new ConflictException("Phone number is already registered.");
+            throw new ConflictException(_localizer.GetMessage("Auth.PhoneAlreadyRegistered"));
 
         user.PhoneNumber = phoneNumber;
         var result = await _userManager.UpdateAsync(user);
         if (!result.Succeeded)
         {
             var errors = result.Errors.Select(e => e.Description).ToList();
-            throw new BadRequestException("Failed to update profile.", errors);
+            throw new BadRequestException(
+                _localizer.GetMessage("Auth.ProfileUpdateFailed"),
+                errors
+            );
         }
     }
 }

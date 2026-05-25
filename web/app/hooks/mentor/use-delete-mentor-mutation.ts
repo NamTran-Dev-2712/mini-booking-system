@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { getApiErrorMessage } from "~/lib/api-error";
+import i18n from "~/lib/i18n";
 import { queryKeys } from "~/lib/query-keys";
 import { mentorService } from "~/services/mentor/mentor.service";
 import type { PaginatedResult } from "~/types/global/paginated";
@@ -46,7 +47,7 @@ export function useDeleteMentorMutation() {
     },
 
     onSuccess: () => {
-      toast.success("Mentor deleted successfully");
+      toast.success(i18n.t("toast.mentorDeleted"));
     },
 
     onSettled: () => {

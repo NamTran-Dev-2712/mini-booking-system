@@ -1,4 +1,5 @@
 import { Mail, Phone } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Separator } from "~/components/ui/separator";
@@ -12,6 +13,7 @@ export function meta() {
 }
 
 export default function UserProfile() {
+  const { t } = useTranslation("auth");
   const user = useCurrentUser();
   const { data: profile } = useProfileQuery();
 
@@ -26,10 +28,10 @@ export default function UserProfile() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-semibold tracking-tight">Profile</h2>
-        <p className="text-muted-foreground">
-          Manage your personal information.
-        </p>
+        <h2 className="text-2xl font-semibold tracking-tight">
+          {t("profile.title")}
+        </h2>
+        <p className="text-muted-foreground">{t("profile.manageAccount")}</p>
       </div>
 
       {/* Profile header card */}
@@ -68,7 +70,9 @@ export default function UserProfile() {
       {/* Edit form */}
       <Card>
         <CardHeader className="pb-4">
-          <CardTitle className="text-base">Edit Profile</CardTitle>
+          <CardTitle className="text-base">
+            {t("profile.editProfile")}
+          </CardTitle>
         </CardHeader>
         <Separator />
         <CardContent className="pt-6">
@@ -79,7 +83,9 @@ export default function UserProfile() {
       {/* Change Password */}
       <Card>
         <CardHeader className="pb-4">
-          <CardTitle className="text-base">Change Password</CardTitle>
+          <CardTitle className="text-base">
+            {t("profile.changePassword")}
+          </CardTitle>
         </CardHeader>
         <Separator />
         <CardContent className="pt-6">

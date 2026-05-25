@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { getApiErrorMessage } from "~/lib/api-error";
+import i18n from "~/lib/i18n";
 import { authService } from "~/services/auth/auth.service";
 import {
   forgotPasswordSchema,
@@ -23,9 +24,8 @@ export function useForgotPasswordForm() {
     try {
       await authService.forgotPassword({ email: data.email });
       setIsSubmitted(true);
-      toast.success("Check your email", {
-        description:
-          "If an account exists with this email, you'll receive a reset link shortly.",
+      toast.success(i18n.t("toast.forgotPasswordSent"), {
+        description: i18n.t("toast.forgotPasswordSentDesc"),
       });
     } catch (error) {
       toast.error(getApiErrorMessage(error));

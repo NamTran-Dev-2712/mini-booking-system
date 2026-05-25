@@ -14,11 +14,18 @@ public sealed class UpdateMentorCommandHandlerTests
         _mentorRepo = new Mock<IMentorRepository>(MockBehavior.Strict);
         _userRepo = new Mock<IUserRepository>(MockBehavior.Strict);
         _cacheService = new Mock<ICacheService>(MockBehavior.Strict);
+        var localizer = new Mock<ILocalizationService>();
+        localizer.Setup(l => l.GetMessage(It.IsAny<string>())).Returns((string key) => key);
+        localizer.Setup(l => l.GetMessage("Mentor.NotFound")).Returns("Mentor not found.");
 
         _unitOfWork.Setup(u => u.Mentor).Returns(_mentorRepo.Object);
         _unitOfWork.Setup(u => u.User).Returns(_userRepo.Object);
 
-        _sut = new UpdateMentorCommandHandler(_unitOfWork.Object, _cacheService.Object);
+        _sut = new UpdateMentorCommandHandler(
+            _unitOfWork.Object,
+            _cacheService.Object,
+            localizer.Object
+        );
     }
 
     private global::Mentor SetupHappyPath(UpdateMentorCommand cmd)
@@ -216,7 +223,7 @@ public sealed class UpdateMentorCommandHandlerTests
         var act = () => _sut.Handle(command, CancellationToken.None);
 
         // Assert
-        await act.Should().ThrowAsync<NotFoundException>().WithMessage($"*Mentor*{command.Id}*");
+        await act.Should().ThrowAsync<NotFoundException>().WithMessage("*Mentor not found*");
     }
 
     [Fact]
