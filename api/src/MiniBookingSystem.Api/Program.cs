@@ -1,5 +1,7 @@
 using Hangfire;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
+using MiniBookingSystem.Infrastructure.Persistence.DbContext;
 using Scalar.AspNetCore;
 using Serilog;
 
@@ -82,6 +84,13 @@ try
     app.UseHangfireDashboard("/hangfire");
 
     app.MapControllers();
+
+    // Apply pending migrations automatically in production
+    using (var scope = app.Services.CreateScope())
+    {
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        await db.Database.MigrateAsync();
+    }
 
     // Seed initial data (roles, mentors, etc.)
     await DatabaseSeeder.SeedAllAsync(app.Services);
