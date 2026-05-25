@@ -9,20 +9,21 @@ import type { ApiError, ApiResponse } from "~/types/global/api.response";
 // ---------------------------------------------------------------------------
 // Base instance
 // ---------------------------------------------------------------------------
-const getBaseURL = () => {
-  if (typeof window !== "undefined") {
-    return window.ENV?.VITE_API_URL || import.meta.env.VITE_API_URL || "";
-  }
-  return process.env.VITE_API_URL || import.meta.env.VITE_API_URL || "";
-};
-
 const apiClient: AxiosInstance = axios.create({
-  baseURL: getBaseURL(),
+  baseURL: import.meta.env.VITE_API_URL || "",
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
   },
+});
+
+// Ensure baseURL is always correct (handles SSR hydration timing)
+apiClient.interceptors.request.use((config) => {
+  if (typeof window !== "undefined" && window.ENV?.VITE_API_URL) {
+    config.baseURL = window.ENV.VITE_API_URL;
+  }
+  return config;
 });
 
 // ---------------------------------------------------------------------------
