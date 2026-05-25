@@ -16,11 +16,21 @@ public sealed class RemoveSkillMentorCommandHandlerTests
         _mentorRepo = new Mock<IMentorRepository>(MockBehavior.Strict);
         _mentorSkillRepo = new Mock<IMentorSkillRepository>(MockBehavior.Strict);
         _cacheService = new Mock<ICacheService>(MockBehavior.Strict);
+        var localizer = new Mock<ILocalizationService>();
+        localizer.Setup(l => l.GetMessage(It.IsAny<string>())).Returns((string key) => key);
+        localizer.Setup(l => l.GetMessage("Mentor.NotFound")).Returns("Mentor not found.");
+        localizer
+            .Setup(l => l.GetMessage("Mentor.SkillNotFound"))
+            .Returns("Mentor skill not found.");
 
         _unitOfWork.Setup(u => u.Mentor).Returns(_mentorRepo.Object);
         _unitOfWork.Setup(u => u.MentorSkill).Returns(_mentorSkillRepo.Object);
 
-        _sut = new RemoveSkillMentorCommandHandler(_unitOfWork.Object, _cacheService.Object);
+        _sut = new RemoveSkillMentorCommandHandler(
+            _unitOfWork.Object,
+            _cacheService.Object,
+            localizer.Object
+        );
     }
 
     private void SetupHappyPath(Guid mentorId, Guid skillId)
@@ -120,7 +130,7 @@ public sealed class RemoveSkillMentorCommandHandlerTests
         var act = () => _sut.Handle(command, CancellationToken.None);
 
         // Assert
-        await act.Should().ThrowAsync<NotFoundException>().WithMessage($"*Mentor*{mentorId}*");
+        await act.Should().ThrowAsync<NotFoundException>().WithMessage("*Mentor not found*");
     }
 
     [Fact]
@@ -144,7 +154,7 @@ public sealed class RemoveSkillMentorCommandHandlerTests
         var act = () => _sut.Handle(command, CancellationToken.None);
 
         // Assert
-        await act.Should().ThrowAsync<NotFoundException>().WithMessage($"*MentorSkill*{skillId}*");
+        await act.Should().ThrowAsync<NotFoundException>().WithMessage("*Mentor skill not found*");
     }
 
     [Fact]

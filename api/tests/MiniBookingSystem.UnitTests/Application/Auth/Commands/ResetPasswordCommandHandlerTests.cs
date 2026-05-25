@@ -22,11 +22,25 @@ public sealed class ResetPasswordCommandHandlerTests
         _unitOfWork.Setup(u => u.User).Returns(_userRepo.Object);
         _unitOfWork.Setup(u => u.PasswordResetToken).Returns(_passwordResetTokenRepo.Object);
 
+        var localizer = new Mock<ILocalizationService>();
+        localizer.Setup(x => x.GetMessage(It.IsAny<string>())).Returns((string key) => key);
+        localizer
+            .Setup(x => x.GetMessage("Auth.InvalidResetToken"))
+            .Returns("Invalid or expired reset token.");
+        localizer
+            .Setup(x => x.GetMessage("Auth.ResetTokenExpired"))
+            .Returns("Reset token has expired. Please request a new one.");
+        localizer
+            .Setup(x => x.GetMessage("Auth.ResetTokenUsed"))
+            .Returns("This reset token has already been used.");
+        localizer.Setup(x => x.GetMessage("Auth.InvalidOtp")).Returns("Invalid OTP code.");
+
         _sut = new ResetPasswordCommandHandler(
             _unitOfWork.Object,
             _tokenHasher.Object,
             _identityService.Object,
-            _refreshTokenRepo.Object
+            _refreshTokenRepo.Object,
+            localizer.Object
         );
     }
 

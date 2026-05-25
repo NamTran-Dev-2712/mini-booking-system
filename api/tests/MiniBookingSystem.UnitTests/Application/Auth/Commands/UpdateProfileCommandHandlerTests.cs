@@ -18,6 +18,9 @@ public sealed class UpdateProfileCommandHandlerTests
         _userRepo = new Mock<IUserRepository>(MockBehavior.Strict);
         _cacheService = new Mock<ICacheService>(MockBehavior.Strict);
         _outputCacheStore = new Mock<IOutputCacheStore>(MockBehavior.Strict);
+        var localizer = new Mock<ILocalizationService>();
+        localizer.Setup(l => l.GetMessage(It.IsAny<string>())).Returns((string key) => key);
+        localizer.Setup(l => l.GetMessage("Mentor.NotFound")).Returns("Mentor not found.");
 
         _unitOfWork.Setup(u => u.Mentor).Returns(_mentorRepo.Object);
         _unitOfWork.Setup(u => u.User).Returns(_userRepo.Object);
@@ -25,7 +28,8 @@ public sealed class UpdateProfileCommandHandlerTests
         _sut = new UpdateProfileCommandHandler(
             _unitOfWork.Object,
             _cacheService.Object,
-            _outputCacheStore.Object
+            _outputCacheStore.Object,
+            localizer.Object
         );
     }
 
@@ -309,7 +313,7 @@ public sealed class UpdateProfileCommandHandlerTests
 
         var act = () => _sut.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<NotFoundException>().WithMessage("*Mentor profile*");
+        await act.Should().ThrowAsync<NotFoundException>().WithMessage("*Mentor not found*");
     }
 
     [Fact]

@@ -1,4 +1,5 @@
 import { Loader2, Mail } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { Button } from "~/components/ui/button";
 import {
@@ -13,6 +14,7 @@ import { Input } from "~/components/ui/input";
 import { useForgotPasswordForm } from "./forgot-password.hook";
 
 export function ForgotPasswordForm() {
+  const { t } = useTranslation("auth");
   const { form, onSubmit, isSubmitted } = useForgotPasswordForm();
   const isSubmitting = form.formState.isSubmitting;
 
@@ -23,20 +25,21 @@ export function ForgotPasswordForm() {
           <Mail className="size-6 text-primary" />
         </div>
         <div className="space-y-2">
-          <h3 className="text-lg font-medium">Check your email</h3>
+          <h3 className="text-lg font-medium">
+            {t("forgotPassword.checkEmail")}
+          </h3>
           <p className="text-sm text-muted-foreground">
-            We've sent a password reset link to your email address. Click the
-            link in the email to reset your password.
+            {t("forgotPassword.checkEmailDescription")}
           </p>
         </div>
         <p className="text-center text-sm text-muted-foreground">
-          Didn't receive the email?{" "}
+          {t("forgotPassword.didntReceive")}{" "}
           <button
             type="button"
             onClick={() => window.location.reload()}
             className="font-medium text-foreground underline-offset-4 hover:underline"
           >
-            Try again
+            {t("forgotPassword.tryAgain")}
           </button>
         </p>
         <p className="text-center text-sm text-muted-foreground">
@@ -44,7 +47,7 @@ export function ForgotPasswordForm() {
             to="/login"
             className="font-medium text-foreground underline-offset-4 hover:underline"
           >
-            Back to login
+            {t("forgotPassword.backToLogin")}
           </Link>
         </p>
       </div>
@@ -60,7 +63,7 @@ export function ForgotPasswordForm() {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel>{t("forgotPassword.email")}</FormLabel>
                 <FormControl>
                   <Input
                     type="email"
@@ -76,18 +79,18 @@ export function ForgotPasswordForm() {
 
           <Button type="submit" className="w-full" disabled={isSubmitting}>
             {isSubmitting && <Loader2 className="mr-2 size-4 animate-spin" />}
-            Send Reset Link
+            {t("forgotPassword.submit")}
           </Button>
         </form>
       </Form>
 
       <p className="text-center text-sm text-muted-foreground">
-        Remember your password?{" "}
+        {t("forgotPassword.rememberPassword")}{" "}
         <Link
           to="/login"
           className="font-medium text-foreground underline-offset-4 hover:underline"
         >
-          Back to login
+          {t("forgotPassword.backToLogin")}
         </Link>
       </p>
     </div>

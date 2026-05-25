@@ -4,11 +4,17 @@ public class UpdateSlotMentorCommandHandler : IRequestHandler<UpdateSlotMentorCo
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICacheService _cacheService;
+    private readonly ILocalizationService _localizer;
 
-    public UpdateSlotMentorCommandHandler(IUnitOfWork unitOfWork, ICacheService cacheService)
+    public UpdateSlotMentorCommandHandler(
+        IUnitOfWork unitOfWork,
+        ICacheService cacheService,
+        ILocalizationService localizer
+    )
     {
         _unitOfWork = unitOfWork;
         _cacheService = cacheService;
+        _localizer = localizer;
     }
 
     public async Task<Guid> Handle(
@@ -18,7 +24,7 @@ public class UpdateSlotMentorCommandHandler : IRequestHandler<UpdateSlotMentorCo
     {
         var mentor = await _unitOfWork.Mentor.GetByIdAsync(request.MentorId, cancellationToken);
         if (mentor == null)
-            throw new NotFoundException($"Mentor", request.MentorId.ToString());
+            throw new NotFoundException(_localizer.GetMessage("Mentor.NotFound"));
 
         // Check for overlapping slots
         if (
@@ -30,13 +36,11 @@ public class UpdateSlotMentorCommandHandler : IRequestHandler<UpdateSlotMentorCo
                 cancellationToken
             )
         )
-            throw new ConflictException(
-                "The specified time slot overlaps with an existing slot for this mentor."
-            );
+            throw new ConflictException(_localizer.GetMessage("Mentor.SlotConflict"));
 
         var mentorSlot = await _unitOfWork.MentorSlot.GetByIdAsync(request.Id, cancellationToken);
         if (mentorSlot == null)
-            throw new NotFoundException($"Slot", request.Id.ToString());
+            throw new NotFoundException(_localizer.GetMessage("Mentor.SlotNotFound"));
 
         mentorSlot.Name = request.Name;
         mentorSlot.StartTime = request.StartTime;

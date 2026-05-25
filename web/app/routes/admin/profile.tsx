@@ -1,4 +1,5 @@
 import { Mail, Phone, Shield } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Badge } from "~/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -13,6 +14,7 @@ export function meta() {
 }
 
 export default function AdminProfile() {
+  const { t } = useTranslation("auth");
   const user = useCurrentUser();
   const { data: profile } = useProfileQuery();
 
@@ -27,10 +29,10 @@ export default function AdminProfile() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-semibold tracking-tight">Profile</h2>
-        <p className="text-muted-foreground">
-          Manage your administrator account.
-        </p>
+        <h2 className="text-2xl font-semibold tracking-tight">
+          {t("profile.title")}
+        </h2>
+        <p className="text-muted-foreground">{t("profile.manageAdmin")}</p>
       </div>
 
       {/* Profile header card */}
@@ -52,7 +54,7 @@ export default function AdminProfile() {
                 <h3 className="text-xl font-semibold">{user?.fullName}</h3>
                 <Badge variant="default" className="gap-1">
                   <Shield className="size-3" />
-                  Admin
+                  {t("labels.admin", { ns: "common" })}
                 </Badge>
               </div>
               <div className="mt-2 flex flex-wrap items-center justify-center gap-4 text-sm sm:justify-start">
@@ -75,7 +77,9 @@ export default function AdminProfile() {
       {/* Edit form */}
       <Card>
         <CardHeader className="pb-4">
-          <CardTitle className="text-base">Edit Profile</CardTitle>
+          <CardTitle className="text-base">
+            {t("profile.editProfile")}
+          </CardTitle>
         </CardHeader>
         <Separator />
         <CardContent className="pt-6">
@@ -86,7 +90,9 @@ export default function AdminProfile() {
       {/* Change Password */}
       <Card>
         <CardHeader className="pb-4">
-          <CardTitle className="text-base">Change Password</CardTitle>
+          <CardTitle className="text-base">
+            {t("profile.changePassword")}
+          </CardTitle>
         </CardHeader>
         <Separator />
         <CardContent className="pt-6">

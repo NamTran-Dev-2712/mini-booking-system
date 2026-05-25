@@ -5,6 +5,7 @@ public sealed class GetPaymentStatusQueryHandlerTests
     private readonly Mock<IUnitOfWork> _unitOfWork;
     private readonly Mock<IBookingRepository> _bookingRepo;
     private readonly Mock<IPaymentTransactionRepository> _paymentTransactionRepo;
+    private readonly Mock<ILocalizationService> _localizer;
     private readonly GetPaymentStatusQueryHandler _sut;
 
     public GetPaymentStatusQueryHandlerTests()
@@ -12,11 +13,18 @@ public sealed class GetPaymentStatusQueryHandlerTests
         _unitOfWork = new Mock<IUnitOfWork>(MockBehavior.Strict);
         _bookingRepo = new Mock<IBookingRepository>(MockBehavior.Strict);
         _paymentTransactionRepo = new Mock<IPaymentTransactionRepository>(MockBehavior.Strict);
+        _localizer = new Mock<ILocalizationService>();
+        _localizer.Setup(l => l.GetMessage(It.IsAny<string>())).Returns((string key) => key);
+        _localizer.Setup(l => l.GetMessage("Booking.NotFound")).Returns("Booking not found.");
+        _localizer.Setup(l => l.GetMessage("Payment.NotFound")).Returns("Payment not found.");
+        _localizer
+            .Setup(l => l.GetMessage("Payment.Unauthorized"))
+            .Returns("You can only view payments for your own bookings.");
 
         _unitOfWork.Setup(u => u.Booking).Returns(_bookingRepo.Object);
         _unitOfWork.Setup(u => u.PaymentTransaction).Returns(_paymentTransactionRepo.Object);
 
-        _sut = new GetPaymentStatusQueryHandler(_unitOfWork.Object);
+        _sut = new GetPaymentStatusQueryHandler(_unitOfWork.Object, _localizer.Object);
     }
 
     private static GetPaymentStatusQuery ValidQuery() =>
@@ -153,6 +161,6 @@ public sealed class GetPaymentStatusQueryHandlerTests
 
         var act = () => _sut.Handle(query, CancellationToken.None);
 
-        await act.Should().ThrowAsync<NotFoundException>().WithMessage("*PaymentTransaction*");
+        await act.Should().ThrowAsync<NotFoundException>().WithMessage("*Payment not found*");
     }
 }

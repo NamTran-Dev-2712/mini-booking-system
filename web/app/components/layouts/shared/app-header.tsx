@@ -1,8 +1,10 @@
 import { CalendarDays, Menu } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "react-router";
+import { useTranslation } from "react-i18next";
 import { Button } from "~/components/ui/button";
 import { Sheet, SheetContent } from "~/components/ui/sheet";
+import { LanguageSwitcher } from "~/components/shared/language-switcher";
 import { AppSidebar } from "./app-sidebar";
 import type { NavItem } from "./nav-config";
 
@@ -13,6 +15,7 @@ interface AppHeaderProps {
 export function AppHeader({ navItems }: AppHeaderProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
+  const { t } = useTranslation("common");
 
   // Derive page title from the active nav item
   const activeItem = navItems.find((item) => {
@@ -47,9 +50,14 @@ export function AppHeader({ navItems }: AppHeaderProps) {
       {/* Desktop: current page title */}
       {activeItem && (
         <h1 className="hidden text-sm font-semibold text-foreground lg:block">
-          {activeItem.label}
+          {t(activeItem.labelKey)}
         </h1>
       )}
+
+      {/* Spacer + Language switcher */}
+      <div className="ml-auto flex items-center">
+        <LanguageSwitcher />
+      </div>
 
       {/* Mobile sidebar via Sheet */}
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>

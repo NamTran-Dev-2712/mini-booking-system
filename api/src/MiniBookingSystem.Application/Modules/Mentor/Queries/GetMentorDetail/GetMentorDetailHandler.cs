@@ -5,16 +5,19 @@ public class GetMentorDetailHandler : IRequestHandler<GetMentorDetailQuery, Ment
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICacheService _cacheService;
     private readonly IIdentityService _identityService;
+    private readonly ILocalizationService _localizer;
 
     public GetMentorDetailHandler(
         IUnitOfWork unitOfWork,
         ICacheService cacheService,
-        IIdentityService identityService
+        IIdentityService identityService,
+        ILocalizationService localizer
     )
     {
         _unitOfWork = unitOfWork;
         _cacheService = cacheService;
         _identityService = identityService;
+        _localizer = localizer;
     }
 
     public async Task<MentorDetailDTO> Handle(
@@ -29,7 +32,7 @@ public class GetMentorDetailHandler : IRequestHandler<GetMentorDetailQuery, Ment
 
         var mentor = await _unitOfWork.Mentor.GetByIdAsync(request.MentorId, cancellationToken);
         if (mentor == null)
-            throw new NotFoundException($"Mentor", request.MentorId.ToString());
+            throw new NotFoundException(_localizer.GetMessage("Mentor.NotFound"));
 
         // Fetch the linked user profile to get PhoneNumber.
         // IIdentityService.GetProfileAsync reads from ASP.NET Identity (ApplicationUser),

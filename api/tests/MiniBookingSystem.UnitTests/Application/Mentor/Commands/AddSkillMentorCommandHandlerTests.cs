@@ -14,6 +14,12 @@ public sealed class AddSkillMentorCommandHandlerTests
         _mentorRepo = new Mock<IMentorRepository>(MockBehavior.Strict);
         _mentorSkillRepo = new Mock<IMentorSkillRepository>(MockBehavior.Strict);
         _cacheService = new Mock<ICacheService>(MockBehavior.Strict);
+        var localizer = new Mock<ILocalizationService>();
+        localizer.Setup(l => l.GetMessage(It.IsAny<string>())).Returns((string key) => key);
+        localizer.Setup(l => l.GetMessage("Mentor.NotFound")).Returns("Mentor not found.");
+        localizer
+            .Setup(l => l.GetMessage("Mentor.SkillAlreadyExists"))
+            .Returns("Mentor already has this skill.");
 
         _unitOfWork.Setup(u => u.Mentor).Returns(_mentorRepo.Object);
         _unitOfWork.Setup(u => u.MentorSkill).Returns(_mentorSkillRepo.Object);
@@ -22,7 +28,11 @@ public sealed class AddSkillMentorCommandHandlerTests
             .Setup(c => c.RemoveAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
-        _sut = new AddSkillMentorCommandHandler(_unitOfWork.Object, _cacheService.Object);
+        _sut = new AddSkillMentorCommandHandler(
+            _unitOfWork.Object,
+            _cacheService.Object,
+            localizer.Object
+        );
     }
 
     private void SetupHappyPath(Guid mentorId, string skillName)
@@ -121,9 +131,7 @@ public sealed class AddSkillMentorCommandHandlerTests
         var act = () => _sut.Handle(command, CancellationToken.None);
 
         // Assert
-        await act.Should()
-            .ThrowAsync<NotFoundException>()
-            .WithMessage($"*Mentor*{command.MentorId}*");
+        await act.Should().ThrowAsync<NotFoundException>().WithMessage("*Mentor not found*");
     }
 
     [Fact]
@@ -149,6 +157,8 @@ public sealed class AddSkillMentorCommandHandlerTests
         var act = () => _sut.Handle(command, CancellationToken.None);
 
         // Assert
-        await act.Should().ThrowAsync<ConflictException>().WithMessage($"*{command.SkillName}*");
+        await act.Should()
+            .ThrowAsync<ConflictException>()
+            .WithMessage("*Mentor already has this skill*");
     }
 }

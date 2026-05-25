@@ -1,4 +1,5 @@
 import { BookOpen, CalendarDays, Clock, DollarSign, User } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router";
 import { Avatar, AvatarFallback } from "~/components/ui/avatar";
 import { Badge } from "~/components/ui/badge";
@@ -40,14 +41,28 @@ function formatPrice(price: number) {
   }).format(price);
 }
 
-const SLOT_FILTER_TABS: { label: string; value: string; filter?: number }[] = [
-  { label: "All", value: "all" },
-  { label: "Available", value: "available", filter: SLOT_STATUS.Available },
-  { label: "Fully Booked", value: "booked", filter: SLOT_STATUS.FullyBooked },
-  { label: "Completed", value: "completed", filter: SLOT_STATUS.Completed },
-];
+const SLOT_FILTER_TAB_KEYS: { key: string; value: string; filter?: number }[] =
+  [
+    { key: "bookings.tabs.all", value: "all" },
+    {
+      key: "bookings.tabs.available",
+      value: "available",
+      filter: SLOT_STATUS.Available,
+    },
+    {
+      key: "bookings.tabs.fullyBooked",
+      value: "booked",
+      filter: SLOT_STATUS.FullyBooked,
+    },
+    {
+      key: "bookings.tabs.completed",
+      value: "completed",
+      filter: SLOT_STATUS.Completed,
+    },
+  ];
 
 function SlotBookingCard({ slot }: { slot: MentorSlot }) {
+  const { t } = useTranslation("mentor");
   const isFuture = new Date(slot.startTime) > new Date();
 
   const statusVariant: Record<
@@ -79,7 +94,7 @@ function SlotBookingCard({ slot }: { slot: MentorSlot }) {
               </span>
               <span className="flex items-center gap-1">
                 <User className="size-3" />
-                {slot.currentBookings}/{slot.maxBookings} booked
+                {slot.currentBookings}/{slot.maxBookings} {t("bookings.booked")}
               </span>
               {slot.description && (
                 <span className="truncate max-w-[200px]">
@@ -110,12 +125,13 @@ function SlotBookingCard({ slot }: { slot: MentorSlot }) {
 }
 
 export default function MentorBookings() {
+  const { t } = useTranslation("mentor");
   const [searchParams, setSearchParams] = useSearchParams();
   const { mentor, isPending } = useMyMentorProfile();
 
   const activeTab = searchParams.get("filter") ?? "all";
-  const statusFilter = SLOT_FILTER_TABS.find(
-    (t) => t.value === activeTab,
+  const statusFilter = SLOT_FILTER_TAB_KEYS.find(
+    (tab) => tab.value === activeTab,
   )?.filter;
 
   const allSlots = mentor?.slots ?? [];
@@ -154,12 +170,14 @@ export default function MentorBookings() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h2 className="text-2xl font-semibold tracking-tight">Bookings</h2>
+        <h2 className="text-2xl font-semibold tracking-tight">
+          {t("bookings.title")}
+        </h2>
         <p className="text-muted-foreground">
-          View sessions booked with you.
+          {t("bookings.subtitle")}
           {totalBookings > 0 && (
             <span className="ml-1 font-medium text-foreground">
-              {totalBookings} total booking{totalBookings !== 1 ? "s" : ""}
+              {totalBookings} {t("bookings.totalBookings")}
             </span>
           )}
         </p>
@@ -168,13 +186,13 @@ export default function MentorBookings() {
       {/* Filter tabs */}
       <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList className="w-full justify-start overflow-x-auto">
-          {SLOT_FILTER_TABS.map((tab) => (
+          {SLOT_FILTER_TAB_KEYS.map((tab) => (
             <TabsTrigger
               key={tab.value}
               value={tab.value}
               className="text-xs sm:text-sm"
             >
-              {tab.label}
+              {t(tab.key)}
             </TabsTrigger>
           ))}
         </TabsList>
@@ -186,11 +204,11 @@ export default function MentorBookings() {
           <BookOpen className="mb-4 size-10 text-muted-foreground/50" />
           <p className="text-sm font-medium text-muted-foreground">
             {activeTab === "all"
-              ? "No bookings yet"
-              : "No slots with this status"}
+              ? t("bookings.noBookings")
+              : t("bookings.noSlotsWithStatus")}
           </p>
           <p className="mt-1 text-xs text-muted-foreground/70">
-            Create time slots to start receiving bookings from students.
+            {t("bookings.createSlotsHint")}
           </p>
         </div>
       ) : (

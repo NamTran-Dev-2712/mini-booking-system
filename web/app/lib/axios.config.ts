@@ -23,6 +23,10 @@ apiClient.interceptors.request.use((config) => {
   if (typeof window !== "undefined" && window.ENV?.VITE_API_URL) {
     config.baseURL = window.ENV.VITE_API_URL;
   }
+  if (typeof window !== "undefined") {
+    const lng = localStorage.getItem("i18nextLng") || "en";
+    config.headers["Accept-Language"] = lng;
+  }
   return config;
 });
 

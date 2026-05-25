@@ -9,6 +9,7 @@ import {
   Users,
 } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
@@ -61,6 +62,7 @@ const STATUS_VARIANT: Record<
 type FilterTab = "upcoming" | "past" | "all";
 
 export default function MentorSchedule() {
+  const { t } = useTranslation("mentor");
   const { mentor, mentorId, isPending } = useMyMentorProfile();
   const [createOpen, setCreateOpen] = useState(false);
   const [editSlot, setEditSlot] = useState<MentorSlot | null>(null);
@@ -113,26 +115,26 @@ export default function MentorSchedule() {
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-semibold tracking-tight">My Schedule</h2>
-          <p className="text-muted-foreground">
-            Manage your available time slots.
-          </p>
+          <h2 className="text-2xl font-semibold tracking-tight">
+            {t("schedule.title")}
+          </h2>
+          <p className="text-muted-foreground">{t("schedule.subtitle")}</p>
         </div>
         <Button
           onClick={() => setCreateOpen(true)}
           className="gap-1.5 self-start sm:self-auto"
         >
           <Plus className="size-4" />
-          New Slot
+          {t("schedule.newSlot")}
         </Button>
       </div>
 
       {/* Filter tabs */}
       <Tabs value={filter} onValueChange={(v) => setFilter(v as FilterTab)}>
         <TabsList>
-          <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
-          <TabsTrigger value="past">Past</TabsTrigger>
-          <TabsTrigger value="all">All</TabsTrigger>
+          <TabsTrigger value="upcoming">{t("schedule.upcoming")}</TabsTrigger>
+          <TabsTrigger value="past">{t("schedule.past")}</TabsTrigger>
+          <TabsTrigger value="all">{t("schedule.all")}</TabsTrigger>
         </TabsList>
       </Tabs>
 
@@ -142,13 +144,13 @@ export default function MentorSchedule() {
           <CalendarDays className="mb-4 size-10 text-muted-foreground/50" />
           <p className="text-sm font-medium text-muted-foreground">
             {filter === "upcoming"
-              ? "No upcoming slots"
+              ? t("schedule.noUpcomingSlots")
               : filter === "past"
-                ? "No past slots"
-                : "No slots created yet"}
+                ? t("schedule.noPastSlots")
+                : t("schedule.noSlotsCreated")}
           </p>
           <p className="mt-1 text-xs text-muted-foreground/70">
-            Create a slot to start accepting bookings.
+            {t("schedule.createSlotHint")}
           </p>
           <Button
             variant="outline"
@@ -156,7 +158,7 @@ export default function MentorSchedule() {
             className="mt-4"
             onClick={() => setCreateOpen(true)}
           >
-            Create first slot
+            {t("schedule.createNewSlot")}
           </Button>
         </div>
       ) : (
@@ -229,7 +231,7 @@ export default function MentorSchedule() {
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Create New Slot</DialogTitle>
+            <DialogTitle>{t("schedule.createNewSlot")}</DialogTitle>
           </DialogHeader>
           {mentorId && (
             <MentorSlotForm
@@ -244,7 +246,7 @@ export default function MentorSchedule() {
       <Dialog open={!!editSlot} onOpenChange={(o) => !o && setEditSlot(null)}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Edit Slot</DialogTitle>
+            <DialogTitle>{t("schedule.editSlotTitle")}</DialogTitle>
           </DialogHeader>
           {mentorId && editSlot && (
             <MentorSlotForm

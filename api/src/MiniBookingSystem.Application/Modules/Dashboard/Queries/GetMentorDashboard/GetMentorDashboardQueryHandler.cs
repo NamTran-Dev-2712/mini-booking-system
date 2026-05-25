@@ -5,11 +5,17 @@ public class GetMentorDashboardQueryHandler
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICacheService _cacheService;
+    private readonly ILocalizationService _localizer;
 
-    public GetMentorDashboardQueryHandler(IUnitOfWork unitOfWork, ICacheService cacheService)
+    public GetMentorDashboardQueryHandler(
+        IUnitOfWork unitOfWork,
+        ICacheService cacheService,
+        ILocalizationService localizer
+    )
     {
         _unitOfWork = unitOfWork;
         _cacheService = cacheService;
+        _localizer = localizer;
     }
 
     public async Task<MentorDashboardDTO> Handle(
@@ -24,7 +30,7 @@ public class GetMentorDashboardQueryHandler
 
         var mentor = await _unitOfWork.Mentor.GetByUserIdAsync(request.UserId, cancellationToken);
         if (mentor is null)
-            throw new NotFoundException("Mentor profile", request.UserId.ToString());
+            throw new NotFoundException(_localizer.GetMessage("Mentor.NotFound"));
 
         var now = DateTime.UtcNow;
         var fromDate = now.AddMonths(-request.Months);

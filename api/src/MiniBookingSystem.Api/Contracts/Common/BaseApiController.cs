@@ -1,22 +1,27 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 
 [ApiController]
 [Route("api/[controller]")]
 public abstract class BaseApiController : ControllerBase
 {
-    protected IActionResult OkResponse<T>(T data, string message = "Success")
+    private ILocalizationService? _localizer;
+    protected ILocalizationService Localizer =>
+        _localizer ??= HttpContext.RequestServices.GetRequiredService<ILocalizationService>();
+
+    protected IActionResult OkResponse<T>(T data, string messageKey = "Response.Success")
     {
-        return Ok(ApiResponse<T>.Ok(data, message));
+        return Ok(ApiResponse<T>.Ok(data, Localizer.GetMessage(messageKey)));
     }
 
-    protected IActionResult CreatedResponse<T>(T data, string message = "Created successfully")
+    protected IActionResult CreatedResponse<T>(T data, string messageKey = "Response.Created")
     {
-        return StatusCode(201, ApiResponse<T>.Created(data, message));
+        return StatusCode(201, ApiResponse<T>.Created(data, Localizer.GetMessage(messageKey)));
     }
 
-    protected IActionResult NoContentResponse(string message = "No content")
+    protected IActionResult NoContentResponse(string messageKey = "Response.NoContent")
     {
-        return StatusCode(200, ApiResponse<object>.NoContent(message));
+        return StatusCode(200, ApiResponse<object>.NoContent(Localizer.GetMessage(messageKey)));
     }
 
     public IActionResult FailureResponse<T>(

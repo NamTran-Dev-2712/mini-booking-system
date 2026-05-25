@@ -7,16 +7,19 @@ public class UpdateProfileCommandHandler : IRequestHandler<UpdateProfileCommand,
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICacheService _cacheService;
     private readonly IOutputCacheStore _outputCacheStore;
+    private readonly ILocalizationService _localizer;
 
     public UpdateProfileCommandHandler(
         IUnitOfWork unitOfWork,
         ICacheService cacheService,
-        IOutputCacheStore outputCacheStore
+        IOutputCacheStore outputCacheStore,
+        ILocalizationService localizer
     )
     {
         _unitOfWork = unitOfWork;
         _cacheService = cacheService;
         _outputCacheStore = outputCacheStore;
+        _localizer = localizer;
     }
 
     public async Task<Unit> Handle(
@@ -50,7 +53,7 @@ public class UpdateProfileCommandHandler : IRequestHandler<UpdateProfileCommand,
                     cancellationToken
                 );
                 if (mentor is null)
-                    throw new NotFoundException("Mentor profile", request.UserId.ToString());
+                    throw new NotFoundException(_localizer.GetMessage("Mentor.NotFound"));
 
                 mentor.Update(
                     request.DisplayName,

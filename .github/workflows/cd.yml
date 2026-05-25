@@ -128,6 +128,7 @@ jobs:
             SEPAY_BANK_SHORT_NAME=${{ secrets.SEPAY_BANK_SHORT_NAME }}
             SEPAY_ACCOUNT_NUMBER=${{ secrets.SEPAY_ACCOUNT_NUMBER }}
             SEPAY_ACCOUNT_NAME=${{ secrets.SEPAY_ACCOUNT_NAME }}
+            ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }}
             IMAGE_TAG=${{ needs.build-and-push.outputs.image_tag }}
             CPU_LIMIT_API=${{ vars.CPU_LIMIT_API }}
             MEM_LIMIT_API=${{ vars.MEM_LIMIT_API }}

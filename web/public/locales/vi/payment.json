@@ -1,0 +1,66 @@
+{
+  "list": {
+    "title": "Thanh toán",
+    "subtitle": "Xem lịch sử thanh toán và giao dịch.",
+    "empty": "Chưa có giao dịch thanh toán",
+    "emptyDescription": "Thanh toán sẽ xuất hiện ở đây sau khi bạn đặt lịch",
+    "adminTitle": "Thanh toán",
+    "adminSubtitle": "Theo dõi giao dịch thanh toán và doanh thu.",
+    "comingSoon": "Tính năng quản lý thanh toán sắp ra mắt"
+  },
+  "detail": {
+    "title": "Chi tiết thanh toán",
+    "amount": "Số tiền",
+    "status": "Trạng thái",
+    "method": "Phương thức",
+    "transactionId": "Mã giao dịch",
+    "createdAt": "Ngày tạo",
+    "paidAt": "Ngày thanh toán",
+    "orderCode": "Mã đơn hàng",
+    "timeRemaining": "Thời gian còn lại"
+  },
+  "status": {
+    "pending": "Chờ thanh toán",
+    "completed": "Hoàn thành",
+    "failed": "Thất bại",
+    "refunded": "Đã hoàn tiền",
+    "expired": "Hết hạn"
+  },
+  "qr": {
+    "title": "Quét để thanh toán",
+    "instruction": "Quét mã QR bằng ứng dụng ngân hàng",
+    "amount": "Số tiền cần thanh toán",
+    "bankName": "Ngân hàng",
+    "accountNumber": "Số tài khoản",
+    "accountName": "Tên tài khoản",
+    "content": "Nội dung chuyển khoản",
+    "warning": "Vui lòng nhập đúng nội dung chuyển khoản để hệ thống xử lý tự động",
+    "expiry": "Thanh toán hết hạn sau",
+    "waitingForPayment": "Đang chờ thanh toán...",
+    "howToPay": "Cách thanh toán:",
+    "step1": "Mở ứng dụng ngân hàng",
+    "step2": "Quét mã QR ở trên",
+    "step3": "Xác nhận số tiền và chuyển khoản",
+    "step4": "Chờ xác nhận (tự động phát hiện)"
+  },
+  "page": {
+    "title": "Thanh toán",
+    "failedToCreate": "Không thể tạo thanh toán. Lịch hẹn có thể đã hết hạn.",
+    "expiredTitle": "Hết hạn"
+  },
+  "success": {
+    "title": "Thanh toán thành công!",
+    "description": "Lịch hẹn của bạn đã được xác nhận. Đang chuyển hướng..."
+  },
+  "expired": {
+    "title": "Thanh toán hết hạn",
+    "description": "Cửa sổ thanh toán đã đóng. Vui lòng tạo lịch hẹn mới.",
+    "backToMentor": "Quay lại Mentor",
+    "myBookings": "Lịch hẹn của tôi"
+  },
+  "failed": {
+    "title": "Thanh toán thất bại",
+    "defaultReason": "Đã xảy ra lỗi với thanh toán của bạn.",
+    "myBookings": "Lịch hẹn của tôi"
+  }
+}

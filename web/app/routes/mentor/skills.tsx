@@ -1,4 +1,5 @@
 import { GraduationCap, Loader2, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -18,6 +19,7 @@ export function meta() {
 }
 
 export default function MentorSkills() {
+  const { t } = useTranslation("mentor");
   const { mentor, mentorId, isPending } = useMyMentorProfile();
   const {
     mutate: removeSkill,
@@ -41,16 +43,16 @@ export default function MentorSkills() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h2 className="text-2xl font-semibold tracking-tight">My Skills</h2>
-        <p className="text-muted-foreground">
-          Add and manage the skills you mentor in.
-        </p>
+        <h2 className="text-2xl font-semibold tracking-tight">
+          {t("skills.title")}
+        </h2>
+        <p className="text-muted-foreground">{t("skills.subtitle")}</p>
       </div>
 
       {/* Add skill form */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">Add New Skill</CardTitle>
+          <CardTitle className="text-base">{t("skills.addNewSkill")}</CardTitle>
         </CardHeader>
         <CardContent>
           {mentorId && <MentorSkillsForm mentorId={mentorId} />}
@@ -63,7 +65,7 @@ export default function MentorSkills() {
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base">
-            Current Skills
+            {t("skills.currentSkills")}
             <span className="ml-2 text-xs font-normal text-muted-foreground">
               ({skills.length})
             </span>
@@ -74,10 +76,10 @@ export default function MentorSkills() {
             <div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-10 text-center">
               <GraduationCap className="mb-3 size-8 text-muted-foreground/50" />
               <p className="text-sm text-muted-foreground">
-                No skills added yet.
+                {t("skills.noSkills")}
               </p>
               <p className="mt-1 text-xs text-muted-foreground/70">
-                Add skills to let students know what you can teach.
+                {t("skills.noSkillsHint")}
               </p>
             </div>
           ) : (
@@ -102,7 +104,9 @@ export default function MentorSkills() {
                           }
                           disabled={removing}
                           className="ml-0.5 rounded-full p-0.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive disabled:opacity-50"
-                          aria-label={`Remove ${skill.skillName}`}
+                          aria-label={t("skills.removeSkillLabel", {
+                            name: skill.skillName,
+                          })}
                         >
                           {removing ? (
                             <Loader2 className="size-3 animate-spin" />
@@ -111,7 +115,7 @@ export default function MentorSkills() {
                           )}
                         </button>
                       </TooltipTrigger>
-                      <TooltipContent>Remove skill</TooltipContent>
+                      <TooltipContent>{t("skills.removeSkill")}</TooltipContent>
                     </Tooltip>
                   </Badge>
                 );

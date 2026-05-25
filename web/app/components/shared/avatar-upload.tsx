@@ -3,6 +3,7 @@ import { useRef } from "react";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { useUploadAvatarMutation } from "~/hooks/use-upload-avatar";
+import i18n from "~/lib/i18n";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -26,19 +27,19 @@ export function AvatarUpload({
     if (!file) return;
 
     if (!ALLOWED_TYPES.includes(file.type)) {
-      toast.error("Only JPEG, PNG, and WebP images are allowed.");
+      toast.error(i18n.t("toast.avatarInvalidType"));
       return;
     }
 
     if (file.size > MAX_FILE_SIZE) {
-      toast.error("File size must not exceed 5MB.");
+      toast.error(i18n.t("toast.avatarTooLarge"));
       return;
     }
 
     mutate(file, {
       onSuccess: (data) => {
         onUploaded(data.avatarUrl);
-        toast.success("Avatar uploaded successfully.");
+        toast.success(i18n.t("toast.avatarUploaded"));
       },
     });
 

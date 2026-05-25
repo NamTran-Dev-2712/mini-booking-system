@@ -1,4 +1,5 @@
 import { BookOpen, CalendarDays, CheckCircle, DollarSign } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Skeleton } from "~/components/ui/skeleton";
 import { AreaChartCard } from "~/components/shared/dashboard/area-chart-card";
 import { StatCard } from "~/components/shared/dashboard/stat-card";
@@ -34,6 +35,7 @@ function DashboardSkeleton() {
 }
 
 export default function UserDashboard() {
+  const { t } = useTranslation("dashboard");
   const user = useCurrentUser();
   const { data, isPending } = useUserDashboardQuery();
 
@@ -43,38 +45,36 @@ export default function UserDashboard() {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-semibold tracking-tight">
-          Welcome, {user?.fullName}
+          {t("welcome", { name: user?.fullName })}
         </h2>
-        <p className="text-muted-foreground">
-          Your booking overview and activity.
-        </p>
+        <p className="text-muted-foreground">{t("userSubtitle")}</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           icon={BookOpen}
-          label="Total Bookings"
+          label={t("stats.totalBookings")}
           value={data?.totalBookings ?? 0}
         />
         <StatCard
           icon={CalendarDays}
-          label="Upcoming"
+          label={t("stats.upcoming")}
           value={data?.upcomingBookings ?? 0}
         />
         <StatCard
           icon={CheckCircle}
-          label="Completed"
+          label={t("stats.completed")}
           value={data?.completedSessions ?? 0}
         />
         <StatCard
           icon={DollarSign}
-          label="Total Spending"
+          label={t("stats.totalSpending")}
           value={formatCurrency(data?.totalSpending ?? 0)}
         />
       </div>
 
       <AreaChartCard
-        title="Booking History"
+        title={t("charts.bookingHistory")}
         data={data?.bookingHistory ?? []}
         color="var(--chart-3)"
       />

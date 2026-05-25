@@ -6,6 +6,7 @@
   Building2,
   BarChart3,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Avatar, AvatarFallback } from "~/components/ui/avatar";
 import { Badge } from "~/components/ui/badge";
 import { Separator } from "~/components/ui/separator";
@@ -17,33 +18,6 @@ export function meta() {
   ];
 }
 
-const stats = [
-  { icon: Users, value: "1,000+", label: "Trusted Students" },
-  { icon: Building2, value: "200+", label: "Expert Mentors" },
-  { icon: BarChart3, value: "50K+", label: "Successful Sessions" },
-];
-
-const values = [
-  {
-    icon: Target,
-    title: "Simplicity",
-    description:
-      "We believe technology should serve people, not the other way around. Every feature is designed for maximum ease of use.",
-  },
-  {
-    icon: Heart,
-    title: "Dedication",
-    description:
-      "Every user feedback inspires us to improve. We listen, we learn, and we act on what matters most.",
-  },
-  {
-    icon: Lightbulb,
-    title: "Innovation",
-    description:
-      "Constantly seeking better ways to solve problems. Innovation is in our DNA and drives everything we build.",
-  },
-];
-
 const team = [
   { name: "Trần Nam", role: "Founder & CEO", initials: "TN" },
   { name: "Nguyễn Linh", role: "Lead Designer", initials: "NL" },
@@ -52,6 +26,36 @@ const team = [
 ];
 
 export default function AboutPage() {
+  const { t } = useTranslation("public");
+
+  const stats = [
+    { icon: Users, value: "1,000+", label: t("about.stats.trustedStudents") },
+    { icon: Building2, value: "200+", label: t("about.stats.expertMentors") },
+    {
+      icon: BarChart3,
+      value: "50K+",
+      label: t("about.stats.successfulSessions"),
+    },
+  ];
+
+  const values = [
+    {
+      icon: Target,
+      title: t("about.values.simplicity.title"),
+      description: t("about.values.simplicity.description"),
+    },
+    {
+      icon: Heart,
+      title: t("about.values.dedication.title"),
+      description: t("about.values.dedication.description"),
+    },
+    {
+      icon: Lightbulb,
+      title: t("about.values.innovation.title"),
+      description: t("about.values.innovation.description"),
+    },
+  ];
+
   return (
     <div className="flex flex-col">
       {/* Hero */}
@@ -59,15 +63,16 @@ export default function AboutPage() {
         <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_60%_50%_at_50%_0%,oklch(0.9_0_0/0.25),transparent)]" />
         <div className="container mx-auto max-w-6xl px-4 text-center">
           <Badge variant="secondary" className="mb-4">
-            About Us
+            {t("about.badge")}
           </Badge>
           <h1 className="text-4xl font-bold tracking-tight md:text-5xl lg:text-6xl">
-            Building the Future
-            <span className="block text-muted-foreground">of Mentorship</span>
+            {t("about.title")}
+            <span className="block text-muted-foreground">
+              {t("about.titleHighlight")}
+            </span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-base text-muted-foreground md:text-lg">
-            MiniBooking was founded with one goal: make connecting with mentors
-            easy and effective for everyone, everywhere.
+            {t("about.description")}
           </p>
         </div>
       </section>
@@ -97,24 +102,20 @@ export default function AboutPage() {
         <div className="container mx-auto max-w-6xl px-4">
           <div className="grid gap-12 md:grid-cols-2 md:items-center">
             <div className="space-y-4">
-              <Badge variant="secondary">Our Mission</Badge>
+              <Badge variant="secondary">{t("about.mission.badge")}</Badge>
               <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
-                Connecting Students with Expert Mentors
+                {t("about.mission.title")}
               </h2>
               <p className="text-muted-foreground leading-relaxed">
-                We believe mentorship is the key to growth. MiniBooking exists
-                to remove the friction in scheduling mentorship sessions — so
-                you can focus on learning and developing your skills.
+                {t("about.mission.p1")}
               </p>
               <p className="text-muted-foreground leading-relaxed">
-                Whether you're a student seeking guidance or a professional
-                sharing knowledge, our platform adapts to your needs without
-                requiring any technical expertise.
+                {t("about.mission.p2")}
               </p>
             </div>
             <div className="rounded-2xl border border-border/60 bg-muted/40 aspect-video flex items-center justify-center">
               <p className="text-muted-foreground text-sm">
-                Product screenshot
+                {t("about.mission.screenshot")}
               </p>
             </div>
           </div>
@@ -128,10 +129,10 @@ export default function AboutPage() {
         <div className="container mx-auto max-w-6xl px-4">
           <div className="mb-12 text-center">
             <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
-              Our Core Values
+              {t("about.values.title")}
             </h2>
             <p className="mt-3 text-muted-foreground">
-              The principles that guide every decision we make.
+              {t("about.values.subtitle")}
             </p>
           </div>
           <div className="grid gap-6 md:grid-cols-3">
@@ -160,10 +161,10 @@ export default function AboutPage() {
         <div className="container mx-auto max-w-6xl px-4">
           <div className="mb-12 text-center">
             <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
-              Our Team
+              {t("about.team.title")}
             </h2>
             <p className="mt-3 text-muted-foreground">
-              The people behind MiniBooking.
+              {t("about.team.subtitle")}
             </p>
           </div>
           <div className="grid grid-cols-2 gap-6 md:grid-cols-4">

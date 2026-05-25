@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { useHotkeys } from "react-hotkeys-hook";
 import { ArrowLeft, Edit, Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Badge } from "~/components/ui/badge";
 import {
@@ -32,6 +33,7 @@ interface MentorDetailPageProps {
 }
 
 export function MentorDetailPage({ mentorId }: MentorDetailPageProps) {
+  const { t } = useTranslation("mentor");
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = (searchParams.get("tab") as TabValue) ?? "profile";
@@ -43,7 +45,6 @@ export function MentorDetailPage({ mentorId }: MentorDetailPageProps) {
 
   const isFormOpen = editOpen || deleteOpen;
 
-  // ── Hotkeys ──────────────────────────────────────────────────────────────
   useHotkeys(
     "1",
     () => setSearchParams({ tab: "profile" }, { replace: true }),
@@ -62,7 +63,6 @@ export function MentorDetailPage({ mentorId }: MentorDetailPageProps) {
     enabled: !isFormOpen && !!mentor,
   });
 
-  // ── Loading state ─────────────────────────────────────────────────────────
   if (isPending) {
     return (
       <div className="space-y-6">
@@ -82,22 +82,19 @@ export function MentorDetailPage({ mentorId }: MentorDetailPageProps) {
   if (isError || !mentor) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
-        <p className="text-sm text-muted-foreground">
-          Mentor not found or failed to load.
-        </p>
+        <p className="text-sm text-muted-foreground">{t("detail.notFound")}</p>
         <Button
           variant="outline"
           size="sm"
           className="mt-4"
           onClick={() => navigate("/admin/mentors")}
         >
-          Back to Mentors
+          {t("detail.backToMentors")}
         </Button>
       </div>
     );
   }
 
-  // Safe initials — guard against null/empty displayName from API
   const initials =
     (mentor.displayName ?? "")
       .split(" ")
@@ -120,7 +117,7 @@ export function MentorDetailPage({ mentorId }: MentorDetailPageProps) {
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
-              <Link to="/admin/mentors">Mentors</Link>
+              <Link to="/admin/mentors">{t("list.adminTitle")}</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
@@ -149,14 +146,14 @@ export function MentorDetailPage({ mentorId }: MentorDetailPageProps) {
                 variant={mentor.isActive ? "default" : "secondary"}
                 className="text-xs"
               >
-                {mentor.isActive ? "Active" : "Inactive"}
+                {mentor.isActive ? t("detail.active") : t("detail.inactive")}
               </Badge>
             </div>
             <p className="text-sm text-muted-foreground">{mentor.email}</p>
             {mentor.specialization && (
               <p className="mt-0.5 text-xs text-muted-foreground">
-                {mentor.specialization} · {mentor.experienceYears} yr
-                {mentor.experienceYears !== 1 ? "s" : ""}
+                {mentor.specialization} · {mentor.experienceYears}{" "}
+                {t("detail.experienceYears", { count: mentor.experienceYears })}
               </p>
             )}
           </div>
@@ -171,7 +168,7 @@ export function MentorDetailPage({ mentorId }: MentorDetailPageProps) {
             className="gap-1.5"
           >
             <ArrowLeft className="size-4" />
-            Back
+            {t("detail.backToMentors")}
           </Button>
           <Button
             variant="outline"
@@ -180,7 +177,7 @@ export function MentorDetailPage({ mentorId }: MentorDetailPageProps) {
             className="gap-1.5"
           >
             <Edit className="size-4" />
-            Edit
+            {t("columns.edit")}
             <Kbd>E</Kbd>
           </Button>
           <Button
@@ -190,7 +187,7 @@ export function MentorDetailPage({ mentorId }: MentorDetailPageProps) {
             className="gap-1.5"
           >
             <Trash2 className="size-4" />
-            Delete
+            {t("columns.delete")}
           </Button>
         </div>
       </div>
@@ -202,13 +199,14 @@ export function MentorDetailPage({ mentorId }: MentorDetailPageProps) {
       >
         <TabsList className="w-full sm:w-auto">
           <TabsTrigger value="profile" className="gap-1.5">
-            Profile <Kbd>1</Kbd>
+            {t("profileTab.basicInfo", { defaultValue: "Profile" })}{" "}
+            <Kbd>1</Kbd>
           </TabsTrigger>
           <TabsTrigger value="skills" className="gap-1.5">
-            Skills <Kbd>2</Kbd>
+            {t("detail.skills")} <Kbd>2</Kbd>
           </TabsTrigger>
           <TabsTrigger value="slots" className="gap-1.5">
-            Slots <Kbd>3</Kbd>
+            {t("slots.title")} <Kbd>3</Kbd>
           </TabsTrigger>
         </TabsList>
 

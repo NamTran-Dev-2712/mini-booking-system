@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { AvatarUpload } from "~/components/shared/avatar-upload";
 import { Button } from "~/components/ui/button";
 import {
@@ -41,9 +42,9 @@ interface UpdateMentorFormProps {
 type MentorFormProps = CreateMentorFormProps | UpdateMentorFormProps;
 
 export function MentorForm(props: MentorFormProps) {
+  const { t } = useTranslation("mentor");
   const isCreate = props.mode === "create";
 
-  // Dynamically pick schema based on mode
   const form = useForm<CreateMentorFormData | UpdateMentorFormData>({
     resolver: zodResolver(isCreate ? createMentorSchema : updateMentorSchema),
     defaultValues: isCreate
@@ -84,7 +85,6 @@ export function MentorForm(props: MentorFormProps) {
         className="space-y-4"
         id="mentor-form"
       >
-        {/* ── Account info (create only) ─────────────────────────────── */}
         {isCreate && (
           <>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -93,7 +93,7 @@ export function MentorForm(props: MentorFormProps) {
                 name="fullName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Full Name *</FormLabel>
+                    <FormLabel>{t("profile.fullName")} *</FormLabel>
                     <FormControl>
                       <Input placeholder="Nguyễn Văn A" {...field} />
                     </FormControl>
@@ -125,7 +125,7 @@ export function MentorForm(props: MentorFormProps) {
               name="phoneNumber"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Phone Number *</FormLabel>
+                  <FormLabel>{t("profile.phoneNumber")} *</FormLabel>
                   <FormControl>
                     <Input placeholder="0912345678" {...field} />
                   </FormControl>
@@ -136,7 +136,6 @@ export function MentorForm(props: MentorFormProps) {
           </>
         )}
 
-        {/* ── Update: fullName + phoneNumber ─────────────────────────── */}
         {!isCreate && (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <FormField
@@ -144,7 +143,7 @@ export function MentorForm(props: MentorFormProps) {
               name="fullName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Full Name</FormLabel>
+                  <FormLabel>{t("profile.fullName")}</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Nguyễn Văn A"
@@ -161,7 +160,7 @@ export function MentorForm(props: MentorFormProps) {
               name="phoneNumber"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Phone Number</FormLabel>
+                  <FormLabel>{t("profile.phoneNumber")}</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="0912345678"
@@ -176,14 +175,13 @@ export function MentorForm(props: MentorFormProps) {
           </div>
         )}
 
-        {/* ── Profile info ───────────────────────────────────────────── */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <FormField
             control={form.control}
             name="displayName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Display Name</FormLabel>
+                <FormLabel>{t("profile.displayName")}</FormLabel>
                 <FormControl>
                   <Input
                     placeholder="Mentor Huy"
@@ -200,7 +198,7 @@ export function MentorForm(props: MentorFormProps) {
             name="specialization"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Specialization</FormLabel>
+                <FormLabel>{t("profile.specialization")}</FormLabel>
                 <FormControl>
                   <Input
                     placeholder="React, Node.js..."
@@ -220,7 +218,7 @@ export function MentorForm(props: MentorFormProps) {
             name="experienceYears"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Experience (years)</FormLabel>
+                <FormLabel>{t("profile.experienceYears")}</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
@@ -240,7 +238,7 @@ export function MentorForm(props: MentorFormProps) {
             name="basePrice"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Base Price (VND)</FormLabel>
+                <FormLabel>{t("profile.basePrice")}</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
@@ -263,7 +261,7 @@ export function MentorForm(props: MentorFormProps) {
           name="bio"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Bio</FormLabel>
+              <FormLabel>{t("profile.bio")}</FormLabel>
               <FormControl>
                 <Textarea
                   placeholder="Tell us about this mentor..."
@@ -299,7 +297,6 @@ export function MentorForm(props: MentorFormProps) {
           )}
         />
 
-        {/* Submit button — also triggered by Cmd+S hotkey via form id */}
         <Button
           type="submit"
           className="w-full"
@@ -307,7 +304,9 @@ export function MentorForm(props: MentorFormProps) {
           form="mentor-form"
         >
           {isSubmitting && <Loader2 className="mr-2 size-4 animate-spin" />}
-          {isCreate ? "Create Mentor" : "Save Changes"}
+          {isCreate
+            ? t("list.createFirstMentor", { defaultValue: "Create Mentor" })
+            : t("columns.edit", { defaultValue: "Save Changes" })}
         </Button>
       </form>
     </Form>

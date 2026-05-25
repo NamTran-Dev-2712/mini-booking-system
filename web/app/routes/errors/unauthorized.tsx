@@ -1,4 +1,5 @@
 import { ShieldX } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { Button } from "~/components/ui/button";
 
@@ -7,6 +8,8 @@ export function meta() {
 }
 
 export default function UnauthorizedPage() {
+  const { t } = useTranslation("common");
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <div className="w-full max-w-md space-y-6 text-center">
@@ -20,18 +23,15 @@ export default function UnauthorizedPage() {
           <h1 className="text-2xl font-semibold tracking-tight">
             Access Denied
           </h1>
-          <p className="text-muted-foreground">
-            You don't have permission to view this page. Please contact an
-            administrator if you believe this is a mistake.
-          </p>
+          <p className="text-muted-foreground">{t("errors.unauthorized")}</p>
         </div>
 
         <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
           <Button asChild variant="default">
-            <Link to="/">Go Home</Link>
+            <Link to="/">{t("actions.goHome")}</Link>
           </Button>
           <Button asChild variant="outline">
-            <Link to="/login">Sign In</Link>
+            <Link to="/login">{t("actions.signIn")}</Link>
           </Button>
         </div>
       </div>

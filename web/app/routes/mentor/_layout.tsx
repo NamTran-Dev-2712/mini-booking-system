@@ -1,6 +1,9 @@
 import { Outlet } from "react-router";
 import { AppLayout } from "~/components/layouts/shared/app-layout";
-import { mentorNavItems } from "~/components/layouts/shared/nav-config";
+import {
+  getVisibleNavItems,
+  mentorNavItems,
+} from "~/components/layouts/shared/nav-config";
 import { requireRole } from "~/guards/require-role";
 
 export const clientLoader = requireRole("Mentor");
@@ -11,7 +14,7 @@ export function HydrateFallback() {
 
 export default function MentorLayout() {
   return (
-    <AppLayout navItems={mentorNavItems}>
+    <AppLayout navItems={getVisibleNavItems(mentorNavItems)}>
       <Outlet />
     </AppLayout>
   );

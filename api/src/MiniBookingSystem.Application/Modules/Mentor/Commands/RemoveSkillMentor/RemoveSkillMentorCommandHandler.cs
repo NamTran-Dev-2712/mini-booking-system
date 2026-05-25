@@ -4,11 +4,17 @@ public class RemoveSkillMentorCommandHandler : IRequestHandler<RemoveSkillMentor
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICacheService _cacheService;
+    private readonly ILocalizationService _localizer;
 
-    public RemoveSkillMentorCommandHandler(IUnitOfWork unitOfWork, ICacheService cacheService)
+    public RemoveSkillMentorCommandHandler(
+        IUnitOfWork unitOfWork,
+        ICacheService cacheService,
+        ILocalizationService localizer
+    )
     {
         _unitOfWork = unitOfWork;
         _cacheService = cacheService;
+        _localizer = localizer;
     }
 
     public async Task<Unit> Handle(
@@ -19,12 +25,12 @@ public class RemoveSkillMentorCommandHandler : IRequestHandler<RemoveSkillMentor
         // Verify mentor exists
         var mentor = await _unitOfWork.Mentor.GetByIdAsync(request.MentorId, cancellationToken);
         if (mentor == null)
-            throw new NotFoundException("Mentor", request.MentorId.ToString());
+            throw new NotFoundException(_localizer.GetMessage("Mentor.NotFound"));
 
         // Verify skill exists and belongs to this mentor
         var skill = await _unitOfWork.MentorSkill.GetByIdAsync(request.SkillId, cancellationToken);
         if (skill == null || skill.MentorId != request.MentorId)
-            throw new NotFoundException("MentorSkill", request.SkillId.ToString());
+            throw new NotFoundException(_localizer.GetMessage("Mentor.SkillNotFound"));
 
         _unitOfWork.MentorSkill.Remove(skill);
         await _unitOfWork.SaveChangesAsync(cancellationToken);

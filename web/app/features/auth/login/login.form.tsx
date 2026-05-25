@@ -1,5 +1,6 @@
 ﻿import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { Button } from "~/components/ui/button";
 import {
@@ -15,6 +16,7 @@ import { SocialForm } from "~/features/auth/shared/social.form";
 import { useLoginForm } from "./login.hook";
 
 export function LoginForm() {
+  const { t } = useTranslation("auth");
   const { form, onSubmit } = useLoginForm();
   const [showPassword, setShowPassword] = useState(false);
   const isSubmitting = form.formState.isSubmitting;
@@ -28,7 +30,7 @@ export function LoginForm() {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel>{t("login.email")}</FormLabel>
                 <FormControl>
                   <Input
                     type="email"
@@ -48,12 +50,12 @@ export function LoginForm() {
             render={({ field }) => (
               <FormItem>
                 <div className="flex items-center justify-between">
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel>{t("login.password")}</FormLabel>
                   <Link
                     to="/forgot-password"
                     className="text-xs text-muted-foreground hover:text-foreground transition-colors"
                   >
-                    Forgot password?
+                    {t("login.forgotPassword")}
                   </Link>
                 </div>
                 <FormControl>
@@ -69,7 +71,9 @@ export function LoginForm() {
                       onClick={() => setShowPassword((v) => !v)}
                       className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                       aria-label={
-                        showPassword ? "Hide password" : "Show password"
+                        showPassword
+                          ? t("errors.hidePassword")
+                          : t("errors.showPassword")
                       }
                     >
                       {showPassword ? (
@@ -87,7 +91,7 @@ export function LoginForm() {
 
           <Button type="submit" className="w-full" disabled={isSubmitting}>
             {isSubmitting && <Loader2 className="mr-2 size-4 animate-spin" />}
-            Sign In
+            {t("login.submit")}
           </Button>
         </form>
       </Form>
@@ -95,12 +99,12 @@ export function LoginForm() {
       <SocialForm action="login" />
 
       <p className="text-center text-sm text-muted-foreground">
-        Don't have an account?{" "}
+        {t("login.noAccount")}{" "}
         <Link
           to="/register"
           className="font-medium text-foreground underline-offset-4 hover:underline"
         >
-          Sign up now
+          {t("login.noAccountLink")}
         </Link>
       </p>
     </div>

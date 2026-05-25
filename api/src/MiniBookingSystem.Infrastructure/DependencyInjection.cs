@@ -209,6 +209,9 @@ public static class DependencyInjection
         services.Configure<UploadOptions>(configuration.GetSection(ConfigurationValue.Uploads));
         services.AddSingleton<IFileStorageService, LocalFileStorageService>();
 
+        // Register Localization
+        services.AddScoped<ILocalizationService, LocalizationService>();
+
         return services;
     }
 }
