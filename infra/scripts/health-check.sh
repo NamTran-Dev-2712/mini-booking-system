@@ -40,11 +40,11 @@ check_endpoint() {
 
 FAILED=0
 
-# Check API health via nginx (using Host header to match server_name)
-check_endpoint "http://localhost/health" "$API_DOMAIN" "API Health" || FAILED=1
+# Check API health via nginx (HTTPS, skip cert verify for localhost)
+check_endpoint "https://localhost/health" "$API_DOMAIN" "API Health" || FAILED=1
 
 # Check frontend via nginx
-check_endpoint "http://localhost/" "$FRONTEND_DOMAIN" "Frontend" || FAILED=1
+check_endpoint "https://localhost/" "$FRONTEND_DOMAIN" "Frontend" || FAILED=1
 
 if [ $FAILED -eq 0 ]; then
     echo ""
