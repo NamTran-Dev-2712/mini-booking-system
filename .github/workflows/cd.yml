@@ -165,9 +165,15 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           command_timeout: 120s
           script: |
-            cd /opt/mini-booking-system
             sleep 10
-            bash infra/scripts/health-check.sh
+            API_STATUS=$(/usr/bin/curl -sk -o /dev/null -w "%{http_code}" -H "Host: ${{ secrets.API_DOMAIN }}" https://127.0.0.1/health)
+            WEB_STATUS=$(/usr/bin/curl -sk -o /dev/null -w "%{http_code}" -H "Host: ${{ secrets.FRONTEND_DOMAIN }}" https://127.0.0.1/)
+            echo "API: $API_STATUS, Frontend: $WEB_STATUS"
+            if [ "$API_STATUS" != "200" ] || [ "$WEB_STATUS" != "200" ]; then
+              echo "Health check failed!"
+              exit 1
+            fi
+            echo "Health check passed!"
 
       - name: Rollback on failure
         if: ${{ failure() && steps.deploy.outcome == 'failure' }}
