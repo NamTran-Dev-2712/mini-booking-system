@@ -39,6 +39,8 @@ USER appuser
 EXPOSE 3000
 ENV PORT=3000
 ENV NODE_ENV=production
+ARG VITE_API_URL
+ENV VITE_API_URL=${VITE_API_URL}
 
 HEALTHCHECK --interval=15s --timeout=5s --start-period=10s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:3000/ || exit 1

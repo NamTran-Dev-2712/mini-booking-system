@@ -9,9 +9,16 @@ import type { ApiError, ApiResponse } from "~/types/global/api.response";
 // ---------------------------------------------------------------------------
 // Base instance
 // ---------------------------------------------------------------------------
+const getBaseURL = () => {
+  if (typeof window !== "undefined") {
+    return window.ENV?.VITE_API_URL || import.meta.env.VITE_API_URL || "";
+  }
+  return process.env.VITE_API_URL || import.meta.env.VITE_API_URL || "";
+};
+
 const apiClient: AxiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
-  withCredentials: true, // send/receive httpOnly auth cookies
+  baseURL: getBaseURL(),
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",

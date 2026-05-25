@@ -8,6 +8,7 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useLoaderData,
 } from "react-router";
 import { TooltipProvider } from "~/components/ui/tooltip";
 
@@ -17,7 +18,17 @@ import { getQueryClient } from "~/lib/query-client";
 import { useAuthStore } from "~/stores/auth.store";
 import "./app.css";
 
+export function loader() {
+  return {
+    ENV: {
+      VITE_API_URL: process.env.VITE_API_URL ?? "",
+    },
+  };
+}
+
 export function Layout({ children }: { children: React.ReactNode }) {
+  const data = useLoaderData<typeof loader>();
+
   return (
     <html lang="en">
       <head>
@@ -28,6 +39,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         {children}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.ENV = ${JSON.stringify(data?.ENV ?? {})}`,
+          }}
+        />
         <ScrollRestoration />
         <Scripts />
       </body>
