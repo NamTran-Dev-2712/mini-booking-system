@@ -13,6 +13,8 @@ x-api-common: &api-common
     Google__ClientId: ${GOOGLE_CLIENT_ID}
     Google__ClientSecret: ${GOOGLE_CLIENT_SECRET}
     Resend__ApiKey: ${RESEND_API_KEY}
+    Resend__FromEmail: ${RESEND_FROM_EMAIL}
+    Resend__FromName: ${RESEND_FROM_NAME}
     MiniMax__ApiKey: ${MINIMAX_API_KEY}
     SePay__WebhookApiKey: ${SEPAY_WEBHOOK_KEY}
     SePay__BankShortName: ${SEPAY_BANK_SHORT_NAME}

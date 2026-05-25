@@ -121,6 +121,8 @@ jobs:
             GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
             GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
             RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}
+            RESEND_FROM_EMAIL=${{ secrets.RESEND_FROM_EMAIL }}
+            RESEND_FROM_NAME=${{ secrets.RESEND_FROM_NAME }}
             MINIMAX_API_KEY=${{ secrets.MINIMAX_API_KEY }}
             SEPAY_WEBHOOK_KEY=${{ secrets.SEPAY_WEBHOOK_KEY }}
             SEPAY_BANK_SHORT_NAME=${{ secrets.SEPAY_BANK_SHORT_NAME }}
