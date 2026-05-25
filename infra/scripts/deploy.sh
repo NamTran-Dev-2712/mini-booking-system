@@ -76,12 +76,13 @@ docker exec nginx_prod nginx -s reload
 # Step 5: Verify traffic is flowing
 echo "[5/6] Verifying traffic routing..."
 sleep 3
-HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost/api/health 2>/dev/null || echo "000")
+API_DOMAIN=$(grep "^API_DOMAIN=" .env.production | cut -d= -f2)
+HTTP_STATUS=$(curl -sk -o /dev/null -w "%{http_code}" -H "Host: ${API_DOMAIN}" https://localhost/health 2>/dev/null || echo "000")
 if [ "$HTTP_STATUS" != "200" ]; then
     echo "ERROR: Health check failed after switch (HTTP $HTTP_STATUS)!"
     echo "Rolling back nginx..."
     cp "${NGINX_DIR}/upstream-${CURRENT_COLOR}.conf" "${NGINX_DIR}/active-upstream.conf"
-    docker exec nginx_prod nginx -s reload
+    docker exec nginx_prod nginx -s reload 2>/dev/null || true
     $COMPOSE_CMD --profile "$TARGET_COLOR" down
     exit 1
 fi
