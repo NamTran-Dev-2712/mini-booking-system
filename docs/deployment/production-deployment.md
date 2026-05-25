@@ -217,6 +217,7 @@ Tất cả biến môi trường được quản lý tại đây:
 | `JWT_AUDIENCE` | Tên audience | `MiniBookingSystemUsers` |
 | `GOOGLE_CLIENT_ID` | Google Cloud Console → APIs & Services → Credentials → OAuth 2.0 Client | `xxx.apps.googleusercontent.com` |
 | `GOOGLE_CLIENT_SECRET` | Cùng trang với Client ID, nhấn "Show" | `GOCSPX-xxx` |
+| `ADMIN_EMAIL` | lấy bất cứ email nào đang sử dụng | `namtran2712.dev@gmail.com` |
 
 **External Services:**
 
