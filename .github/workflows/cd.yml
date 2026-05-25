@@ -103,40 +103,40 @@ jobs:
           script: |
             REPO_LOWER=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')
             cat > /opt/mini-booking-system/.env.production <<'ENVEOF'
-            FRONTEND_DOMAIN=${{ secrets.FRONTEND_DOMAIN }}
-            API_DOMAIN=${{ secrets.API_DOMAIN }}
-            SSL_EMAIL=${{ secrets.SSL_EMAIL }}
-            API_BASE_URL=${{ secrets.PRODUCTION_API_URL }}
-            FRONTEND_URL=${{ secrets.FRONTEND_URL }}
-            VITE_API_URL=${{ secrets.PRODUCTION_API_URL }}
-            POSTGRES_USER=${{ secrets.POSTGRES_USER }}
-            POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
-            POSTGRES_DB=${{ secrets.POSTGRES_DB }}
-            REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
-            REDIS_MAXMEMORY=${{ vars.REDIS_MAXMEMORY }}
-            REDIS_MAXMEMORY_POLICY=${{ vars.REDIS_MAXMEMORY_POLICY }}
-            JWT_SECRET=${{ secrets.JWT_SECRET }}
-            JWT_ISSUER=${{ secrets.JWT_ISSUER }}
-            JWT_AUDIENCE=${{ secrets.JWT_AUDIENCE }}
-            GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
-            GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
-            RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}
-            MINIMAX_API_KEY=${{ secrets.MINIMAX_API_KEY }}
-            SEPAY_WEBHOOK_KEY=${{ secrets.SEPAY_WEBHOOK_KEY }}
-            SEPAY_BANK_SHORT_NAME=${{ secrets.SEPAY_BANK_SHORT_NAME }}
-            SEPAY_ACCOUNT_NUMBER=${{ secrets.SEPAY_ACCOUNT_NUMBER }}
-            SEPAY_ACCOUNT_NAME=${{ secrets.SEPAY_ACCOUNT_NAME }}
-            IMAGE_TAG=${{ needs.build-and-push.outputs.image_tag }}
-            CPU_LIMIT_API=${{ vars.CPU_LIMIT_API }}
-            MEM_LIMIT_API=${{ vars.MEM_LIMIT_API }}
-            CPU_LIMIT_WEB=${{ vars.CPU_LIMIT_WEB }}
-            MEM_LIMIT_WEB=${{ vars.MEM_LIMIT_WEB }}
-            CPU_LIMIT_POSTGRES=${{ vars.CPU_LIMIT_POSTGRES }}
-            MEM_LIMIT_POSTGRES=${{ vars.MEM_LIMIT_POSTGRES }}
-            CPU_LIMIT_REDIS=${{ vars.CPU_LIMIT_REDIS }}
-            MEM_LIMIT_REDIS=${{ vars.MEM_LIMIT_REDIS }}
+            FRONTEND_DOMAIN="${{ secrets.FRONTEND_DOMAIN }}"
+            API_DOMAIN="${{ secrets.API_DOMAIN }}"
+            SSL_EMAIL="${{ secrets.SSL_EMAIL }}"
+            API_BASE_URL="${{ secrets.PRODUCTION_API_URL }}"
+            FRONTEND_URL="${{ secrets.FRONTEND_URL }}"
+            VITE_API_URL="${{ secrets.PRODUCTION_API_URL }}"
+            POSTGRES_USER="${{ secrets.POSTGRES_USER }}"
+            POSTGRES_PASSWORD="${{ secrets.POSTGRES_PASSWORD }}"
+            POSTGRES_DB="${{ secrets.POSTGRES_DB }}"
+            REDIS_PASSWORD="${{ secrets.REDIS_PASSWORD }}"
+            REDIS_MAXMEMORY="${{ vars.REDIS_MAXMEMORY }}"
+            REDIS_MAXMEMORY_POLICY="${{ vars.REDIS_MAXMEMORY_POLICY }}"
+            JWT_SECRET="${{ secrets.JWT_SECRET }}"
+            JWT_ISSUER="${{ secrets.JWT_ISSUER }}"
+            JWT_AUDIENCE="${{ secrets.JWT_AUDIENCE }}"
+            GOOGLE_CLIENT_ID="${{ secrets.GOOGLE_CLIENT_ID }}"
+            GOOGLE_CLIENT_SECRET="${{ secrets.GOOGLE_CLIENT_SECRET }}"
+            RESEND_API_KEY="${{ secrets.RESEND_API_KEY }}"
+            MINIMAX_API_KEY="${{ secrets.MINIMAX_API_KEY }}"
+            SEPAY_WEBHOOK_KEY="${{ secrets.SEPAY_WEBHOOK_KEY }}"
+            SEPAY_BANK_SHORT_NAME="${{ secrets.SEPAY_BANK_SHORT_NAME }}"
+            SEPAY_ACCOUNT_NUMBER="${{ secrets.SEPAY_ACCOUNT_NUMBER }}"
+            SEPAY_ACCOUNT_NAME="${{ secrets.SEPAY_ACCOUNT_NAME }}"
+            IMAGE_TAG="${{ needs.build-and-push.outputs.image_tag }}"
+            CPU_LIMIT_API="${{ vars.CPU_LIMIT_API }}"
+            MEM_LIMIT_API="${{ vars.MEM_LIMIT_API }}"
+            CPU_LIMIT_WEB="${{ vars.CPU_LIMIT_WEB }}"
+            MEM_LIMIT_WEB="${{ vars.MEM_LIMIT_WEB }}"
+            CPU_LIMIT_POSTGRES="${{ vars.CPU_LIMIT_POSTGRES }}"
+            MEM_LIMIT_POSTGRES="${{ vars.MEM_LIMIT_POSTGRES }}"
+            CPU_LIMIT_REDIS="${{ vars.CPU_LIMIT_REDIS }}"
+            MEM_LIMIT_REDIS="${{ vars.MEM_LIMIT_REDIS }}"
             ENVEOF
-            echo "GITHUB_REPOSITORY=${REPO_LOWER}" >> /opt/mini-booking-system/.env.production
+            echo "GITHUB_REPOSITORY=\"${REPO_LOWER}\"" >> /opt/mini-booking-system/.env.production
             sed -i 's/^[[:space:]]*//' /opt/mini-booking-system/.env.production
             chmod 600 /opt/mini-booking-system/.env.production
 
@@ -148,6 +148,7 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             cd /opt/mini-booking-system
+            git pull origin main
             export IMAGE_TAG=${{ needs.build-and-push.outputs.image_tag }}
             export GITHUB_REPOSITORY=${{ github.repository }}
 
