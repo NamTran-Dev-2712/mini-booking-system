@@ -13,14 +13,6 @@ COMPOSE_CMD="docker compose -f $COMPOSE_FILE --env-file $ENV_FILE"
 
 cd "$DEPLOY_DIR"
 
-# Load environment variables for docker compose
-set -a
-while IFS='=' read -r key value; do
-    [[ -z "$key" || "$key" =~ ^# ]] && continue
-    export "$key=$value"
-done < .env.production
-set +a
-
 CURRENT_COLOR=$(cat "$STATE_FILE" 2>/dev/null || echo "blue")
 if [ "$CURRENT_COLOR" = "blue" ]; then
     ROLLBACK_COLOR="green"

@@ -15,13 +15,8 @@ RETRY_INTERVAL=5
 
 cd "$DEPLOY_DIR"
 
-# Load environment variables for docker compose
-set -a
-while IFS='=' read -r key value; do
-    [[ -z "$key" || "$key" =~ ^# ]] && continue
-    export "$key=$value"
-done < .env.production
-set +a
+# Load IMAGE_TAG from .env.production
+IMAGE_TAG=$(grep "^IMAGE_TAG=" .env.production | cut -d= -f2)
 export IMAGE_TAG
 
 COMPOSE_CMD="docker compose -f $COMPOSE_FILE --env-file $ENV_FILE"
