@@ -36,16 +36,20 @@ echo "Image:   $IMAGE_TAG"
 echo "========================="
 
 # Step 1: Pull new images
-echo "[1/6] Pulling images (tag: $IMAGE_TAG)..."
+echo "[1/7] Pulling images (tag: $IMAGE_TAG)..."
 export IMAGE_TAG
-$COMPOSE_CMD --profile "$TARGET_COLOR" pull
+$COMPOSE_CMD --profile "$TARGET_COLOR" pull "api-${TARGET_COLOR}" "web-${TARGET_COLOR}"
 
-# Step 2: Start target color containers
-echo "[2/6] Starting $TARGET_COLOR containers..."
-$COMPOSE_CMD --profile "$TARGET_COLOR" up -d
+# Step 2: Ensure infrastructure is running
+echo "[2/7] Ensuring infrastructure is running..."
+$COMPOSE_CMD up -d postgres_db redis_cache nginx certbot
 
-# Step 3: Wait for health checks
-echo "[3/6] Waiting for $TARGET_COLOR to become healthy..."
+# Step 3: Start target color containers
+echo "[3/7] Starting $TARGET_COLOR containers..."
+$COMPOSE_CMD --profile "$TARGET_COLOR" up -d "api-${TARGET_COLOR}" "web-${TARGET_COLOR}"
+
+# Step 4: Wait for health checks
+echo "[4/7] Waiting for $TARGET_COLOR to become healthy..."
 RETRIES=0
 while [ $RETRIES -lt $MAX_RETRIES ]; do
     API_HEALTH=$(docker inspect --format='{{.State.Health.Status}}' "api-${TARGET_COLOR}" 2>/dev/null || echo "starting")
@@ -64,17 +68,18 @@ done
 if [ $RETRIES -eq $MAX_RETRIES ]; then
     echo "ERROR: $TARGET_COLOR containers failed health check!"
     echo "Stopping failed containers..."
-    $COMPOSE_CMD --profile "$TARGET_COLOR" down
+    docker stop "api-${TARGET_COLOR}" "web-${TARGET_COLOR}" 2>/dev/null || true
+    docker rm "api-${TARGET_COLOR}" "web-${TARGET_COLOR}" 2>/dev/null || true
     exit 1
 fi
 
-# Step 4: Switch nginx upstream
-echo "[4/6] Switching nginx to $TARGET_COLOR..."
+# Step 5: Switch nginx upstream
+echo "[5/7] Switching nginx to $TARGET_COLOR..."
 cp "${NGINX_DIR}/upstream-${TARGET_COLOR}.conf" "${NGINX_DIR}/active-upstream.conf"
 docker exec nginx_prod nginx -s reload
 
-# Step 5: Verify traffic is flowing
-echo "[5/6] Verifying traffic routing..."
+# Step 6: Verify traffic is flowing
+echo "[6/7] Verifying traffic routing..."
 sleep 3
 API_DOMAIN=$(grep "^API_DOMAIN=" .env.production | cut -d= -f2)
 HTTP_STATUS=$(curl -sk -o /dev/null -w "%{http_code}" -H "Host: ${API_DOMAIN}" https://localhost/health 2>/dev/null || echo "000")
@@ -83,14 +88,16 @@ if [ "$HTTP_STATUS" != "200" ]; then
     echo "Rolling back nginx..."
     cp "${NGINX_DIR}/upstream-${CURRENT_COLOR}.conf" "${NGINX_DIR}/active-upstream.conf"
     docker exec nginx_prod nginx -s reload 2>/dev/null || true
-    $COMPOSE_CMD --profile "$TARGET_COLOR" down
+    docker stop "api-${TARGET_COLOR}" "web-${TARGET_COLOR}" 2>/dev/null || true
+    docker rm "api-${TARGET_COLOR}" "web-${TARGET_COLOR}" 2>/dev/null || true
     exit 1
 fi
 
-# Step 6: Stop old color (after graceful drain)
+# Step 6: Stop old color containers only (keep infra running)
 echo "[6/7] Draining $CURRENT_COLOR (60s)..."
 sleep 60
-$COMPOSE_CMD --profile "$CURRENT_COLOR" down
+docker stop "api-${CURRENT_COLOR}" "web-${CURRENT_COLOR}" 2>/dev/null || true
+docker rm "api-${CURRENT_COLOR}" "web-${CURRENT_COLOR}" 2>/dev/null || true
 
 # Step 7: Cleanup old Docker images to prevent disk exhaustion
 echo "[7/7] Cleaning up unused Docker images..."
