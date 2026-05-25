@@ -6,7 +6,10 @@ set -euo pipefail
 # Returns exit code 0 if healthy, 1 if not
 
 DEPLOY_DIR="/opt/mini-booking-system"
-source "${DEPLOY_DIR}/.env.production"
+while IFS='=' read -r key value; do
+    [[ -z "$key" || "$key" =~ ^# ]] && continue
+    export "$key=$value"
+done < "${DEPLOY_DIR}/.env.production"
 
 MAX_RETRIES=5
 RETRY_INTERVAL=3

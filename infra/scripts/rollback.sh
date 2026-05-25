@@ -15,7 +15,10 @@ cd "$DEPLOY_DIR"
 
 # Load environment variables for docker compose
 set -a
-source .env.production
+while IFS='=' read -r key value; do
+    [[ -z "$key" || "$key" =~ ^# ]] && continue
+    export "$key=$value"
+done < .env.production
 set +a
 
 CURRENT_COLOR=$(cat "$STATE_FILE" 2>/dev/null || echo "blue")
