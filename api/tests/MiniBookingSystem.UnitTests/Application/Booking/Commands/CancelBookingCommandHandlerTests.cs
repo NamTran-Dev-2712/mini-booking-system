@@ -5,6 +5,7 @@ public sealed class CancelBookingCommandHandlerTests
     private readonly Mock<IUnitOfWork> _unitOfWork;
     private readonly Mock<IBookingRepository> _bookingRepo;
     private readonly Mock<ICacheService> _cacheService;
+    private readonly Mock<ILocalizationService> _localizer;
     private readonly CancelBookingCommandHandler _sut;
 
     public CancelBookingCommandHandlerTests()
@@ -12,10 +13,23 @@ public sealed class CancelBookingCommandHandlerTests
         _unitOfWork = new Mock<IUnitOfWork>(MockBehavior.Strict);
         _bookingRepo = new Mock<IBookingRepository>(MockBehavior.Strict);
         _cacheService = new Mock<ICacheService>(MockBehavior.Strict);
+        _localizer = new Mock<ILocalizationService>();
+        _localizer.Setup(l => l.GetMessage(It.IsAny<string>())).Returns((string key) => key);
+        _localizer.Setup(l => l.GetMessage("Booking.NotFound")).Returns("Booking not found.");
+        _localizer
+            .Setup(l => l.GetMessage("Booking.CompletedCannotCancel"))
+            .Returns("Completed bookings cannot be cancelled.");
+        _localizer
+            .Setup(l => l.GetMessage("Booking.ExpiredCannotCancel"))
+            .Returns("Expired bookings cannot be cancelled.");
 
         _unitOfWork.Setup(u => u.Booking).Returns(_bookingRepo.Object);
 
-        _sut = new CancelBookingCommandHandler(_unitOfWork.Object, _cacheService.Object);
+        _sut = new CancelBookingCommandHandler(
+            _unitOfWork.Object,
+            _cacheService.Object,
+            _localizer.Object
+        );
     }
 
     /// <summary>Sets up the mocks for a successful cancellation of the given booking.</summary>
@@ -167,9 +181,7 @@ public sealed class CancelBookingCommandHandlerTests
 
         var act = () => _sut.Handle(command, CancellationToken.None);
 
-        await act.Should()
-            .ThrowAsync<NotFoundException>()
-            .WithMessage($"*Booking*{command.BookingId}*");
+        await act.Should().ThrowAsync<NotFoundException>().WithMessage("*Booking not found*");
     }
 
     [Fact]

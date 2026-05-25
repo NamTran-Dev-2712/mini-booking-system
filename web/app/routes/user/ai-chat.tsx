@@ -1,4 +1,11 @@
+import { redirect } from "react-router";
 import { Bot } from "lucide-react";
+import { featureFlags } from "~/config/feature-flags";
+
+export function clientLoader() {
+  if (!featureFlags.aiChat) throw redirect("/user");
+  return null;
+}
 
 export function meta() {
   return [{ title: "AI Assistant — MiniBooking" }];

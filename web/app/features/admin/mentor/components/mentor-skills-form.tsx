@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Plus } from "lucide-react";
 import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { Button } from "~/components/ui/button";
 import {
   Form,
@@ -21,6 +22,7 @@ interface MentorSkillsFormProps {
 }
 
 export function MentorSkillsForm({ mentorId }: MentorSkillsFormProps) {
+  const { t } = useTranslation("mentor");
   const { mutateAsync, isPending } = useAddMentorSkillMutation();
 
   const form = useForm<AddSkillFormData>({
@@ -46,7 +48,7 @@ export function MentorSkillsForm({ mentorId }: MentorSkillsFormProps) {
             <FormItem className="flex-1">
               <FormControl>
                 <Input
-                  placeholder="Add a skill (e.g. React, Node.js)"
+                  placeholder={t("skills.addSkillPlaceholder")}
                   {...field}
                   disabled={isPending}
                 />
@@ -66,7 +68,7 @@ export function MentorSkillsForm({ mentorId }: MentorSkillsFormProps) {
           ) : (
             <Plus className="size-4" />
           )}
-          Add
+          {t("skills.addSkill")}
         </Button>
       </form>
     </Form>

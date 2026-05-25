@@ -5,11 +5,17 @@ public class CreatePaymentCommandHandler : IRequestHandler<CreatePaymentCommand,
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ISePayQrService _sePayQrService;
+    private readonly ILocalizationService _localizer;
 
-    public CreatePaymentCommandHandler(IUnitOfWork unitOfWork, ISePayQrService sePayQrService)
+    public CreatePaymentCommandHandler(
+        IUnitOfWork unitOfWork,
+        ISePayQrService sePayQrService,
+        ILocalizationService localizer
+    )
     {
         _unitOfWork = unitOfWork;
         _sePayQrService = sePayQrService;
+        _localizer = localizer;
     }
 
     public async Task<CreatePaymentDTO> Handle(
@@ -22,10 +28,10 @@ public class CreatePaymentCommandHandler : IRequestHandler<CreatePaymentCommand,
 
         var booking = await _unitOfWork.Booking.GetByIdAsync(request.BookingId, b => b.MentorSlot);
         if (booking == null)
-            throw new NotFoundException($"Booking", request.BookingId.ToString());
+            throw new NotFoundException(_localizer.GetMessage("Booking.NotFound"));
 
         if (booking.UserId != request.UserId)
-            throw new UnauthorizedException("You can only create payments for your own bookings.");
+            throw new UnauthorizedException(_localizer.GetMessage("Payment.CreateUnauthorized"));
 
         if (booking.Status != BookingStatus.PendingPayment)
             throw new ValidationException(

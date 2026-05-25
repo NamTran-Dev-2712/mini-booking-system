@@ -14,11 +14,22 @@ public sealed class UpdateSlotMentorCommandHandlerTests
         _mentorRepo = new Mock<IMentorRepository>(MockBehavior.Strict);
         _mentorSlotRepo = new Mock<IMentorSlotRepository>(MockBehavior.Strict);
         _cacheService = new Mock<ICacheService>(MockBehavior.Strict);
+        var localizer = new Mock<ILocalizationService>();
+        localizer.Setup(l => l.GetMessage(It.IsAny<string>())).Returns((string key) => key);
+        localizer.Setup(l => l.GetMessage("Mentor.NotFound")).Returns("Mentor not found.");
+        localizer.Setup(l => l.GetMessage("Mentor.SlotNotFound")).Returns("Slot not found.");
+        localizer
+            .Setup(l => l.GetMessage("Mentor.SlotConflict"))
+            .Returns("The new time range conflicts with an existing slot.");
 
         _unitOfWork.Setup(u => u.Mentor).Returns(_mentorRepo.Object);
         _unitOfWork.Setup(u => u.MentorSlot).Returns(_mentorSlotRepo.Object);
 
-        _sut = new UpdateSlotMentorCommandHandler(_unitOfWork.Object, _cacheService.Object);
+        _sut = new UpdateSlotMentorCommandHandler(
+            _unitOfWork.Object,
+            _cacheService.Object,
+            localizer.Object
+        );
     }
 
     private MentorSlot SetupHappyPath(UpdateSlotMentorCommand cmd)
@@ -136,9 +147,7 @@ public sealed class UpdateSlotMentorCommandHandlerTests
         var act = () => _sut.Handle(command, CancellationToken.None);
 
         // Assert
-        await act.Should()
-            .ThrowAsync<NotFoundException>()
-            .WithMessage($"*Mentor*{command.MentorId}*");
+        await act.Should().ThrowAsync<NotFoundException>().WithMessage($"*Mentor not found*");
     }
 
     [Fact]
@@ -169,7 +178,7 @@ public sealed class UpdateSlotMentorCommandHandlerTests
         var act = () => _sut.Handle(command, CancellationToken.None);
 
         // Assert
-        await act.Should().ThrowAsync<NotFoundException>().WithMessage($"*Slot*{command.Id}*");
+        await act.Should().ThrowAsync<NotFoundException>().WithMessage($"*Slot not found*");
     }
 
     [Fact]

@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <data name="Auth.InvalidCredentials" xml:space="preserve">
+    <value>Invalid email or password.</value>
+  </data>
+  <data name="Auth.EmailAlreadyExists" xml:space="preserve">
+    <value>An account with this email already exists.</value>
+  </data>
+  <data name="Auth.EmailAlreadyRegistered" xml:space="preserve">
+    <value>Email is already registered.</value>
+  </data>
+  <data name="Auth.PhoneAlreadyExists" xml:space="preserve">
+    <value>An account with this phone number already exists.</value>
+  </data>
+  <data name="Auth.PhoneAlreadyRegistered" xml:space="preserve">
+    <value>Phone number is already registered.</value>
+  </data>
+  <data name="Auth.RegistrationFailed" xml:space="preserve">
+    <value>User registration failed.</value>
+  </data>
+  <data name="Auth.RoleAssignFailed" xml:space="preserve">
+    <value>Failed to assign default role.</value>
+  </data>
+  <data name="Auth.UserNotFound" xml:space="preserve">
+    <value>User not found.</value>
+  </data>
+  <data name="Auth.AccountDisabled" xml:space="preserve">
+    <value>Your account has been disabled.</value>
+  </data>
+  <data name="Auth.InvalidRefreshToken" xml:space="preserve">
+    <value>Invalid or expired refresh token.</value>
+  </data>
+  <data name="Auth.PasswordChangeFailed" xml:space="preserve">
+    <value>Failed to change password. Please check your current password.</value>
+  </data>
+  <data name="Auth.InvalidResetToken" xml:space="preserve">
+    <value>Invalid or expired reset code.</value>
+  </data>
+  <data name="Auth.RefreshTokenUserNotFound" xml:space="preserve">
+    <value>User not found for the provided refresh token.</value>
+  </data>
+  <data name="Auth.CurrentPasswordIncorrect" xml:space="preserve">
+    <value>Current password is incorrect.</value>
+  </data>
+  <data name="Auth.PasswordResetFailed" xml:space="preserve">
+    <value>Failed to reset password.</value>
+  </data>
+  <data name="Auth.GoogleLinkFailed" xml:space="preserve">
+    <value>Failed to link Google account.</value>
+  </data>
+  <data name="Auth.GoogleCreateFailed" xml:space="preserve">
+    <value>Failed to create account from Google login.</value>
+  </data>
+  <data name="Auth.ProfileUpdateFailed" xml:space="preserve">
+    <value>Failed to update profile.</value>
+  </data>
+  <data name="Auth.ResetTokenExpired" xml:space="preserve">
+    <value>Reset token has expired. Please request a new one.</value>
+  </data>
+  <data name="Auth.ResetTokenUsed" xml:space="preserve">
+    <value>This reset token has already been used.</value>
+  </data>
+  <data name="Auth.ResetTokenWrongEmail" xml:space="preserve">
+    <value>This reset token does not belong to the provided email.</value>
+  </data>
+  <data name="Auth.InvalidOtp" xml:space="preserve">
+    <value>Invalid OTP code.</value>
+  </data>
+  <data name="Booking.SlotNotAvailable" xml:space="preserve">
+    <value>The selected time slot is no longer available.</value>
+  </data>
+  <data name="Booking.AlreadyBooked" xml:space="preserve">
+    <value>You already have an active booking for this slot.</value>
+  </data>
+  <data name="Booking.NotFound" xml:space="preserve">
+    <value>Booking not found.</value>
+  </data>
+  <data name="Booking.CannotCancel" xml:space="preserve">
+    <value>This booking cannot be cancelled.</value>
+  </data>
+  <data name="Booking.CompletedCannotCancel" xml:space="preserve">
+    <value>Completed bookings cannot be cancelled.</value>
+  </data>
+  <data name="Booking.ExpiredCannotCancel" xml:space="preserve">
+    <value>Expired bookings cannot be cancelled.</value>
+  </data>
+  <data name="Booking.AlreadyCancelled" xml:space="preserve">
+    <value>This booking has already been cancelled.</value>
+  </data>
+  <data name="Mentor.NotFound" xml:space="preserve">
+    <value>Mentor not found.</value>
+  </data>
+  <data name="Mentor.SlotConflict" xml:space="preserve">
+    <value>The new time range conflicts with an existing slot.</value>
+  </data>
+  <data name="Mentor.SlotNotFound" xml:space="preserve">
+    <value>Slot not found.</value>
+  </data>
+  <data name="Mentor.SkillAlreadyExists" xml:space="preserve">
+    <value>Mentor already has this skill.</value>
+  </data>
+  <data name="Mentor.SkillNotFound" xml:space="preserve">
+    <value>Mentor skill not found.</value>
+  </data>
+  <data name="Payment.NotFound" xml:space="preserve">
+    <value>Payment not found.</value>
+  </data>
+  <data name="Payment.Unauthorized" xml:space="preserve">
+    <value>You can only view payments for your own bookings.</value>
+  </data>
+  <data name="Payment.CreateUnauthorized" xml:space="preserve">
+    <value>You can only create payments for your own bookings.</value>
+  </data>
+  <data name="Payment.AlreadyPaid" xml:space="preserve">
+    <value>This booking has already been paid.</value>
+  </data>
+  <data name="Payment.Expired" xml:space="preserve">
+    <value>Payment has expired. Please create a new booking.</value>
+  </data>
+  <data name="Validation.Required" xml:space="preserve">
+    <value>{0} is required.</value>
+  </data>
+  <data name="Validation.InvalidEmail" xml:space="preserve">
+    <value>Please enter a valid email address.</value>
+  </data>
+  <data name="Validation.MinLength" xml:space="preserve">
+    <value>{0} must be at least {1} characters.</value>
+  </data>
+  <data name="Validation.MaxLength" xml:space="preserve">
+    <value>{0} must not exceed {1} characters.</value>
+  </data>
+  <data name="Error.Generic" xml:space="preserve">
+    <value>An unexpected error occurred. Please try again.</value>
+  </data>
+  <data name="Error.NotFound" xml:space="preserve">
+    <value>{0} not found.</value>
+  </data>
+  <data name="Error.Unauthorized" xml:space="preserve">
+    <value>You are not authorized to perform this action.</value>
+  </data>
+  <data name="Error.Forbidden" xml:space="preserve">
+    <value>You do not have permission to access this resource.</value>
+  </data>
+  <data name="Error.ValidationFailed" xml:space="preserve">
+    <value>Validation failed.</value>
+  </data>
+  <data name="Booking.ViewOwn" xml:space="preserve">
+    <value>You can only view your own bookings.</value>
+  </data>
+  <data name="Booking.CreateOwn" xml:space="preserve">
+    <value>You can only create bookings for your own account.</value>
+  </data>
+  <data name="Booking.CancelOwn" xml:space="preserve">
+    <value>You can only cancel your own bookings.</value>
+  </data>
+  <data name="Auth.InvalidTokenClaim" xml:space="preserve">
+    <value>Invalid user ID in token.</value>
+  </data>
+  <data name="Mentor.AddSkillOwn" xml:space="preserve">
+    <value>You can only add skills to your own profile.</value>
+  </data>
+  <data name="Mentor.RemoveSkillOwn" xml:space="preserve">
+    <value>You can only remove skills from your own profile.</value>
+  </data>
+  <data name="Mentor.IdMismatch" xml:space="preserve">
+    <value>ID in URL does not match MentorId in body.</value>
+  </data>
+  <data name="Mentor.IdBodyMismatch" xml:space="preserve">
+    <value>ID in URL does not match ID in body.</value>
+  </data>
+  <data name="Mentor.SlotIdMismatch" xml:space="preserve">
+    <value>Slot ID in URL does not match ID in body.</value>
+  </data>
+  <data name="Response.Created" xml:space="preserve">
+    <value>Created successfully</value>
+  </data>
+  <data name="Response.NoContent" xml:space="preserve">
+    <value>Operation completed successfully</value>
+  </data>
+  <data name="Response.Auth.Registered" xml:space="preserve">
+    <value>User registered successfully</value>
+  </data>
+  <data name="Response.Auth.ProfileUpdated" xml:space="preserve">
+    <value>Profile updated successfully</value>
+  </data>
+  <data name="Response.Auth.ProfileCompleted" xml:space="preserve">
+    <value>Profile completed successfully</value>
+  </data>
+  <data name="Response.Auth.LoggedOut" xml:space="preserve">
+    <value>Logged out successfully</value>
+  </data>
+  <data name="Response.Auth.PasswordChanged" xml:space="preserve">
+    <value>Password changed successfully. Please login again.</value>
+  </data>
+  <data name="Response.Auth.ForgotPasswordSent" xml:space="preserve">
+    <value>If an account exists with this email, you will receive a password reset link shortly.</value>
+  </data>
+  <data name="Response.Auth.PasswordReset" xml:space="preserve">
+    <value>Password has been reset successfully.</value>
+  </data>
+  <data name="Response.Booking.ListRetrieved" xml:space="preserve">
+    <value>Bookings retrieved successfully</value>
+  </data>
+  <data name="Response.Booking.DetailRetrieved" xml:space="preserve">
+    <value>Booking detail retrieved successfully</value>
+  </data>
+  <data name="Response.Booking.AllRetrieved" xml:space="preserve">
+    <value>All bookings retrieved successfully</value>
+  </data>
+  <data name="Response.Booking.Created" xml:space="preserve">
+    <value>Booking created successfully</value>
+  </data>
+  <data name="Response.Booking.Cancelled" xml:space="preserve">
+    <value>Booking cancelled successfully</value>
+  </data>
+  <data name="Response.Mentor.Updated" xml:space="preserve">
+    <value>Mentor updated successfully</value>
+  </data>
+  <data name="Response.Mentor.Deleted" xml:space="preserve">
+    <value>Mentor deleted successfully</value>
+  </data>
+  <data name="Response.Mentor.SlotCreated" xml:space="preserve">
+    <value>Slot created successfully</value>
+  </data>
+  <data name="Response.Mentor.SlotUpdated" xml:space="preserve">
+    <value>Slot updated successfully</value>
+  </data>
+  <data name="Response.Mentor.SkillRemoved" xml:space="preserve">
+    <value>Skill removed from mentor successfully</value>
+  </data>
+</root>

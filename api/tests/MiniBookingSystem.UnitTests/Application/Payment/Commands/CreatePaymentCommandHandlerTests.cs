@@ -14,11 +14,21 @@ public sealed class CreatePaymentCommandHandlerTests
         _bookingRepo = new Mock<IBookingRepository>(MockBehavior.Strict);
         _paymentTransactionRepo = new Mock<IPaymentTransactionRepository>(MockBehavior.Strict);
         _sePayQrService = new Mock<ISePayQrService>(MockBehavior.Strict);
+        var localizer = new Mock<ILocalizationService>();
+        localizer.Setup(l => l.GetMessage(It.IsAny<string>())).Returns((string key) => key);
+        localizer.Setup(l => l.GetMessage("Booking.NotFound")).Returns("Booking not found.");
+        localizer
+            .Setup(l => l.GetMessage("Payment.CreateUnauthorized"))
+            .Returns("You can only create payments for your own bookings.");
 
         _unitOfWork.Setup(u => u.Booking).Returns(_bookingRepo.Object);
         _unitOfWork.Setup(u => u.PaymentTransaction).Returns(_paymentTransactionRepo.Object);
 
-        _sut = new CreatePaymentCommandHandler(_unitOfWork.Object, _sePayQrService.Object);
+        _sut = new CreatePaymentCommandHandler(
+            _unitOfWork.Object,
+            _sePayQrService.Object,
+            localizer.Object
+        );
     }
 
     private global::Booking BuildBookingWithSlot(

@@ -12,6 +12,7 @@ import {
   CommandSeparator,
 } from "~/components/ui/command";
 import { Kbd } from "~/components/ui/kbd";
+import i18n from "~/lib/i18n";
 import { queryKeys } from "~/lib/query-keys";
 import { authService } from "~/services/auth/auth.service";
 import { useAuthStore } from "~/stores/auth.store";
@@ -87,7 +88,7 @@ export function CommandPalette({
             onSelect={() =>
               run(() => {
                 qc.invalidateQueries({ queryKey: queryKeys.mentors.all() });
-                toast.success("Data refreshed");
+                toast.success(i18n.t("toast.dataRefreshed"));
               })
             }
           >

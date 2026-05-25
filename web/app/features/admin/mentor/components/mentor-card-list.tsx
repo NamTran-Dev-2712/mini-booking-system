@@ -1,5 +1,6 @@
 import { format } from "date-fns";
 import { MoreHorizontal } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
@@ -29,6 +30,8 @@ export function MentorCardList({
   onDelete,
   onViewDetail,
 }: MentorCardListProps) {
+  const { t } = useTranslation("mentor");
+
   if (isLoading) {
     return (
       <div className="space-y-3">
@@ -53,7 +56,9 @@ export function MentorCardList({
   if (mentors.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-16 text-center">
-        <p className="text-sm text-muted-foreground">No mentors found.</p>
+        <p className="text-sm text-muted-foreground">
+          {t("list.noMentorsFound")}
+        </p>
       </div>
     );
   }
@@ -119,7 +124,7 @@ export function MentorCardList({
                             onViewDetail(mentor);
                           }}
                         >
-                          View detail
+                          {t("columns.viewDetail")}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={(e) => {
@@ -127,7 +132,7 @@ export function MentorCardList({
                             onEdit(mentor);
                           }}
                         >
-                          Edit
+                          {t("columns.edit")}
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
@@ -137,7 +142,7 @@ export function MentorCardList({
                           }}
                           className="text-destructive focus:text-destructive"
                         >
-                          Delete
+                          {t("columns.delete")}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -148,7 +153,9 @@ export function MentorCardList({
                       variant={mentor.isActive ? "default" : "secondary"}
                       className="text-xs"
                     >
-                      {mentor.isActive ? "Active" : "Inactive"}
+                      {mentor.isActive
+                        ? t("detail.active")
+                        : t("detail.inactive")}
                     </Badge>
                     {mentor.specialization && (
                       <span className="text-xs text-muted-foreground">
@@ -156,8 +163,10 @@ export function MentorCardList({
                       </span>
                     )}
                     <span className="text-xs text-muted-foreground">
-                      {mentor.experienceYears} yr
-                      {mentor.experienceYears !== 1 ? "s" : ""}
+                      {mentor.experienceYears}{" "}
+                      {t("detail.experienceYears", {
+                        count: mentor.experienceYears,
+                      })}
                     </span>
                     <span className="text-xs font-medium">
                       {new Intl.NumberFormat("vi-VN", {

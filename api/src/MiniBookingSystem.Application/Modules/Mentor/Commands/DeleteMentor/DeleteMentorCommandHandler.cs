@@ -4,18 +4,24 @@ public class DeleteMentorCommandHandler : IRequestHandler<DeleteMentorCommand, U
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICacheService _cacheService;
+    private readonly ILocalizationService _localizer;
 
-    public DeleteMentorCommandHandler(IUnitOfWork unitOfWork, ICacheService cacheService)
+    public DeleteMentorCommandHandler(
+        IUnitOfWork unitOfWork,
+        ICacheService cacheService,
+        ILocalizationService localizer
+    )
     {
         _unitOfWork = unitOfWork;
         _cacheService = cacheService;
+        _localizer = localizer;
     }
 
     public async Task<Unit> Handle(DeleteMentorCommand request, CancellationToken cancellationToken)
     {
         var mentor = await _unitOfWork.Mentor.GetByIdAsync(request.MentorId, cancellationToken);
         if (mentor is null)
-            throw new NotFoundException("Mentor", request.MentorId.ToString());
+            throw new NotFoundException(_localizer.GetMessage("Mentor.NotFound"));
 
         // start a transaction to ensure both mentor and user are deleted successfully
         await _unitOfWork.BeginTransactionAsync(cancellationToken);

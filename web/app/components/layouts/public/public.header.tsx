@@ -6,6 +6,7 @@ import {
   Menu,
   UserCircle,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Avatar, AvatarFallback } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 import {
@@ -19,6 +20,7 @@ import { Separator } from "~/components/ui/separator";
 import { authService } from "~/services/auth/auth.service";
 import { useAuthStore } from "~/stores/auth.store";
 import { useCurrentUser, usePrimaryRole } from "~/hooks/use-auth";
+import { LanguageSwitcher } from "~/components/shared/language-switcher";
 
 const ROLE_DASHBOARD: Record<string, string> = {
   Admin: "/admin",
@@ -26,13 +28,8 @@ const ROLE_DASHBOARD: Record<string, string> = {
   User: "/user",
 };
 
-const navLinks = [
-  { to: "/", label: "Home" },
-  { to: "/about", label: "About" },
-  { to: "/mentors", label: "Mentors" },
-];
-
 export default function PublicHeader() {
+  const { t } = useTranslation("common");
   const navigate = useNavigate();
   const user = useCurrentUser();
   const primaryRole = usePrimaryRole();
@@ -46,6 +43,12 @@ export default function PublicHeader() {
     .join("")
     .slice(0, 2)
     .toUpperCase();
+
+  const navLinks = [
+    { to: "/", label: t("nav.home") },
+    { to: "/about", label: t("nav.about") },
+    { to: "/mentors", label: t("nav.mentors") },
+  ];
 
   async function handleLogout() {
     try {
@@ -90,14 +93,15 @@ export default function PublicHeader() {
           ))}
         </nav>
 
-        {/* Desktop CTA — switches based on auth state */}
+        {/* Desktop CTA */}
         <div className="hidden md:flex items-center gap-2">
+          <LanguageSwitcher />
           {isAuthenticated ? (
             <>
               <Button variant="ghost" size="sm" asChild>
                 <Link to={dashboardHref} className="flex items-center gap-1.5">
                   <LayoutDashboard className="size-3.5" />
-                  Dashboard
+                  {t("actions.goToDashboard")}
                 </Link>
               </Button>
 
@@ -119,16 +123,16 @@ export default function PublicHeader() {
                 className="text-muted-foreground hover:text-destructive"
               >
                 <LogOut className="size-3.5" />
-                Sign Out
+                {t("actions.signOut")}
               </Button>
             </>
           ) : (
             <>
               <Button variant="ghost" size="sm" asChild>
-                <Link to="/login">Sign In</Link>
+                <Link to="/login">{t("actions.signIn")}</Link>
               </Button>
               <Button size="sm" asChild>
-                <Link to="/register">Sign Up</Link>
+                <Link to="/register">{t("actions.signUp")}</Link>
               </Button>
             </>
           )}
@@ -170,9 +174,17 @@ export default function PublicHeader() {
 
             <Separator className="my-4" />
 
+            <div className="flex items-center justify-between px-3 py-2">
+              <span className="text-sm text-muted-foreground">
+                {t("language.label")}
+              </span>
+              <LanguageSwitcher />
+            </div>
+
+            <Separator className="my-4" />
+
             {isAuthenticated ? (
               <div className="flex flex-col gap-2 px-1">
-                {/* User info */}
                 <div className="flex items-center gap-3 rounded-lg bg-muted px-3 py-2.5">
                   <Avatar className="size-8 shrink-0">
                     <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary">
@@ -192,7 +204,7 @@ export default function PublicHeader() {
                 <Button variant="outline" asChild>
                   <Link to={dashboardHref} className="flex items-center gap-2">
                     <LayoutDashboard className="size-4" />
-                    Go to Dashboard
+                    {t("actions.goToDashboard")}
                   </Link>
                 </Button>
 
@@ -202,7 +214,7 @@ export default function PublicHeader() {
                     className="flex items-center gap-2"
                   >
                     <UserCircle className="size-4" />
-                    My Profile
+                    {t("actions.myProfile")}
                   </Link>
                 </Button>
 
@@ -212,16 +224,16 @@ export default function PublicHeader() {
                   className="justify-start text-muted-foreground hover:text-destructive"
                 >
                   <LogOut className="size-4" />
-                  Sign Out
+                  {t("actions.signOut")}
                 </Button>
               </div>
             ) : (
               <div className="flex flex-col gap-2 px-1">
                 <Button variant="outline" asChild>
-                  <Link to="/login">Sign In</Link>
+                  <Link to="/login">{t("actions.signIn")}</Link>
                 </Button>
                 <Button asChild>
-                  <Link to="/register">Sign Up</Link>
+                  <Link to="/register">{t("actions.signUp")}</Link>
                 </Button>
               </div>
             )}

@@ -35,17 +35,20 @@ public class BookingController : BaseApiController
     {
         var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub);
         if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var tokenUserId))
-            return FailureResponse<PaginatedResult<BookingDto>>(401, "Invalid user ID in token.");
+            return FailureResponse<PaginatedResult<BookingDto>>(
+                401,
+                Localizer.GetMessage("Auth.InvalidTokenClaim")
+            );
 
         if (tokenUserId != userId)
             return FailureResponse<PaginatedResult<BookingDto>>(
                 403,
-                "You can only view your own bookings."
+                Localizer.GetMessage("Booking.ViewOwn")
             );
 
         var queryWithUserId = query with { UserId = userId };
         var result = await _mediator.Send(queryWithUserId, cancellationToken);
-        return OkResponse(result, "User bookings retrieved successfully");
+        return OkResponse(result, "Response.Booking.ListRetrieved");
     }
 
     [HttpGet("{bookingId:guid}/detail")]
@@ -64,13 +67,16 @@ public class BookingController : BaseApiController
                 c.Type == JwtRegisteredClaimNames.Sub
             );
             if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var tokenUserId))
-                return FailureResponse<BookingDto>(401, "Invalid user ID in token.");
+                return FailureResponse<BookingDto>(
+                    401,
+                    Localizer.GetMessage("Auth.InvalidTokenClaim")
+                );
 
             if (result.UserId != tokenUserId)
-                return FailureResponse<BookingDto>(403, "You can only view your own bookings.");
+                return FailureResponse<BookingDto>(403, Localizer.GetMessage("Booking.ViewOwn"));
         }
 
-        return OkResponse(result, "Booking detail retrieved successfully");
+        return OkResponse(result, "Response.Booking.DetailRetrieved");
     }
 
     [HttpGet("admin")]
@@ -82,7 +88,7 @@ public class BookingController : BaseApiController
     )
     {
         var result = await _mediator.Send(query, cancellationToken);
-        return OkResponse(result, "All bookings retrieved successfully");
+        return OkResponse(result, "Response.Booking.AllRetrieved");
     }
 
     [HttpPost()]
@@ -95,17 +101,17 @@ public class BookingController : BaseApiController
     {
         var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub);
         if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
-            return FailureResponse<Guid>(401, "Invalid user ID in token.");
+            return FailureResponse<Guid>(401, Localizer.GetMessage("Auth.InvalidTokenClaim"));
 
         if (userId != command.UserId)
-            return FailureResponse<Guid>(403, "You can only create bookings for your own account.");
+            return FailureResponse<Guid>(403, Localizer.GetMessage("Booking.CreateOwn"));
 
         var idempotencyKey = Request.Headers["Idempotency-Key"].FirstOrDefault();
         var commandWithKey = command with { IdempotencyKey = idempotencyKey };
 
         var result = await _mediator.Send(commandWithKey, cancellationToken);
         await EvictBookingListCache(cancellationToken);
-        return CreatedResponse(result, "Booking created successfully");
+        return CreatedResponse(result, "Response.Booking.Created");
     }
 
     [HttpPost("cancel")]
@@ -118,13 +124,13 @@ public class BookingController : BaseApiController
     {
         var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub);
         if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
-            return FailureResponse<Guid>(401, "Invalid user ID in token.");
+            return FailureResponse<Guid>(401, Localizer.GetMessage("Auth.InvalidTokenClaim"));
 
         if (userId != command.UserId)
-            return FailureResponse<Guid>(403, "You can only cancel your own bookings.");
+            return FailureResponse<Guid>(403, Localizer.GetMessage("Booking.CancelOwn"));
 
         var result = await _mediator.Send(command, cancellationToken);
         await EvictBookingListCache(cancellationToken);
-        return OkResponse(result, "Booking cancelled successfully");
+        return OkResponse(result, "Response.Booking.Cancelled");
     }
 }

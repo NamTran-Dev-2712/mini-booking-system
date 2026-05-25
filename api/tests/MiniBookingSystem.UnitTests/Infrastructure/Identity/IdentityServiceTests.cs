@@ -26,12 +26,56 @@ public sealed class IdentityServiceTests
 
         _unitOfWork.Setup(u => u.User).Returns(_userRepo.Object);
 
+        var localizer = new Mock<ILocalizationService>();
+        localizer.Setup(x => x.GetMessage(It.IsAny<string>())).Returns((string key) => key);
+        localizer
+            .Setup(x => x.GetMessage("Auth.EmailAlreadyRegistered"))
+            .Returns("Email is already registered.");
+        localizer
+            .Setup(x => x.GetMessage("Auth.PhoneAlreadyRegistered"))
+            .Returns("Phone number is already registered.");
+        localizer
+            .Setup(x => x.GetMessage("Auth.RegistrationFailed"))
+            .Returns("User registration failed.");
+        localizer
+            .Setup(x => x.GetMessage("Auth.RoleAssignFailed"))
+            .Returns("Failed to assign default role.");
+        localizer
+            .Setup(x => x.GetMessage("Auth.InvalidCredentials"))
+            .Returns("Invalid email or password.");
+        localizer.Setup(x => x.GetMessage("Auth.UserNotFound")).Returns("User not found.");
+        localizer
+            .Setup(x => x.GetMessage("Auth.InvalidRefreshToken"))
+            .Returns("Invalid refresh token.");
+        localizer
+            .Setup(x => x.GetMessage("Auth.RefreshTokenUserNotFound"))
+            .Returns("User not found for the provided refresh token.");
+        localizer
+            .Setup(x => x.GetMessage("Auth.CurrentPasswordIncorrect"))
+            .Returns("Current password is incorrect.");
+        localizer
+            .Setup(x => x.GetMessage("Auth.PasswordChangeFailed"))
+            .Returns("Failed to change password. Please check your current password.");
+        localizer
+            .Setup(x => x.GetMessage("Auth.PasswordResetFailed"))
+            .Returns("Failed to reset password.");
+        localizer
+            .Setup(x => x.GetMessage("Auth.GoogleLinkFailed"))
+            .Returns("Failed to link Google account.");
+        localizer
+            .Setup(x => x.GetMessage("Auth.GoogleCreateFailed"))
+            .Returns("Failed to create account from Google login.");
+        localizer
+            .Setup(x => x.GetMessage("Auth.ProfileUpdateFailed"))
+            .Returns("Failed to update profile.");
+
         _sut = new IdentityService(
             _userManager.Object,
             _tokenService.Object,
             _tokenHasher.Object,
             _refreshTokenRepo.Object,
-            _unitOfWork.Object
+            _unitOfWork.Object,
+            localizer.Object
         );
     }
 
@@ -414,7 +458,7 @@ public sealed class IdentityServiceTests
         var act = () => _sut.GetProfileAsync(absentId);
 
         // Assert
-        await act.Should().ThrowAsync<NotFoundException>().WithMessage($"*User*{absentId}*");
+        await act.Should().ThrowAsync<NotFoundException>().WithMessage($"*User not found*");
     }
 
     // ══════════════════════════════════════════════════════════════════════

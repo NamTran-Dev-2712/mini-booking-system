@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { getApiErrorMessage } from "~/lib/api-error";
+import i18n from "~/lib/i18n";
 import { queryKeys } from "~/lib/query-keys";
 import { authService } from "~/services/auth/auth.service";
 import type { UpdateProfileRequest } from "~/services/auth/dtos/commands/update-profile/update-profile.request";
@@ -25,7 +26,7 @@ export function useUpdateProfileMutation() {
       queryClient.invalidateQueries({ queryKey: queryKeys.auth.profile() });
       queryClient.invalidateQueries({ queryKey: queryKeys.mentors.all() });
 
-      toast.success("Profile updated successfully");
+      toast.success(i18n.t("toast.profileUpdated"));
     },
     onError: (error) => {
       toast.error(getApiErrorMessage(error));

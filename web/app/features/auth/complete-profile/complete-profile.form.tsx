@@ -1,4 +1,5 @@
 import { Loader2, Phone } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "~/components/ui/button";
 import {
   Form,
@@ -12,6 +13,7 @@ import { Input } from "~/components/ui/input";
 import { useCompleteProfileForm } from "./complete-profile.hook";
 
 export function CompleteProfileForm() {
+  const { t } = useTranslation("auth");
   const { form, onSubmit } = useCompleteProfileForm();
   const isSubmitting = form.formState.isSubmitting;
 
@@ -23,7 +25,7 @@ export function CompleteProfileForm() {
           name="phoneNumber"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Phone Number</FormLabel>
+              <FormLabel>{t("completeProfile.phone")}</FormLabel>
               <FormControl>
                 <div className="relative">
                   <Phone className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
@@ -43,7 +45,7 @@ export function CompleteProfileForm() {
 
         <Button type="submit" className="w-full" disabled={isSubmitting}>
           {isSubmitting && <Loader2 className="mr-2 size-4 animate-spin" />}
-          Complete Profile
+          {t("completeProfile.submit")}
         </Button>
       </form>
     </Form>

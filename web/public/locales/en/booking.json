@@ -1,0 +1,68 @@
+{
+  "list": {
+    "title": "My Bookings",
+    "subtitle": "View and manage your mentoring sessions.",
+    "empty": "No bookings found",
+    "emptyDescription": "Book a session with a mentor to get started.",
+    "emptyStatus": "No bookings with this status.",
+    "adminTitle": "Bookings",
+    "adminSubtitle": "View and manage all bookings across the platform.",
+    "comingSoon": "Booking management coming soon"
+  },
+  "detail": {
+    "title": "Booking Detail",
+    "mentor": "Mentor",
+    "date": "Date",
+    "time": "Time",
+    "duration": "Duration",
+    "status": "Status",
+    "notes": "Notes",
+    "createdAt": "Created at",
+    "sessionDetails": "Session Details",
+    "timeline": "Timeline",
+    "bookingCreated": "Booking Created",
+    "paymentConfirmed": "Payment Confirmed",
+    "sessionCompleted": "Session Completed",
+    "bookingExpired": "Booking Expired",
+    "cancelled": "Cancelled",
+    "notFound": "Booking not found or failed to load.",
+    "to": "to"
+  },
+  "status": {
+    "pending": "Pending",
+    "confirmed": "Confirmed",
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "expired": "Expired"
+  },
+  "tabs": {
+    "all": "All",
+    "pending": "Pending",
+    "confirmed": "Confirmed",
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "expired": "Expired"
+  },
+  "actions": {
+    "book": "Book Session",
+    "cancel": "Cancel Booking",
+    "cancelConfirm": "Are you sure you want to cancel this booking? This action cannot be undone.",
+    "cancelReason": "Reason (optional)",
+    "cancelReasonPlaceholder": "Why are you cancelling?",
+    "keepBooking": "Keep Booking",
+    "pay": "Pay Now",
+    "viewPayment": "View Payment",
+    "backToBookings": "Back to Bookings"
+  },
+  "create": {
+    "title": "Book a Session",
+    "selectSlot": "Select a time slot",
+    "notes": "Additional notes (optional)",
+    "submit": "Confirm Booking",
+    "success": "Booking created successfully"
+  },
+  "cancel": {
+    "title": "Cancel Booking",
+    "success": "Booking cancelled."
+  }
+}

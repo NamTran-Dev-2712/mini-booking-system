@@ -24,6 +24,7 @@ x-api-common: &api-common
     BaseUrl__Frontend: ${FRONTEND_URL}
     Cors__AllowedOrigins__0: ${FRONTEND_URL}
     ReverseProxy__TrustedProxies__0: nginx
+    AdminSettings__Email: ${ADMIN_EMAIL:-}
   volumes:
     - api_uploads:/app/uploads
     - api_logs:/app/logs

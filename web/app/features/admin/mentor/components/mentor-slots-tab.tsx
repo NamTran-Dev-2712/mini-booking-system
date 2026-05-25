@@ -1,6 +1,7 @@
 import { format, isSameDay } from "date-fns";
 import { CalendarDays, Clock, Plus } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
@@ -44,15 +45,14 @@ export function MentorSlotsTab({
   slots,
   createShortcutEnabled = false,
 }: MentorSlotsTabProps) {
+  const { t } = useTranslation("mentor");
   const [createOpen, setCreateOpen] = useState(false);
   const [editSlot, setEditSlot] = useState<MentorSlot | null>(null);
 
-  // Sort slots by startTime descending
   const sorted = [...slots].sort(
     (a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime(),
   );
 
-  // Group by date
   const groups: { date: Date; slots: MentorSlot[] }[] = [];
   for (const slot of sorted) {
     const slotDate = new Date(slot.startTime);
@@ -69,7 +69,7 @@ export function MentorSlotsTab({
       {/* Header */}
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-medium">
-          Slots
+          {t("slots.title")}
           <span className="ml-2 text-xs text-muted-foreground">
             ({slots.length})
           </span>
@@ -80,7 +80,7 @@ export function MentorSlotsTab({
           className="gap-1.5"
         >
           <Plus className="size-4" />
-          New Slot
+          {t("slots.newSlot")}
           {createShortcutEnabled && <Kbd>C</Kbd>}
         </Button>
       </div>
@@ -89,14 +89,16 @@ export function MentorSlotsTab({
       {groups.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-10 text-center">
           <CalendarDays className="mb-3 size-8 text-muted-foreground/50" />
-          <p className="text-sm text-muted-foreground">No slots created yet.</p>
+          <p className="text-sm text-muted-foreground">
+            {t("slots.noSlotsYet")}
+          </p>
           <Button
             variant="outline"
             size="sm"
             className="mt-3"
             onClick={() => setCreateOpen(true)}
           >
-            Create first slot
+            {t("slots.createFirstSlot")}
           </Button>
         </div>
       ) : (
@@ -132,7 +134,7 @@ export function MentorSlotsTab({
                                   new Date(slot.startTime).getTime()) /
                                   60_000,
                               )}{" "}
-                              min
+                              {t("slots.min")}
                             </p>
                           </div>
                         </div>
@@ -152,7 +154,8 @@ export function MentorSlotsTab({
                             }).format(slot.price)}
                           </span>
                           <span className="text-xs text-muted-foreground">
-                            {slot.currentBookings}/{slot.maxBookings} booked
+                            {slot.currentBookings}/{slot.maxBookings}{" "}
+                            {t("slots.booked")}
                           </span>
                         </div>
                       </div>
@@ -186,7 +189,7 @@ export function MentorSlotsTab({
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Create Slot</DialogTitle>
+            <DialogTitle>{t("slots.createSlot")}</DialogTitle>
           </DialogHeader>
           <MentorSlotForm
             mentorId={mentorId}
@@ -199,7 +202,7 @@ export function MentorSlotsTab({
       <Dialog open={!!editSlot} onOpenChange={(o) => !o && setEditSlot(null)}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Edit Slot</DialogTitle>
+            <DialogTitle>{t("slots.editSlot")}</DialogTitle>
           </DialogHeader>
           {editSlot && (
             <MentorSlotForm

@@ -4,11 +4,17 @@ public class UpdateMentorCommandHandler : IRequestHandler<UpdateMentorCommand, G
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICacheService _cacheService;
+    private readonly ILocalizationService _localizer;
 
-    public UpdateMentorCommandHandler(IUnitOfWork unitOfWork, ICacheService cacheService)
+    public UpdateMentorCommandHandler(
+        IUnitOfWork unitOfWork,
+        ICacheService cacheService,
+        ILocalizationService localizer
+    )
     {
         _unitOfWork = unitOfWork;
         _cacheService = cacheService;
+        _localizer = localizer;
     }
 
     public async Task<Guid> Handle(UpdateMentorCommand request, CancellationToken cancellationToken)
@@ -19,7 +25,7 @@ public class UpdateMentorCommandHandler : IRequestHandler<UpdateMentorCommand, G
         {
             var mentor = await _unitOfWork.Mentor.GetByIdAsync(request.Id, cancellationToken);
             if (mentor is null)
-                throw new NotFoundException("Mentor", request.Id.ToString());
+                throw new NotFoundException(_localizer.GetMessage("Mentor.NotFound"));
 
             // FullName / PhoneNumber belong to ApplicationUser -> update with Identity (UserRepository)
             // to ensure validation and concurrency stamp of Identity are handled correctly

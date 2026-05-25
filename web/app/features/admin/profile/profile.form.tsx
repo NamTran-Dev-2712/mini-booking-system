@@ -1,4 +1,5 @@
 import { Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { AvatarUpload } from "~/components/shared/avatar-upload";
 import { Button } from "~/components/ui/button";
 import {
@@ -14,6 +15,7 @@ import { Skeleton } from "~/components/ui/skeleton";
 import { useAdminProfileForm } from "./profile.hook";
 
 export function AdminProfileForm() {
+  const { t } = useTranslation("auth");
   const { form, onSubmit, isPending, isSubmitting } = useAdminProfileForm();
 
   if (isPending) {
@@ -54,7 +56,7 @@ export function AdminProfileForm() {
             name="fullName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Full Name</FormLabel>
+                <FormLabel>{t("profile.fullNameLabel")}</FormLabel>
                 <FormControl>
                   <Input placeholder="Nguyễn Văn A" {...field} />
                 </FormControl>
@@ -68,7 +70,7 @@ export function AdminProfileForm() {
             name="phoneNumber"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Phone Number</FormLabel>
+                <FormLabel>{t("profile.phoneNumberLabel")}</FormLabel>
                 <FormControl>
                   <Input placeholder="0912345678" {...field} />
                 </FormControl>
@@ -81,7 +83,7 @@ export function AdminProfileForm() {
         <div className="flex justify-end">
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting && <Loader2 className="mr-2 size-4 animate-spin" />}
-            Save Changes
+            {t("profile.save")}
           </Button>
         </div>
       </form>

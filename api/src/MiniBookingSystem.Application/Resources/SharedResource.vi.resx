@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <data name="Auth.InvalidCredentials" xml:space="preserve">
+    <value>Email hoặc mật khẩu không đúng.</value>
+  </data>
+  <data name="Auth.EmailAlreadyExists" xml:space="preserve">
+    <value>Tài khoản với email này đã tồn tại.</value>
+  </data>
+  <data name="Auth.EmailAlreadyRegistered" xml:space="preserve">
+    <value>Email đã được đăng ký.</value>
+  </data>
+  <data name="Auth.PhoneAlreadyExists" xml:space="preserve">
+    <value>Tài khoản với số điện thoại này đã tồn tại.</value>
+  </data>
+  <data name="Auth.PhoneAlreadyRegistered" xml:space="preserve">
+    <value>Số điện thoại đã được đăng ký.</value>
+  </data>
+  <data name="Auth.RegistrationFailed" xml:space="preserve">
+    <value>Đăng ký tài khoản thất bại.</value>
+  </data>
+  <data name="Auth.RoleAssignFailed" xml:space="preserve">
+    <value>Gán vai trò mặc định thất bại.</value>
+  </data>
+  <data name="Auth.UserNotFound" xml:space="preserve">
+    <value>Không tìm thấy người dùng.</value>
+  </data>
+  <data name="Auth.AccountDisabled" xml:space="preserve">
+    <value>Tài khoản của bạn đã bị vô hiệu hóa.</value>
+  </data>
+  <data name="Auth.InvalidRefreshToken" xml:space="preserve">
+    <value>Token làm mới không hợp lệ hoặc đã hết hạn.</value>
+  </data>
+  <data name="Auth.PasswordChangeFailed" xml:space="preserve">
+    <value>Đổi mật khẩu thất bại. Vui lòng kiểm tra mật khẩu hiện tại.</value>
+  </data>
+  <data name="Auth.InvalidResetToken" xml:space="preserve">
+    <value>Mã đặt lại không hợp lệ hoặc đã hết hạn.</value>
+  </data>
+  <data name="Auth.RefreshTokenUserNotFound" xml:space="preserve">
+    <value>Không tìm thấy người dùng cho token làm mới này.</value>
+  </data>
+  <data name="Auth.CurrentPasswordIncorrect" xml:space="preserve">
+    <value>Mật khẩu hiện tại không đúng.</value>
+  </data>
+  <data name="Auth.PasswordResetFailed" xml:space="preserve">
+    <value>Đặt lại mật khẩu thất bại.</value>
+  </data>
+  <data name="Auth.GoogleLinkFailed" xml:space="preserve">
+    <value>Liên kết tài khoản Google thất bại.</value>
+  </data>
+  <data name="Auth.GoogleCreateFailed" xml:space="preserve">
+    <value>Tạo tài khoản từ Google thất bại.</value>
+  </data>
+  <data name="Auth.ProfileUpdateFailed" xml:space="preserve">
+    <value>Cập nhật hồ sơ thất bại.</value>
+  </data>
+  <data name="Auth.ResetTokenExpired" xml:space="preserve">
+    <value>Mã đặt lại đã hết hạn. Vui lòng yêu cầu mã mới.</value>
+  </data>
+  <data name="Auth.ResetTokenUsed" xml:space="preserve">
+    <value>Mã đặt lại này đã được sử dụng.</value>
+  </data>
+  <data name="Auth.ResetTokenWrongEmail" xml:space="preserve">
+    <value>Mã đặt lại không thuộc về email này.</value>
+  </data>
+  <data name="Auth.InvalidOtp" xml:space="preserve">
+    <value>Mã OTP không hợp lệ.</value>
+  </data>
+  <data name="Booking.SlotNotAvailable" xml:space="preserve">
+    <value>Khung giờ đã chọn không còn khả dụng.</value>
+  </data>
+  <data name="Booking.AlreadyBooked" xml:space="preserve">
+    <value>Bạn đã có lịch hẹn đang hoạt động cho khung giờ này.</value>
+  </data>
+  <data name="Booking.NotFound" xml:space="preserve">
+    <value>Không tìm thấy lịch hẹn.</value>
+  </data>
+  <data name="Booking.CannotCancel" xml:space="preserve">
+    <value>Lịch hẹn này không thể hủy.</value>
+  </data>
+  <data name="Booking.CompletedCannotCancel" xml:space="preserve">
+    <value>Lịch hẹn đã hoàn thành không thể hủy.</value>
+  </data>
+  <data name="Booking.ExpiredCannotCancel" xml:space="preserve">
+    <value>Lịch hẹn đã hết hạn không thể hủy.</value>
+  </data>
+  <data name="Booking.AlreadyCancelled" xml:space="preserve">
+    <value>Lịch hẹn này đã được hủy.</value>
+  </data>
+  <data name="Mentor.NotFound" xml:space="preserve">
+    <value>Không tìm thấy mentor.</value>
+  </data>
+  <data name="Mentor.SlotConflict" xml:space="preserve">
+    <value>Khung giờ mới xung đột với khung giờ hiện có.</value>
+  </data>
+  <data name="Mentor.SlotNotFound" xml:space="preserve">
+    <value>Không tìm thấy khung giờ.</value>
+  </data>
+  <data name="Mentor.SkillAlreadyExists" xml:space="preserve">
+    <value>Mentor đã có kỹ năng này.</value>
+  </data>
+  <data name="Mentor.SkillNotFound" xml:space="preserve">
+    <value>Không tìm thấy kỹ năng của mentor.</value>
+  </data>
+  <data name="Payment.NotFound" xml:space="preserve">
+    <value>Không tìm thấy thanh toán.</value>
+  </data>
+  <data name="Payment.Unauthorized" xml:space="preserve">
+    <value>Bạn chỉ có thể xem thanh toán của lịch hẹn của mình.</value>
+  </data>
+  <data name="Payment.CreateUnauthorized" xml:space="preserve">
+    <value>Bạn chỉ có thể tạo thanh toán cho lịch hẹn của mình.</value>
+  </data>
+  <data name="Payment.AlreadyPaid" xml:space="preserve">
+    <value>Lịch hẹn này đã được thanh toán.</value>
+  </data>
+  <data name="Payment.Expired" xml:space="preserve">
+    <value>Thanh toán đã hết hạn. Vui lòng tạo lịch hẹn mới.</value>
+  </data>
+  <data name="Validation.Required" xml:space="preserve">
+    <value>{0} là bắt buộc.</value>
+  </data>
+  <data name="Validation.InvalidEmail" xml:space="preserve">
+    <value>Vui lòng nhập địa chỉ email hợp lệ.</value>
+  </data>
+  <data name="Validation.MinLength" xml:space="preserve">
+    <value>{0} phải có ít nhất {1} ký tự.</value>
+  </data>
+  <data name="Validation.MaxLength" xml:space="preserve">
+    <value>{0} không được vượt quá {1} ký tự.</value>
+  </data>
+  <data name="Error.Generic" xml:space="preserve">
+    <value>Đã xảy ra lỗi không mong muốn. Vui lòng thử lại.</value>
+  </data>
+  <data name="Error.NotFound" xml:space="preserve">
+    <value>Không tìm thấy {0}.</value>
+  </data>
+  <data name="Error.Unauthorized" xml:space="preserve">
+    <value>Bạn không được phép thực hiện hành động này.</value>
+  </data>
+  <data name="Error.Forbidden" xml:space="preserve">
+    <value>Bạn không có quyền truy cập tài nguyên này.</value>
+  </data>
+  <data name="Error.ValidationFailed" xml:space="preserve">
+    <value>Xác thực thất bại.</value>
+  </data>
+  <data name="Booking.ViewOwn" xml:space="preserve">
+    <value>Bạn chỉ có thể xem lịch hẹn của mình.</value>
+  </data>
+  <data name="Booking.CreateOwn" xml:space="preserve">
+    <value>Bạn chỉ có thể tạo lịch hẹn cho tài khoản của mình.</value>
+  </data>
+  <data name="Booking.CancelOwn" xml:space="preserve">
+    <value>Bạn chỉ có thể hủy lịch hẹn của mình.</value>
+  </data>
+  <data name="Auth.InvalidTokenClaim" xml:space="preserve">
+    <value>ID người dùng trong token không hợp lệ.</value>
+  </data>
+  <data name="Mentor.AddSkillOwn" xml:space="preserve">
+    <value>Bạn chỉ có thể thêm kỹ năng cho hồ sơ của mình.</value>
+  </data>
+  <data name="Mentor.RemoveSkillOwn" xml:space="preserve">
+    <value>Bạn chỉ có thể xóa kỹ năng khỏi hồ sơ của mình.</value>
+  </data>
+  <data name="Mentor.IdMismatch" xml:space="preserve">
+    <value>ID trong URL không khớp với MentorId trong body.</value>
+  </data>
+  <data name="Mentor.IdBodyMismatch" xml:space="preserve">
+    <value>ID trong URL không khớp với ID trong body.</value>
+  </data>
+  <data name="Mentor.SlotIdMismatch" xml:space="preserve">
+    <value>Slot ID trong URL không khớp với ID trong body.</value>
+  </data>
+  <data name="Response.Created" xml:space="preserve">
+    <value>Tạo thành công</value>
+  </data>
+  <data name="Response.NoContent" xml:space="preserve">
+    <value>Thao tác hoàn tất</value>
+  </data>
+  <data name="Response.Auth.Registered" xml:space="preserve">
+    <value>Đăng ký tài khoản thành công</value>
+  </data>
+  <data name="Response.Auth.ProfileUpdated" xml:space="preserve">
+    <value>Cập nhật hồ sơ thành công</value>
+  </data>
+  <data name="Response.Auth.ProfileCompleted" xml:space="preserve">
+    <value>Hoàn thiện hồ sơ thành công</value>
+  </data>
+  <data name="Response.Auth.LoggedOut" xml:space="preserve">
+    <value>Đăng xuất thành công</value>
+  </data>
+  <data name="Response.Auth.PasswordChanged" xml:space="preserve">
+    <value>Đổi mật khẩu thành công. Vui lòng đăng nhập lại.</value>
+  </data>
+  <data name="Response.Auth.ForgotPasswordSent" xml:space="preserve">
+    <value>Nếu tài khoản tồn tại với email này, bạn sẽ nhận được liên kết đặt lại mật khẩu.</value>
+  </data>
+  <data name="Response.Auth.PasswordReset" xml:space="preserve">
+    <value>Đặt lại mật khẩu thành công.</value>
+  </data>
+  <data name="Response.Booking.ListRetrieved" xml:space="preserve">
+    <value>Lấy danh sách lịch hẹn thành công</value>
+  </data>
+  <data name="Response.Booking.DetailRetrieved" xml:space="preserve">
+    <value>Lấy chi tiết lịch hẹn thành công</value>
+  </data>
+  <data name="Response.Booking.AllRetrieved" xml:space="preserve">
+    <value>Lấy tất cả lịch hẹn thành công</value>
+  </data>
+  <data name="Response.Booking.Created" xml:space="preserve">
+    <value>Đặt lịch hẹn thành công</value>
+  </data>
+  <data name="Response.Booking.Cancelled" xml:space="preserve">
+    <value>Hủy lịch hẹn thành công</value>
+  </data>
+  <data name="Response.Mentor.Updated" xml:space="preserve">
+    <value>Cập nhật mentor thành công</value>
+  </data>
+  <data name="Response.Mentor.Deleted" xml:space="preserve">
+    <value>Xóa mentor thành công</value>
+  </data>
+  <data name="Response.Mentor.SlotCreated" xml:space="preserve">
+    <value>Tạo khung giờ thành công</value>
+  </data>
+  <data name="Response.Mentor.SlotUpdated" xml:space="preserve">
+    <value>Cập nhật khung giờ thành công</value>
+  </data>
+  <data name="Response.Mentor.SkillRemoved" xml:space="preserve">
+    <value>Xóa kỹ năng khỏi mentor thành công</value>
+  </data>
+</root>

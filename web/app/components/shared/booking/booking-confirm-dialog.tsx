@@ -17,6 +17,7 @@ import { useCreateBookingMutation } from "~/hooks/booking/use-create-booking-mut
 import { useUserBookingsQuery } from "~/hooks/booking/use-user-bookings-query";
 import { useAuthStore } from "~/stores/auth.store";
 import { getApiErrorMessage } from "~/lib/api-error";
+import i18n from "~/lib/i18n";
 import type { ApiError } from "~/types/global/api.response";
 import type { MentorSlot } from "~/types/mentor/mentor";
 
@@ -59,7 +60,7 @@ export function BookingConfirmDialog({
 
   function handleConfirm() {
     if (!user) {
-      toast.error("Please sign in to book a session.");
+      toast.error(i18n.t("toast.loginRequired"));
       return;
     }
 
@@ -74,7 +75,7 @@ export function BookingConfirmDialog({
       },
       {
         onSuccess: (bookingId) => {
-          toast.success("Booking created! Redirecting to payment...");
+          toast.success(i18n.t("toast.bookingCreated"));
           onOpenChange(false);
           setNotes("");
           navigate(`/user/bookings/${bookingId}/payment`);
@@ -88,9 +89,7 @@ export function BookingConfirmDialog({
               .includes("already have an active booking");
 
           if (isConflict) {
-            toast.info(
-              "You already have a pending booking for this slot. Redirecting to payment...",
-            );
+            toast.info(i18n.t("toast.bookingCreatedConfirmed"));
             onOpenChange(false);
             navigate("/user/bookings?status=pending");
           } else {

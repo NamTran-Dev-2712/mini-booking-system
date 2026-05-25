@@ -4,11 +4,17 @@ public class GetBookingDetailQueryHandler : IRequestHandler<GetBookingDetailQuer
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICacheService _cacheService;
+    private readonly ILocalizationService _localizer;
 
-    public GetBookingDetailQueryHandler(IUnitOfWork unitOfWork, ICacheService cacheService)
+    public GetBookingDetailQueryHandler(
+        IUnitOfWork unitOfWork,
+        ICacheService cacheService,
+        ILocalizationService localizer
+    )
     {
         _unitOfWork = unitOfWork;
         _cacheService = cacheService;
+        _localizer = localizer;
     }
 
     public async Task<BookingDto> Handle(
@@ -64,7 +70,7 @@ public class GetBookingDetailQueryHandler : IRequestHandler<GetBookingDetailQuer
         var booking = results.FirstOrDefault();
 
         if (booking == null)
-            throw new NotFoundException("Booking", request.BookingId.ToString());
+            throw new NotFoundException(_localizer.GetMessage("Booking.NotFound"));
 
         await _cacheService.SetAsync(cacheKey, booking, TimeSpan.FromMinutes(5), cancellationToken);
 

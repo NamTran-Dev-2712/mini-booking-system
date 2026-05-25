@@ -1,4 +1,5 @@
 import { Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { AvatarUpload } from "~/components/shared/avatar-upload";
 import { Button } from "~/components/ui/button";
 import {
@@ -16,6 +17,8 @@ import { Textarea } from "~/components/ui/textarea";
 import { useMentorProfileForm } from "./profile.hook";
 
 export function MentorProfileForm() {
+  const { t } = useTranslation("mentor");
+  const { t: ta } = useTranslation("auth");
   const { form, onSubmit, isPending, isSubmitting } = useMentorProfileForm();
 
   if (isPending) {
@@ -34,7 +37,7 @@ export function MentorProfileForm() {
       <form onSubmit={onSubmit} className="space-y-6">
         <div className="space-y-4">
           <h4 className="text-sm font-medium text-muted-foreground">
-            Personal Information
+            {t("profile.personalInfo")}
           </h4>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -43,7 +46,7 @@ export function MentorProfileForm() {
               name="fullName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Full Name</FormLabel>
+                  <FormLabel>{t("profile.fullName")}</FormLabel>
                   <FormControl>
                     <Input placeholder="Nguyễn Văn A" {...field} />
                   </FormControl>
@@ -57,7 +60,7 @@ export function MentorProfileForm() {
               name="phoneNumber"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Phone Number</FormLabel>
+                  <FormLabel>{t("profile.phoneNumber")}</FormLabel>
                   <FormControl>
                     <Input placeholder="0912345678" {...field} />
                   </FormControl>
@@ -72,7 +75,7 @@ export function MentorProfileForm() {
 
         <div className="space-y-4">
           <h4 className="text-sm font-medium text-muted-foreground">
-            Mentor Information
+            {t("profile.mentorInfo")}
           </h4>
 
           <FormField
@@ -80,7 +83,7 @@ export function MentorProfileForm() {
             name="displayName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Display Name</FormLabel>
+                <FormLabel>{t("profile.displayName")}</FormLabel>
                 <FormControl>
                   <Input placeholder="Your public display name" {...field} />
                 </FormControl>
@@ -94,7 +97,7 @@ export function MentorProfileForm() {
             name="bio"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Bio</FormLabel>
+                <FormLabel>{t("profile.bio")}</FormLabel>
                 <FormControl>
                   <Textarea
                     placeholder="Tell students about yourself..."
@@ -113,7 +116,7 @@ export function MentorProfileForm() {
               name="specialization"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Specialization</FormLabel>
+                  <FormLabel>{t("profile.specialization")}</FormLabel>
                   <FormControl>
                     <Input placeholder="e.g. Web Development" {...field} />
                   </FormControl>
@@ -150,7 +153,7 @@ export function MentorProfileForm() {
               name="experienceYears"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Experience (years)</FormLabel>
+                  <FormLabel>{t("profile.experienceYears")}</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
@@ -171,7 +174,7 @@ export function MentorProfileForm() {
               name="basePrice"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Base Price (VND)</FormLabel>
+                  <FormLabel>{t("profile.basePrice")}</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
@@ -192,7 +195,7 @@ export function MentorProfileForm() {
         <div className="flex justify-end">
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting && <Loader2 className="mr-2 size-4 animate-spin" />}
-            Save Changes
+            {ta("profile.save")}
           </Button>
         </div>
       </form>

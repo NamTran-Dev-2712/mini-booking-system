@@ -6,6 +6,7 @@ import {
   Mail,
   Phone,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Badge } from "~/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -29,6 +30,7 @@ function formatPrice(price: number) {
 }
 
 export default function MentorProfile() {
+  const { t } = useTranslation(["mentor", "auth"]);
   const user = useCurrentUser();
   const { mentor, isPending } = useMyMentorProfile();
 
@@ -60,9 +62,11 @@ export default function MentorProfile() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h2 className="text-2xl font-semibold tracking-tight">Profile</h2>
+        <h2 className="text-2xl font-semibold tracking-tight">
+          {t("mentor:profile.yourProfile")}
+        </h2>
         <p className="text-muted-foreground">
-          Your mentor profile information.
+          {t("mentor:profile.yourProfileSubtitle")}
         </p>
       </div>
 
@@ -91,7 +95,9 @@ export default function MentorProfile() {
                   {mentor?.displayName ?? user?.fullName}
                 </h3>
                 <Badge variant={mentor?.isActive ? "default" : "secondary"}>
-                  {mentor?.isActive ? "Active" : "Inactive"}
+                  {mentor?.isActive
+                    ? t("mentor:detail.active")
+                    : t("mentor:detail.inactive")}
                 </Badge>
               </div>
 
@@ -126,10 +132,14 @@ export default function MentorProfile() {
               <Briefcase className="size-4 text-primary" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Experience</p>
+              <p className="text-xs text-muted-foreground">
+                {t("mentor:profile.experience")}
+              </p>
               <p className="text-lg font-semibold">
-                {mentor?.experienceYears ?? 0} year
-                {(mentor?.experienceYears ?? 0) !== 1 ? "s" : ""}
+                {mentor?.experienceYears ?? 0}{" "}
+                {t("mentor:detail.experienceYears", {
+                  count: mentor?.experienceYears ?? 0,
+                })}
               </p>
             </div>
           </CardContent>
@@ -141,7 +151,9 @@ export default function MentorProfile() {
               <DollarSign className="size-4 text-primary" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Base Price</p>
+              <p className="text-xs text-muted-foreground">
+                {t("mentor:profile.basePriceLabel")}
+              </p>
               <p className="text-lg font-semibold">
                 {formatPrice(mentor?.basePrice ?? 0)}
               </p>
@@ -155,7 +167,9 @@ export default function MentorProfile() {
               <CalendarDays className="size-4 text-primary" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Total Slots</p>
+              <p className="text-xs text-muted-foreground">
+                {t("mentor:profile.totalSlots")}
+              </p>
               <p className="text-lg font-semibold">
                 {mentor?.slots.length ?? 0}
               </p>
@@ -168,7 +182,9 @@ export default function MentorProfile() {
       {mentor?.bio && (
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">About</CardTitle>
+            <CardTitle className="text-base">
+              {t("mentor:detail.about")}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm leading-relaxed text-muted-foreground whitespace-pre-line">
@@ -183,7 +199,7 @@ export default function MentorProfile() {
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
             <GraduationCap className="size-4" />
-            Skills
+            {t("mentor:detail.skills")}
             <span className="text-xs font-normal text-muted-foreground">
               ({mentor?.skills.length ?? 0})
             </span>
@@ -192,7 +208,7 @@ export default function MentorProfile() {
         <CardContent>
           {(mentor?.skills.length ?? 0) === 0 ? (
             <p className="text-sm text-muted-foreground">
-              No skills added yet. Go to the Skills page to add your expertise.
+              {t("mentor:profile.noSkillsProfile")}
             </p>
           ) : (
             <div className="flex flex-wrap gap-2">
@@ -206,10 +222,12 @@ export default function MentorProfile() {
         </CardContent>
       </Card>
 
-      {/* Edit Profile Form - inline */}
+      {/* Edit Profile Form */}
       <Card>
         <CardHeader className="pb-4">
-          <CardTitle className="text-base">Edit Profile</CardTitle>
+          <CardTitle className="text-base">
+            {t("mentor:profile.editProfile")}
+          </CardTitle>
         </CardHeader>
         <Separator />
         <CardContent className="pt-6">
@@ -220,7 +238,9 @@ export default function MentorProfile() {
       {/* Change Password */}
       <Card>
         <CardHeader className="pb-4">
-          <CardTitle className="text-base">Change Password</CardTitle>
+          <CardTitle className="text-base">
+            {t("auth:profile.changePassword")}
+          </CardTitle>
         </CardHeader>
         <Separator />
         <CardContent className="pt-6">

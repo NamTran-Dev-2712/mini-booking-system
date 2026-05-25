@@ -1,5 +1,6 @@
 import { CalendarDays, LogOut } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
@@ -20,6 +21,7 @@ interface AppSidebarProps {
 export function AppSidebar({ navItems, onNavigate }: AppSidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
+  const { t } = useTranslation("common");
   const { user, clearUser } = useAuthStore();
   const { data: profile } = useProfileQuery();
 
@@ -88,7 +90,7 @@ export function AppSidebar({ navItems, onNavigate }: AppSidebarProps) {
                       active ? "text-primary" : "text-muted-foreground",
                     )}
                   />
-                  {item.label}
+                  {t(item.labelKey)}
                 </Link>
               </li>
             );

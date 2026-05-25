@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { getApiErrorMessage } from "~/lib/api-error";
+import i18n from "~/lib/i18n";
 import { queryKeys } from "~/lib/query-keys";
 import { mentorService } from "~/services/mentor/mentor.service";
 
@@ -19,7 +20,7 @@ export function useAddMentorSkillMutation() {
     onSuccess: (_data, { mentorId }) => {
       // Only the detail needs refreshing — list doesn't show skills
       qc.invalidateQueries({ queryKey: queryKeys.mentors.detail(mentorId) });
-      toast.success("Skill added successfully");
+      toast.success(i18n.t("toast.skillAdded"));
     },
 
     onError: (err) => {

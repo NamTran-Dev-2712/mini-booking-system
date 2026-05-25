@@ -1,4 +1,5 @@
 import { format } from "date-fns";
+import { useTranslation } from "react-i18next";
 import type { MentorDetail } from "~/types/mentor/mentor";
 
 interface MentorProfileTabProps {
@@ -17,21 +18,29 @@ function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
 }
 
 export function MentorProfileTab({ mentor }: MentorProfileTabProps) {
+  const { t } = useTranslation("mentor");
+
   return (
     <div className="space-y-6">
       {/* Basic info */}
       <div className="space-y-3">
-        <h3 className="text-sm font-medium">Basic Information</h3>
+        <h3 className="text-sm font-medium">{t("profileTab.basicInfo")}</h3>
         <div className="space-y-2.5 rounded-lg border p-4">
-          <InfoRow label="Display Name" value={mentor.displayName} />
-          <InfoRow label="Email" value={mentor.email} />
-          <InfoRow label="Specialization" value={mentor.specialization} />
           <InfoRow
-            label="Experience"
-            value={`${mentor.experienceYears} year${mentor.experienceYears !== 1 ? "s" : ""}`}
+            label={t("profileTab.displayName")}
+            value={mentor.displayName}
+          />
+          <InfoRow label={t("profileTab.email")} value={mentor.email} />
+          <InfoRow
+            label={t("profileTab.specialization")}
+            value={mentor.specialization}
           />
           <InfoRow
-            label="Base Price"
+            label={t("profileTab.experience")}
+            value={`${mentor.experienceYears} ${t("detail.experienceYears", { count: mentor.experienceYears })}`}
+          />
+          <InfoRow
+            label={t("profileTab.basePrice")}
             value={new Intl.NumberFormat("vi-VN", {
               style: "currency",
               currency: "VND",
@@ -39,11 +48,15 @@ export function MentorProfileTab({ mentor }: MentorProfileTabProps) {
             }).format(mentor.basePrice)}
           />
           <InfoRow
-            label="Status"
-            value={mentor.isActive ? "Active" : "Inactive"}
+            label={t("profileTab.status")}
+            value={
+              mentor.isActive
+                ? t("profileTab.active")
+                : t("profileTab.inactive")
+            }
           />
           <InfoRow
-            label="Member Since"
+            label={t("profileTab.memberSince")}
             value={format(new Date(mentor.createdAt), "dd MMMM yyyy")}
           />
         </div>
@@ -52,7 +65,7 @@ export function MentorProfileTab({ mentor }: MentorProfileTabProps) {
       {/* Bio */}
       {mentor.bio && (
         <div className="space-y-2">
-          <h3 className="text-sm font-medium">Bio</h3>
+          <h3 className="text-sm font-medium">{t("profileTab.bio")}</h3>
           <p className="rounded-lg border p-4 text-sm leading-relaxed text-muted-foreground">
             {mentor.bio}
           </p>

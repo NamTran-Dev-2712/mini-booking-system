@@ -1,5 +1,6 @@
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { Button } from "~/components/ui/button";
 import {
@@ -14,6 +15,7 @@ import { Input } from "~/components/ui/input";
 import { useResetPasswordForm } from "./reset-password.hook";
 
 export function ResetPasswordForm() {
+  const { t } = useTranslation("auth");
   const { form, onSubmit, email, token } = useResetPasswordForm();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -28,7 +30,12 @@ export function ResetPasswordForm() {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel>
+                  {t("resetPassword.email", {
+                    ns: "auth",
+                    defaultValue: "Email",
+                  })}
+                </FormLabel>
                 <FormControl>
                   <Input
                     type="email"
@@ -51,9 +58,12 @@ export function ResetPasswordForm() {
               name="token"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Reset Token</FormLabel>
+                  <FormLabel>{t("resetPassword.resetToken")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Paste your reset token" {...field} />
+                    <Input
+                      placeholder={t("resetPassword.resetTokenPlaceholder")}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -66,10 +76,10 @@ export function ResetPasswordForm() {
             name="otpCode"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>OTP Code</FormLabel>
+                <FormLabel>{t("resetPassword.otpCode")}</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="Enter 6-digit code"
+                    placeholder={t("resetPassword.otpPlaceholder")}
                     maxLength={6}
                     inputMode="numeric"
                     autoComplete="one-time-code"
@@ -86,7 +96,7 @@ export function ResetPasswordForm() {
             name="newPassword"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>New Password</FormLabel>
+                <FormLabel>{t("resetPassword.newPassword")}</FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Input
@@ -100,7 +110,9 @@ export function ResetPasswordForm() {
                       onClick={() => setShowPassword((v) => !v)}
                       className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                       aria-label={
-                        showPassword ? "Hide password" : "Show password"
+                        showPassword
+                          ? t("errors.hidePassword")
+                          : t("errors.showPassword")
                       }
                     >
                       {showPassword ? (
@@ -121,7 +133,7 @@ export function ResetPasswordForm() {
             name="confirmPassword"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Confirm Password</FormLabel>
+                <FormLabel>{t("resetPassword.confirmPassword")}</FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Input
@@ -135,7 +147,9 @@ export function ResetPasswordForm() {
                       onClick={() => setShowConfirm((v) => !v)}
                       className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                       aria-label={
-                        showConfirm ? "Hide password" : "Show password"
+                        showConfirm
+                          ? t("errors.hidePassword")
+                          : t("errors.showPassword")
                       }
                     >
                       {showConfirm ? (
@@ -153,18 +167,18 @@ export function ResetPasswordForm() {
 
           <Button type="submit" className="w-full" disabled={isSubmitting}>
             {isSubmitting && <Loader2 className="mr-2 size-4 animate-spin" />}
-            Reset Password
+            {t("resetPassword.submit")}
           </Button>
         </form>
       </Form>
 
       <p className="text-center text-sm text-muted-foreground">
-        Remember your password?{" "}
+        {t("resetPassword.rememberPassword")}{" "}
         <Link
           to="/login"
           className="font-medium text-foreground underline-offset-4 hover:underline"
         >
-          Back to login
+          {t("resetPassword.backToLogin")}
         </Link>
       </p>
     </div>

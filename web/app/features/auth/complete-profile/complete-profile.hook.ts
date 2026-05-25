@@ -2,6 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { getApiErrorMessage } from "~/lib/api-error";
+import i18n from "~/lib/i18n";
 import { authService } from "~/services/auth/auth.service";
 import { useAuthStore } from "~/stores/auth.store";
 import {
@@ -39,7 +40,7 @@ export function useCompleteProfileForm() {
         createdAt: profile.createdAt,
       });
       const primaryRole = profile.roles[0] ?? "User";
-      toast.success("Profile completed successfully!");
+      toast.success(i18n.t("toast.profileCompleted"));
       window.location.href = ROLE_REDIRECT[primaryRole] ?? "/user";
     } catch (error) {
       toast.error(getApiErrorMessage(error));

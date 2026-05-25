@@ -5,11 +5,17 @@ public class AddSkillMentorCommandHandler : IRequestHandler<AddSkillMentorComman
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICacheService _cacheService;
+    private readonly ILocalizationService _localizer;
 
-    public AddSkillMentorCommandHandler(IUnitOfWork unitOfWork, ICacheService cacheService)
+    public AddSkillMentorCommandHandler(
+        IUnitOfWork unitOfWork,
+        ICacheService cacheService,
+        ILocalizationService localizer
+    )
     {
         _unitOfWork = unitOfWork;
         _cacheService = cacheService;
+        _localizer = localizer;
     }
 
     public async Task<Guid> Handle(
@@ -19,7 +25,7 @@ public class AddSkillMentorCommandHandler : IRequestHandler<AddSkillMentorComman
     {
         var mentor = await _unitOfWork.Mentor.GetByIdAsync(request.MentorId, cancellationToken);
         if (mentor == null)
-            throw new NotFoundException($"Mentor", request.MentorId.ToString());
+            throw new NotFoundException(_localizer.GetMessage("Mentor.NotFound"));
 
         // Check if the skill already exists for the mentor
         if (
@@ -29,7 +35,7 @@ public class AddSkillMentorCommandHandler : IRequestHandler<AddSkillMentorComman
                 cancellationToken
             )
         )
-            throw new ConflictException($"Mentor already has the skill '{request.SkillName}'.");
+            throw new ConflictException(_localizer.GetMessage("Mentor.SkillAlreadyExists"));
 
         var mentorSkill = new MentorSkill
         {

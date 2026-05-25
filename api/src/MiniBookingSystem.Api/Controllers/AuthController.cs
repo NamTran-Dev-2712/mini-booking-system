@@ -26,7 +26,7 @@ public class AuthController : BaseApiController
     )
     {
         var result = await _mediator.Send(command, cancellationToken);
-        return CreatedResponse(result, "User registered successfully");
+        return CreatedResponse(result, "Response.Auth.Registered");
     }
 
     [HttpPost("login")]
@@ -126,7 +126,7 @@ public class AuthController : BaseApiController
 
         await _mediator.Send(command, cancellationToken);
 
-        return OkResponse<object>(null!, "Profile updated successfully");
+        return OkResponse<object>(null!, "Response.Auth.ProfileUpdated");
     }
 
     [HttpPost("logout")]
@@ -135,7 +135,7 @@ public class AuthController : BaseApiController
     {
         ClearAuthCookies();
 
-        return NoContentResponse("Logged out successfully");
+        return NoContentResponse("Response.Auth.LoggedOut");
     }
 
     [HttpPost("change-password")]
@@ -160,7 +160,7 @@ public class AuthController : BaseApiController
 
         ClearAuthCookies();
 
-        return OkResponse<object>(null!, "Password changed successfully. Please login again.");
+        return OkResponse<object>(null!, "Response.Auth.PasswordChanged");
     }
 
     [HttpPost("forgot-password")]
@@ -172,10 +172,7 @@ public class AuthController : BaseApiController
     {
         await _mediator.Send(command, cancellationToken);
 
-        return OkResponse<object>(
-            null!,
-            "If an account exists with this email, you will receive a password reset link shortly."
-        );
+        return OkResponse<object>(null!, "Response.Auth.ForgotPasswordSent");
     }
 
     [HttpPost("reset-password")]
@@ -187,7 +184,7 @@ public class AuthController : BaseApiController
     {
         await _mediator.Send(command, cancellationToken);
 
-        return OkResponse<object>(null!, "Password has been reset successfully.");
+        return OkResponse<object>(null!, "Response.Auth.PasswordReset");
     }
 
     [HttpPost("avatar")]
@@ -294,6 +291,6 @@ public class AuthController : BaseApiController
             cancellationToken
         );
 
-        return OkResponse<object>(null!, "Profile completed successfully.");
+        return OkResponse<object>(null!, "Response.Auth.ProfileCompleted");
     }
 }

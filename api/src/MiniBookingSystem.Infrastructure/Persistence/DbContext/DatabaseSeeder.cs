@@ -5,7 +5,10 @@ public static class DatabaseSeeder
         // 1. Roles must exist before any user/mentor can be assigned roles.
         await RoleSeeder.SeedAsync(serviceProvider);
 
-        // 2. Mentor test data — depends on roles being present.
+        // 2. Admin user — depends on roles being present.
+        await AdminSeeder.SeedAsync(serviceProvider);
+
+        // 3. Mentor test data — depends on roles being present.
         // await MentorSeeder.SeedAsync(serviceProvider);
     }
 }

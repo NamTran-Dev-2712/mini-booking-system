@@ -5,6 +5,7 @@ public sealed class GetBookingDetailQueryHandlerTests
     private readonly Mock<IUnitOfWork> _unitOfWork;
     private readonly Mock<IGenericRepository<global::Booking>> _repo;
     private readonly Mock<ICacheService> _cacheService;
+    private readonly Mock<ILocalizationService> _localizer;
     private readonly GetBookingDetailQueryHandler _sut;
 
     public GetBookingDetailQueryHandlerTests()
@@ -12,10 +13,17 @@ public sealed class GetBookingDetailQueryHandlerTests
         _unitOfWork = new Mock<IUnitOfWork>(MockBehavior.Strict);
         _repo = new Mock<IGenericRepository<global::Booking>>(MockBehavior.Strict);
         _cacheService = new Mock<ICacheService>(MockBehavior.Strict);
+        _localizer = new Mock<ILocalizationService>();
+        _localizer.Setup(l => l.GetMessage(It.IsAny<string>())).Returns((string key) => key);
+        _localizer.Setup(l => l.GetMessage("Booking.NotFound")).Returns("Booking not found.");
 
         _unitOfWork.Setup(u => u.Repository<global::Booking>()).Returns(_repo.Object);
 
-        _sut = new GetBookingDetailQueryHandler(_unitOfWork.Object, _cacheService.Object);
+        _sut = new GetBookingDetailQueryHandler(
+            _unitOfWork.Object,
+            _cacheService.Object,
+            _localizer.Object
+        );
     }
 
     /// <summary>
@@ -161,7 +169,7 @@ public sealed class GetBookingDetailQueryHandlerTests
 
         var act = () => _sut.Handle(new GetBookingDetailQuery(bookingId), CancellationToken.None);
 
-        await act.Should().ThrowAsync<NotFoundException>().WithMessage($"*Booking*{bookingId}*");
+        await act.Should().ThrowAsync<NotFoundException>().WithMessage("*Booking not found*");
     }
 
     [Fact]

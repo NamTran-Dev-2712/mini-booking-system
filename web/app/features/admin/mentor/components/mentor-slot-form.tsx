@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { Button } from "~/components/ui/button";
 import {
   Form,
@@ -44,6 +45,7 @@ export function MentorSlotForm({
   slot,
   onSuccess,
 }: MentorSlotFormProps) {
+  const { t } = useTranslation("mentor");
   const isEdit = !!slot;
   const createMutation = useCreateMentorSlotMutation();
   const updateMutation = useUpdateMentorSlotMutation();
@@ -106,7 +108,9 @@ export function MentorSlotForm({
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Name *</FormLabel>
+              <FormLabel>
+                {t("schedule.title", { defaultValue: "Name" })} *
+              </FormLabel>
               <FormControl>
                 <Input placeholder="e.g. Morning Session" {...field} />
               </FormControl>
@@ -121,7 +125,7 @@ export function MentorSlotForm({
             name="startTime"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Start Time *</FormLabel>
+                <FormLabel>{t("schedule.startTime")} *</FormLabel>
                 <FormControl>
                   <Input type="datetime-local" {...field} />
                 </FormControl>
@@ -134,7 +138,7 @@ export function MentorSlotForm({
             name="endTime"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>End Time *</FormLabel>
+                <FormLabel>{t("schedule.endTime")} *</FormLabel>
                 <FormControl>
                   <Input type="datetime-local" {...field} />
                 </FormControl>
@@ -150,7 +154,7 @@ export function MentorSlotForm({
             name="price"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Price (VND) *</FormLabel>
+                <FormLabel>{t("profile.basePrice")} *</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
@@ -206,7 +210,7 @@ export function MentorSlotForm({
 
         <Button type="submit" className="w-full" disabled={isPending}>
           {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
-          {isEdit ? "Update Slot" : "Create Slot"}
+          {isEdit ? t("slots.editSlot") : t("slots.createSlot")}
         </Button>
       </form>
     </Form>

@@ -4,11 +4,17 @@ public class CancelBookingCommandHandler : IRequestHandler<CancelBookingCommand,
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICacheService _cacheService;
+    private readonly ILocalizationService _localizer;
 
-    public CancelBookingCommandHandler(IUnitOfWork unitOfWork, ICacheService cacheService)
+    public CancelBookingCommandHandler(
+        IUnitOfWork unitOfWork,
+        ICacheService cacheService,
+        ILocalizationService localizer
+    )
     {
         _unitOfWork = unitOfWork;
         _cacheService = cacheService;
+        _localizer = localizer;
     }
 
     public async Task<Guid> Handle(
@@ -25,16 +31,16 @@ public class CancelBookingCommandHandler : IRequestHandler<CancelBookingCommand,
                 cancellationToken
             );
             if (booking == null)
-                throw new NotFoundException("Booking", request.BookingId);
+                throw new NotFoundException(_localizer.GetMessage("Booking.NotFound"));
 
             if (booking.Status == BookingStatus.Cancelled)
                 return booking.Id; // Idempotent response for already cancelled bookings
 
             if (booking.Status == BookingStatus.Completed)
-                throw new ConflictException("Completed bookings cannot be cancelled.");
+                throw new ConflictException(_localizer.GetMessage("Booking.CompletedCannotCancel"));
 
             if (booking.Status == BookingStatus.Expired)
-                throw new ConflictException("Expired bookings cannot be cancelled.");
+                throw new ConflictException(_localizer.GetMessage("Booking.ExpiredCannotCancel"));
 
             booking.CancelBooking(request.CancellationReason);
 

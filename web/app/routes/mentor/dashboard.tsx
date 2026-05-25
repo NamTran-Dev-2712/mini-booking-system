@@ -7,6 +7,7 @@ import {
   GraduationCap,
   TrendingUp,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
@@ -67,6 +68,8 @@ function DashboardSkeleton() {
 }
 
 export default function MentorDashboard() {
+  const { t } = useTranslation("dashboard");
+  const { t: tm } = useTranslation("mentor");
   const user = useCurrentUser();
   const navigate = useNavigate();
   const { mentor, isPending: isMentorPending } = useMyMentorProfile();
@@ -90,40 +93,38 @@ export default function MentorDashboard() {
       {/* Header */}
       <div>
         <h2 className="text-2xl font-semibold tracking-tight">
-          Welcome, {user?.fullName}
+          {t("welcome", { name: user?.fullName })}
         </h2>
-        <p className="text-muted-foreground">
-          Manage your sessions and availability.
-        </p>
+        <p className="text-muted-foreground">{t("mentorSubtitle")}</p>
       </div>
 
       {/* Stats from API */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           icon={BookOpen}
-          label="Total Bookings"
+          label={t("stats.totalBookings")}
           value={data?.totalBookings ?? 0}
         />
         <StatCard
           icon={CalendarDays}
-          label="Upcoming Slots"
+          label={t("stats.upcomingSlots")}
           value={data?.upcomingSlots ?? 0}
         />
         <StatCard
           icon={CheckCircle}
-          label="Completed"
+          label={t("stats.completed")}
           value={data?.completedSessions ?? 0}
         />
         <StatCard
           icon={DollarSign}
-          label="Revenue"
+          label={t("stats.revenue")}
           value={formatCurrency(data?.totalRevenue ?? 0)}
         />
       </div>
 
       {/* Booking Trend Chart */}
       <AreaChartCard
-        title="Booking Trend"
+        title={t("charts.bookingTrend")}
         data={data?.bookingTrend ?? []}
         color="var(--chart-4)"
       />
@@ -131,13 +132,15 @@ export default function MentorDashboard() {
       {/* Upcoming slots */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-3">
-          <CardTitle className="text-base">Upcoming Sessions</CardTitle>
+          <CardTitle className="text-base">
+            {t("upcomingSessions.title")}
+          </CardTitle>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => navigate("/mentor/schedule")}
           >
-            View all
+            {t("upcomingSessions.viewAll")}
           </Button>
         </CardHeader>
         <CardContent>
@@ -145,7 +148,7 @@ export default function MentorDashboard() {
             <div className="flex flex-col items-center py-8 text-center">
               <CalendarDays className="mb-3 size-8 text-muted-foreground/50" />
               <p className="text-sm text-muted-foreground">
-                No upcoming sessions. Create a slot to get started.
+                {t("upcomingSessions.empty")}
               </p>
               <Button
                 variant="outline"
@@ -153,7 +156,7 @@ export default function MentorDashboard() {
                 className="mt-3"
                 onClick={() => navigate("/mentor/schedule")}
               >
-                Manage Schedule
+                {t("quickActions.createSlot")}
               </Button>
             </div>
           ) : (
@@ -176,7 +179,8 @@ export default function MentorDashboard() {
                         {formatPrice(slot.price)}
                       </span>
                       <span>
-                        {slot.currentBookings}/{slot.maxBookings} booked
+                        {slot.currentBookings}/{slot.maxBookings}{" "}
+                        {tm("bookings.booked")}
                       </span>
                     </div>
                   </div>
@@ -193,7 +197,7 @@ export default function MentorDashboard() {
       {/* Quick actions */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">Quick Actions</CardTitle>
+          <CardTitle className="text-base">{t("quickActions.title")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-3">
@@ -204,7 +208,7 @@ export default function MentorDashboard() {
               onClick={() => navigate("/mentor/schedule")}
             >
               <CalendarDays className="size-4" />
-              Create Slot
+              {t("quickActions.createSlot")}
             </Button>
             <Button
               variant="outline"
@@ -213,7 +217,7 @@ export default function MentorDashboard() {
               onClick={() => navigate("/mentor/skills")}
             >
               <GraduationCap className="size-4" />
-              Manage Skills
+              {t("quickActions.manageSkills")}
             </Button>
             <Button
               variant="outline"
@@ -222,7 +226,7 @@ export default function MentorDashboard() {
               onClick={() => navigate("/mentor/profile")}
             >
               <TrendingUp className="size-4" />
-              View Profile
+              {t("quickActions.viewProfile")}
             </Button>
           </div>
         </CardContent>

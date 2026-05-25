@@ -4,6 +4,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog";
+import { useTranslation } from "react-i18next";
 import { Kbd } from "~/components/ui/kbd";
 import { ScrollArea } from "~/components/ui/scroll-area";
 import { Separator } from "~/components/ui/separator";
@@ -26,11 +27,13 @@ export function MentorShortcutHelp({
   open,
   onOpenChange,
 }: MentorShortcutHelpProps) {
+  const { t } = useTranslation("mentor");
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Keyboard Shortcuts</DialogTitle>
+          <DialogTitle>{t("shortcuts.title")}</DialogTitle>
         </DialogHeader>
 
         <ScrollArea className="max-h-[60vh]">
