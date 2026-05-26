@@ -2,7 +2,8 @@
 set -euo pipefail
 
 # Blue-Green Deployment Script
-# Usage: ./deploy.sh <image_tag>
+# Usage: ./deploy.sh [image_tag]
+# Supports both GHCR (GitHub Actions) and self-hosted registry (local act)
 
 IMAGE_TAG="${1:-latest}"
 DEPLOY_DIR="/opt/mini-booking-system"
@@ -15,9 +16,21 @@ RETRY_INTERVAL=5
 
 cd "$DEPLOY_DIR"
 
-# Load IMAGE_TAG from .env.production
+# Load registry config from .env.production
 IMAGE_TAG=$(grep "^IMAGE_TAG=" .env.production | cut -d= -f2)
-export IMAGE_TAG
+REGISTRY=$(grep "^REGISTRY=" .env.production | cut -d= -f2 || echo "ghcr.io")
+IMAGE_PREFIX=$(grep "^IMAGE_PREFIX=" .env.production | cut -d= -f2)
+export IMAGE_TAG REGISTRY IMAGE_PREFIX
+
+# Login to registry if credentials file exists
+# For self-hosted registry: .registry-credentials contains REG_USER and REG_PASSWORD
+# For GHCR: the CD workflow handles login before calling this script
+if [ -f "${DEPLOY_DIR}/.registry-credentials" ]; then
+    echo "[pre] Logging into registry ${REGISTRY}..."
+    # shellcheck source=/dev/null
+    source "${DEPLOY_DIR}/.registry-credentials"
+    echo "${REG_PASSWORD}" | docker login "${REGISTRY}" -u "${REG_USER}" --password-stdin
+fi
 
 COMPOSE_CMD="docker compose -f $COMPOSE_FILE --env-file $ENV_FILE"
 
@@ -30,9 +43,10 @@ else
 fi
 
 echo "=== Blue-Green Deploy ==="
-echo "Current: $CURRENT_COLOR"
-echo "Target:  $TARGET_COLOR"
-echo "Image:   $IMAGE_TAG"
+echo "Current:  $CURRENT_COLOR"
+echo "Target:   $TARGET_COLOR"
+echo "Registry: $REGISTRY"
+echo "Image:    ${REGISTRY}/${IMAGE_PREFIX}/api:${IMAGE_TAG}"
 echo "========================="
 
 # Step 1: Pull new images

@@ -1,5 +1,5 @@
 x-api-common: &api-common
-  image: ghcr.io/${GITHUB_REPOSITORY}/api:${IMAGE_TAG:-latest}
+  image: ${REGISTRY:-ghcr.io}/${IMAGE_PREFIX}/api:${IMAGE_TAG:-latest}
   restart: unless-stopped
   environment:
     ASPNETCORE_ENVIRONMENT: Production
@@ -44,7 +44,7 @@ x-api-common: &api-common
         memory: 256m
 
 x-web-common: &web-common
-  image: ghcr.io/${GITHUB_REPOSITORY}/web:${IMAGE_TAG:-latest}
+  image: ${REGISTRY:-ghcr.io}/${IMAGE_PREFIX}/web:${IMAGE_TAG:-latest}
   restart: unless-stopped
   environment:
     - NODE_ENV=production

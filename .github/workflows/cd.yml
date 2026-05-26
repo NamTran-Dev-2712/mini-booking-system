@@ -3,6 +3,7 @@ name: CD
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 concurrency:
   group: cd-production
@@ -12,30 +13,62 @@ env:
   REGISTRY: ghcr.io
 
 jobs:
+  # ═══════════════════════════════════════════════════════════
+  # Job 1: Test — chạy giống nhau trên cả GitHub và act
+  # ═══════════════════════════════════════════════════════════
   test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup .NET 10
+      # ─── .NET Setup ──────────────────────────────────────
+      - name: Setup .NET 10 (GitHub)
+        if: ${{ !env.ACT }}
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "10.0.x"
+
+      - name: Setup .NET 10 (act)
+        if: ${{ env.ACT }}
+        run: |
+          if ! command -v dotnet &>/dev/null; then
+            curl -fsSL https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh
+            chmod +x dotnet-install.sh
+            ./dotnet-install.sh --channel 10.0
+            echo "$HOME/.dotnet" >> $GITHUB_PATH
+            export PATH="$HOME/.dotnet:$PATH"
+          fi
+          dotnet --version
 
       - name: Test backend
         run: |
           dotnet restore api/MiniBookingSystem.slnx
           dotnet test api/MiniBookingSystem.slnx -c Release --verbosity minimal
 
-      - name: Setup Bun
+      # ─── Bun Setup ──────────────────────────────────────
+      - name: Setup Bun (GitHub)
+        if: ${{ !env.ACT }}
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
+
+      - name: Setup Bun (act)
+        if: ${{ env.ACT }}
+        run: |
+          if ! command -v bun &>/dev/null; then
+            curl -fsSL https://bun.sh/install | bash
+            echo "$HOME/.bun/bin" >> $GITHUB_PATH
+            export PATH="$HOME/.bun/bin:$PATH"
+          fi
+          bun --version
 
       - name: Typecheck frontend
         run: |
           cd web && bun install --frozen-lockfile && bun run typecheck
 
+  # ═══════════════════════════════════════════════════════════
+  # Job 2: Build and Push — registry khác nhau tùy môi trường
+  # ═══════════════════════════════════════════════════════════
   build-and-push:
     runs-on: ubuntu-latest
     needs: test
@@ -51,9 +84,10 @@ jobs:
         id: meta
         run: |
           echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-          echo "repo_lower=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
 
+      # ─── GitHub Actions path: GHCR ─────────────────────
       - name: Login to GHCR
+        if: ${{ !env.ACT }}
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -61,21 +95,30 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Docker Buildx
+        if: ${{ !env.ACT }}
         uses: docker/setup-buildx-action@v3
 
-      - name: Build and push API
+      - name: Set GitHub image prefix
+        if: ${{ !env.ACT }}
+        id: github_meta
+        run: |
+          echo "image_prefix=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
+      - name: Build and push API (GitHub)
+        if: ${{ !env.ACT }}
         uses: docker/build-push-action@v6
         with:
           context: .
           file: infra/docker/api.Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ steps.meta.outputs.repo_lower }}/api:${{ steps.meta.outputs.sha_short }}
-            ghcr.io/${{ steps.meta.outputs.repo_lower }}/api:latest
+            ghcr.io/${{ steps.github_meta.outputs.image_prefix }}/api:${{ steps.meta.outputs.sha_short }}
+            ghcr.io/${{ steps.github_meta.outputs.image_prefix }}/api:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Build and push Web
+      - name: Build and push Web (GitHub)
+        if: ${{ !env.ACT }}
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -84,17 +127,60 @@ jobs:
           build-args: |
             VITE_API_URL=${{ secrets.PRODUCTION_API_URL }}
           tags: |
-            ghcr.io/${{ steps.meta.outputs.repo_lower }}/web:${{ steps.meta.outputs.sha_short }}
-            ghcr.io/${{ steps.meta.outputs.repo_lower }}/web:latest
+            ghcr.io/${{ steps.github_meta.outputs.image_prefix }}/web:${{ steps.meta.outputs.sha_short }}
+            ghcr.io/${{ steps.github_meta.outputs.image_prefix }}/web:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      # ─── Local (act) path: Self-hosted Registry ────────
+      - name: Login to self-hosted registry (act)
+        if: ${{ env.ACT }}
+        run: |
+          echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login "${{ secrets.REGISTRY_HOST }}" \
+            -u "${{ secrets.REGISTRY_USER }}" --password-stdin
+
+      - name: Build and push API (act)
+        if: ${{ env.ACT }}
+        run: |
+          IMAGE="${{ secrets.REGISTRY_HOST }}/${{ secrets.IMAGE_PREFIX }}/api"
+          TAG="${{ steps.meta.outputs.sha_short }}"
+          echo "Building ${IMAGE}:${TAG}..."
+          docker build \
+            -f infra/docker/api.Dockerfile \
+            -t "${IMAGE}:${TAG}" \
+            -t "${IMAGE}:latest" \
+            .
+          echo "Pushing ${IMAGE}:${TAG}..."
+          docker push "${IMAGE}:${TAG}"
+          docker push "${IMAGE}:latest"
+
+      - name: Build and push Web (act)
+        if: ${{ env.ACT }}
+        run: |
+          IMAGE="${{ secrets.REGISTRY_HOST }}/${{ secrets.IMAGE_PREFIX }}/web"
+          TAG="${{ steps.meta.outputs.sha_short }}"
+          echo "Building ${IMAGE}:${TAG}..."
+          docker build \
+            -f infra/docker/web.Dockerfile \
+            --build-arg VITE_API_URL=${{ secrets.PRODUCTION_API_URL }} \
+            -t "${IMAGE}:${TAG}" \
+            -t "${IMAGE}:latest" \
+            .
+          echo "Pushing ${IMAGE}:${TAG}..."
+          docker push "${IMAGE}:${TAG}"
+          docker push "${IMAGE}:latest"
+
+  # ═══════════════════════════════════════════════════════════
+  # Job 3: Deploy — SSH to VPS, run blue-green deploy
+  # ═══════════════════════════════════════════════════════════
   deploy:
     runs-on: ubuntu-latest
     needs: build-and-push
     environment: production
     steps:
+      # ─── GitHub Actions path ───────────────────────────
       - name: Generate .env.production on VPS
+        if: ${{ !env.ACT }}
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -129,6 +215,8 @@ jobs:
             SEPAY_ACCOUNT_NUMBER=${{ secrets.SEPAY_ACCOUNT_NUMBER }}
             SEPAY_ACCOUNT_NAME=${{ secrets.SEPAY_ACCOUNT_NAME }}
             ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }}
+            REGISTRY=ghcr.io
+            IMAGE_PREFIX=${REPO_LOWER}
             IMAGE_TAG=${{ needs.build-and-push.outputs.image_tag }}
             CPU_LIMIT_API=${{ vars.CPU_LIMIT_API }}
             MEM_LIMIT_API=${{ vars.MEM_LIMIT_API }}
@@ -139,12 +227,12 @@ jobs:
             CPU_LIMIT_REDIS=${{ vars.CPU_LIMIT_REDIS }}
             MEM_LIMIT_REDIS=${{ vars.MEM_LIMIT_REDIS }}
             ENVEOF
-            echo "GITHUB_REPOSITORY=${REPO_LOWER}" >> /opt/mini-booking-system/.env.production
             sed -i 's/^[[:space:]]*//' /opt/mini-booking-system/.env.production
             chmod 600 /opt/mini-booking-system/.env.production
 
-      - name: Deploy to VPS
-        id: deploy
+      - name: Deploy to VPS (GitHub)
+        if: ${{ !env.ACT }}
+        id: deploy-github
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -154,14 +242,13 @@ jobs:
             cd /opt/mini-booking-system
             git pull origin main
             export IMAGE_TAG=${{ needs.build-and-push.outputs.image_tag }}
-            export GITHUB_REPOSITORY=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')
 
             echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
             bash infra/scripts/deploy.sh $IMAGE_TAG
 
-      - name: Rollback on failure
-        if: ${{ failure() && steps.deploy.outcome == 'failure' }}
+      - name: Rollback on failure (GitHub)
+        if: ${{ !env.ACT && failure() && steps.deploy-github.outcome == 'failure' }}
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -170,3 +257,43 @@ jobs:
           script: |
             cd /opt/mini-booking-system
             bash infra/scripts/rollback.sh
+
+      # ─── Local (act) path ──────────────────────────────
+      - name: Setup SSH key (act)
+        if: ${{ env.ACT }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: Update .env.production on VPS (act)
+        if: ${{ env.ACT }}
+        run: |
+          IMAGE_TAG="${{ needs.build-and-push.outputs.image_tag }}"
+
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
+            "sed -i \"s/^IMAGE_TAG=.*/IMAGE_TAG=${IMAGE_TAG}/\" /opt/mini-booking-system/.env.production"
+
+          echo "Updated IMAGE_TAG=${IMAGE_TAG} on VPS"
+
+      - name: Deploy to VPS (act)
+        if: ${{ env.ACT }}
+        id: deploy-act
+        run: |
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
+            "cd /opt/mini-booking-system && git pull origin main && bash infra/scripts/deploy.sh"
+
+      - name: Rollback on failure (act)
+        if: ${{ env.ACT && failure() && steps.deploy-act.outcome == 'failure' }}
+        run: |
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
+            "cd /opt/mini-booking-system && bash infra/scripts/rollback.sh"
+
+      - name: Cleanup SSH key (act)
+        if: ${{ env.ACT && always() }}
+        run: |
+          rm -f ~/.ssh/deploy_key

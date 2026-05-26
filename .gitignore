@@ -667,3 +667,8 @@ build
 .claude
 *.lscache
 uploads/
+
+# ─── Local CI/CD (nektos/act) ────────────────────────────────
+.secrets
+.vars
+.registry-credentials
