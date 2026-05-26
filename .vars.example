@@ -1,0 +1,20 @@
+# ============================================================
+# Mini Booking System - Local CI/CD Variables (nektos/act)
+# ============================================================
+# Copy file nay thanh .vars va dieu chinh neu can:
+#   cp .vars.example .vars
+# ============================================================
+
+# ─── Redis Config ────────────────────────────────────────────
+REDIS_MAXMEMORY=400mb
+REDIS_MAXMEMORY_POLICY=allkeys-lru
+
+# ─── Resource Limits ─────────────────────────────────────────
+CPU_LIMIT_API=1.0
+MEM_LIMIT_API=256m
+CPU_LIMIT_WEB=0.5
+MEM_LIMIT_WEB=256m
+CPU_LIMIT_POSTGRES=1.0
+MEM_LIMIT_POSTGRES=256m
+CPU_LIMIT_REDIS=0.5
+MEM_LIMIT_REDIS=256m
