@@ -672,3 +672,7 @@ uploads/
 .secrets
 .vars
 .registry-credentials
+
+# ─── Generated nginx configs (created by deploy.sh / setup-ssl.sh) ───
+infra/docker/nginx/conf.d/frontend.conf
+infra/docker/nginx/conf.d/backend.conf

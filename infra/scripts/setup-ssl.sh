@@ -72,10 +72,33 @@ server {
 }
 EOF
 
-# Step 2: Start nginx
+# Step 2: Start nginx (force-recreate to pick up new configs)
 echo "[2/5] Starting nginx..."
-$COMPOSE_CMD up -d nginx
-sleep 5
+# Force-recreate in case nginx is crash-looping with old SSL configs
+$COMPOSE_CMD up -d --force-recreate nginx
+sleep 3
+
+# Verify nginx is actually responding on port 80
+echo "  Verifying nginx is serving HTTP..."
+RETRIES=0
+while [ $RETRIES -lt 10 ]; do
+    if curl -s -o /dev/null -w "%{http_code}" http://localhost/ 2>/dev/null | grep -qE "200|301|404"; then
+        echo "  nginx is responding on port 80!"
+        break
+    fi
+    RETRIES=$((RETRIES + 1))
+    echo "  Waiting for nginx... attempt $RETRIES/10"
+    sleep 3
+done
+
+if [ $RETRIES -eq 10 ]; then
+    echo "ERROR: nginx is not responding on port 80. Check:"
+    echo "  - docker logs nginx_prod"
+    echo "  - sudo ufw status (port 80 must be open)"
+    echo "  - sudo ss -tlnp | grep :80 (check if port is in use)"
+    docker logs --tail 20 nginx_prod 2>&1 || true
+    exit 1
+fi
 
 # Step 3: Request certificates for both domains
 echo "[3/5] Requesting SSL certificate for $FRONTEND_DOMAIN..."
