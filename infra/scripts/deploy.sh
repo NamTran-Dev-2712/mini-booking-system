@@ -11,7 +11,7 @@ COMPOSE_FILE="${DEPLOY_DIR}/infra/docker-compose.prod.yml"
 ENV_FILE="${DEPLOY_DIR}/.env.production"
 STATE_FILE="${DEPLOY_DIR}/.active-color"
 NGINX_DIR="${DEPLOY_DIR}/infra/docker/nginx"
-MAX_RETRIES=10
+MAX_RETRIES=24
 RETRY_INTERVAL=5
 
 cd "$DEPLOY_DIR"
@@ -81,6 +81,13 @@ done
 
 if [ $RETRIES -eq $MAX_RETRIES ]; then
     echo "ERROR: $TARGET_COLOR containers failed health check!"
+    echo ""
+    echo "=== API Container Logs (last 50 lines) ==="
+    docker logs --tail 50 "api-${TARGET_COLOR}" 2>&1 || true
+    echo ""
+    echo "=== Web Container Logs (last 20 lines) ==="
+    docker logs --tail 20 "web-${TARGET_COLOR}" 2>&1 || true
+    echo ""
     echo "Stopping failed containers..."
     docker stop "api-${TARGET_COLOR}" "web-${TARGET_COLOR}" 2>/dev/null || true
     docker rm "api-${TARGET_COLOR}" "web-${TARGET_COLOR}" 2>/dev/null || true
