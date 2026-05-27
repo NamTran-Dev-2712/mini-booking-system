@@ -36,7 +36,7 @@ RUN dotnet publish src/MiniBookingSystem.Api/MiniBookingSystem.Api.csproj \
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS runtime
 WORKDIR /app
 
-RUN apk add --no-cache curl
+RUN apk add --no-cache curl icu-libs
 
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
@@ -50,6 +50,7 @@ USER appuser
 EXPOSE 8080
 ENV ASPNETCORE_URLS=http://+:8080
 ENV ASPNETCORE_ENVIRONMENT=Production
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
 
 HEALTHCHECK --interval=15s --timeout=5s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:8080/health || exit 1
