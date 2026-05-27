@@ -199,8 +199,8 @@ jobs:
             POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
             POSTGRES_DB=${{ secrets.POSTGRES_DB }}
             REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
-            REDIS_MAXMEMORY=${{ vars.REDIS_MAXMEMORY }}
-            REDIS_MAXMEMORY_POLICY=${{ vars.REDIS_MAXMEMORY_POLICY }}
+            REDIS_MAXMEMORY=${{ vars.REDIS_MAXMEMORY || '400mb' }}
+            REDIS_MAXMEMORY_POLICY=${{ vars.REDIS_MAXMEMORY_POLICY || 'allkeys-lru' }}
             JWT_SECRET=${{ secrets.JWT_SECRET }}
             JWT_ISSUER=${{ secrets.JWT_ISSUER }}
             JWT_AUDIENCE=${{ secrets.JWT_AUDIENCE }}
@@ -218,14 +218,14 @@ jobs:
             REGISTRY=ghcr.io
             IMAGE_PREFIX=${REPO_LOWER}
             IMAGE_TAG=${{ needs.build-and-push.outputs.image_tag }}
-            CPU_LIMIT_API=${{ vars.CPU_LIMIT_API }}
-            MEM_LIMIT_API=${{ vars.MEM_LIMIT_API }}
-            CPU_LIMIT_WEB=${{ vars.CPU_LIMIT_WEB }}
-            MEM_LIMIT_WEB=${{ vars.MEM_LIMIT_WEB }}
-            CPU_LIMIT_POSTGRES=${{ vars.CPU_LIMIT_POSTGRES }}
-            MEM_LIMIT_POSTGRES=${{ vars.MEM_LIMIT_POSTGRES }}
-            CPU_LIMIT_REDIS=${{ vars.CPU_LIMIT_REDIS }}
-            MEM_LIMIT_REDIS=${{ vars.MEM_LIMIT_REDIS }}
+            CPU_LIMIT_API=${{ vars.CPU_LIMIT_API || '1.0' }}
+            MEM_LIMIT_API=${{ vars.MEM_LIMIT_API || '512m' }}
+            CPU_LIMIT_WEB=${{ vars.CPU_LIMIT_WEB || '0.5' }}
+            MEM_LIMIT_WEB=${{ vars.MEM_LIMIT_WEB || '256m' }}
+            CPU_LIMIT_POSTGRES=${{ vars.CPU_LIMIT_POSTGRES || '1.0' }}
+            MEM_LIMIT_POSTGRES=${{ vars.MEM_LIMIT_POSTGRES || '1g' }}
+            CPU_LIMIT_REDIS=${{ vars.CPU_LIMIT_REDIS || '0.5' }}
+            MEM_LIMIT_REDIS=${{ vars.MEM_LIMIT_REDIS || '512m' }}
             ENVEOF
             sed -i 's/^[[:space:]]*//' /opt/mini-booking-system/.env.production
             chmod 600 /opt/mini-booking-system/.env.production
