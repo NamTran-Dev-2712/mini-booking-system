@@ -39,7 +39,22 @@ public static class DependencyInjection
             foreach (var proxy in trustedProxies)
             {
                 if (IPAddress.TryParse(proxy, out var ip))
+                {
                     options.KnownProxies.Add(ip);
+                }
+                else
+                {
+                    // Support Docker service names (e.g. "nginx") — resolve at startup.
+                    // In a Docker bridge network, container names resolve via internal DNS.
+                    try
+                    {
+                        foreach (var addr in System.Net.Dns.GetHostAddresses(proxy))
+                            options.KnownProxies.Add(addr);
+                    }
+                    catch
+                    { /* hostname not resolvable, skip */
+                    }
+                }
             }
         });
 
