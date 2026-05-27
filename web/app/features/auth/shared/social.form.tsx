@@ -33,7 +33,7 @@ export function SocialForm({ action: _action }: SocialFormProps) {
         <Separator className="flex-1" />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3">
         <Button
           type="button"
           variant="outline"
@@ -62,7 +62,7 @@ export function SocialForm({ action: _action }: SocialFormProps) {
           </svg>
           Google
         </Button>
-        <Button
+        {/* <Button
           type="button"
           variant="outline"
           className="w-full"
@@ -72,7 +72,7 @@ export function SocialForm({ action: _action }: SocialFormProps) {
         >
           <GitHubIcon className="size-4 mr-2" />
           GitHub
-        </Button>
+        </Button> */}
       </div>
     </div>
   );
