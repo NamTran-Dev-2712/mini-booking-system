@@ -34,6 +34,91 @@ fi
 
 COMPOSE_CMD="docker compose -f $COMPOSE_FILE --env-file $ENV_FILE"
 
+# ─── Ensure nginx conf.d has valid .conf files ──────────────
+# setup-ssl.sh generates conf.d/*.conf via envsubst, but those files
+# are untracked by git. If they're missing OR SSL certs were deleted,
+# nginx will crash on startup. This block self-heals both cases.
+ensure_nginx_config() {
+    local FRONTEND_DOMAIN API_DOMAIN
+    FRONTEND_DOMAIN=$(grep "^FRONTEND_DOMAIN=" .env.production | cut -d= -f2)
+    API_DOMAIN=$(grep "^API_DOMAIN=" .env.production | cut -d= -f2)
+
+    if [ -z "$FRONTEND_DOMAIN" ] || [ -z "$API_DOMAIN" ]; then
+        echo "  WARN: FRONTEND_DOMAIN or API_DOMAIN not set in .env.production, skipping nginx config generation"
+        return
+    fi
+
+    # Check if SSL certs exist inside the Docker volume
+    local HAS_SSL=false
+    if docker volume inspect infra_ssl_certs &>/dev/null; then
+        # Check if cert files actually exist in the volume
+        if docker run --rm -v infra_ssl_certs:/certs:ro alpine \
+            test -f "/certs/live/${FRONTEND_DOMAIN}/fullchain.pem" 2>/dev/null; then
+            HAS_SSL=true
+        fi
+    fi
+
+    if [ "$HAS_SSL" = true ]; then
+        echo "  SSL certs found — generating HTTPS configs from templates"
+        export FRONTEND_DOMAIN API_DOMAIN
+        envsubst '${FRONTEND_DOMAIN}' < "${NGINX_DIR}/conf.d/frontend.conf.template" \
+            > "${NGINX_DIR}/conf.d/frontend.conf"
+        envsubst '${API_DOMAIN}' < "${NGINX_DIR}/conf.d/backend.conf.template" \
+            > "${NGINX_DIR}/conf.d/backend.conf"
+    else
+        echo "  WARN: SSL certs NOT found — generating HTTP-only fallback configs"
+        echo "  Run 'bash infra/scripts/setup-ssl.sh ${FRONTEND_DOMAIN} ${API_DOMAIN} <email>' to enable HTTPS"
+
+        cat > "${NGINX_DIR}/conf.d/frontend.conf" <<NEOF
+server {
+    listen 80;
+    server_name ${FRONTEND_DOMAIN};
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        proxy_pass http://web_upstream;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+}
+NEOF
+
+        cat > "${NGINX_DIR}/conf.d/backend.conf" <<NEOF
+server {
+    listen 80;
+    server_name ${API_DOMAIN};
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location = /health {
+        proxy_pass http://api_upstream/health;
+        access_log off;
+    }
+
+    location / {
+        proxy_pass http://api_upstream/;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_read_timeout 30s;
+        proxy_connect_timeout 5s;
+    }
+}
+NEOF
+    fi
+}
+
 # Determine current and target colors
 CURRENT_COLOR=$(cat "$STATE_FILE" 2>/dev/null || echo "blue")
 if [ "$CURRENT_COLOR" = "blue" ]; then
@@ -56,6 +141,8 @@ $COMPOSE_CMD --profile "$TARGET_COLOR" pull "api-${TARGET_COLOR}" "web-${TARGET_
 
 # Step 2: Ensure infrastructure is running
 echo "[2/7] Ensuring infrastructure is running..."
+echo "  Generating nginx configs..."
+ensure_nginx_config
 $COMPOSE_CMD up -d postgres_db redis_cache nginx certbot
 
 # Step 3: Start target color containers
@@ -97,13 +184,39 @@ fi
 # Step 5: Switch nginx upstream
 echo "[5/7] Switching nginx to $TARGET_COLOR..."
 cp "${NGINX_DIR}/upstream-${TARGET_COLOR}.conf" "${NGINX_DIR}/active-upstream.conf"
+
+# Wait for nginx to be running (not restarting) before reload
+NGINX_RETRIES=0
+while [ $NGINX_RETRIES -lt 10 ]; do
+    NGINX_STATE=$(docker inspect --format='{{.State.Status}}' nginx_prod 2>/dev/null || echo "unknown")
+    if [ "$NGINX_STATE" = "running" ]; then
+        break
+    fi
+    NGINX_RETRIES=$((NGINX_RETRIES + 1))
+    echo "  Waiting for nginx to be running (state: $NGINX_STATE)... attempt $NGINX_RETRIES/10"
+    sleep 3
+done
+
+if [ "$NGINX_STATE" != "running" ]; then
+    echo "ERROR: nginx is not running (state: $NGINX_STATE). Attempting restart..."
+    docker restart nginx_prod 2>/dev/null || true
+    sleep 5
+fi
+
 docker exec nginx_prod nginx -s reload
 
 # Step 6: Verify traffic is flowing
 echo "[6/7] Verifying traffic routing..."
 sleep 3
 API_DOMAIN=$(grep "^API_DOMAIN=" .env.production | cut -d= -f2)
+
+# Try HTTPS first, fallback to HTTP if SSL certs are not set up
 HTTP_STATUS=$(curl -sk -o /dev/null -w "%{http_code}" -H "Host: ${API_DOMAIN}" https://localhost/health 2>/dev/null || echo "000")
+if [ "$HTTP_STATUS" = "000" ]; then
+    # HTTPS failed (likely no SSL) — try HTTP
+    HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -H "Host: ${API_DOMAIN}" http://localhost/health 2>/dev/null || echo "000")
+fi
+
 if [ "$HTTP_STATUS" != "200" ]; then
     echo "ERROR: Health check failed after switch (HTTP $HTTP_STATUS)!"
     echo "Rolling back nginx..."
@@ -114,14 +227,14 @@ if [ "$HTTP_STATUS" != "200" ]; then
     exit 1
 fi
 
-# Step 6: Stop old color containers only (keep infra running)
-echo "[6/7] Draining $CURRENT_COLOR (60s)..."
+# Step 7: Stop old color containers only (keep infra running)
+echo "[7/7] Draining $CURRENT_COLOR (60s)..."
 sleep 60
 docker stop "api-${CURRENT_COLOR}" "web-${CURRENT_COLOR}" 2>/dev/null || true
 docker rm "api-${CURRENT_COLOR}" "web-${CURRENT_COLOR}" 2>/dev/null || true
 
-# Step 7: Cleanup old Docker images to prevent disk exhaustion
-echo "[7/7] Cleaning up unused Docker images..."
+# Step 8: Cleanup old Docker images to prevent disk exhaustion
+echo "[8/8] Cleaning up unused Docker images..."
 docker image prune -af --filter "until=168h" 2>/dev/null || true
 docker builder prune -f --keep-storage=2GB 2>/dev/null || true
 
