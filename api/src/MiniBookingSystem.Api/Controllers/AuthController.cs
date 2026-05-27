@@ -265,14 +265,7 @@ public class AuthController : BaseApiController
         if (authResult.RequiresProfileCompletion)
             return Redirect($"{frontendUrl}/auth/complete-profile");
 
-        var role = authResult.Roles.FirstOrDefault() ?? "User";
-        var dashboard = role switch
-        {
-            "Admin" => "/admin",
-            "Mentor" => "/mentor",
-            _ => "/user",
-        };
-        return Redirect($"{frontendUrl}{dashboard}");
+        return Redirect($"{frontendUrl}/auth/google/callback");
     }
 
     [HttpPost("complete-profile")]

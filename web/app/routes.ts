@@ -25,6 +25,9 @@ export default [
   // ── Complete Profile (outside auth layout to avoid redirectIfAuthenticated) ─
   route("auth/complete-profile", "routes/auth/complete-profile.tsx"),
 
+  // ── Google OAuth callback — populates auth store then redirects to dashboard ─
+  route("auth/google/callback", "routes/auth/google-callback.tsx"),
+
   // ── User (role: User) ──────────────────────────────────────────────────────
   layout("routes/user/_layout.tsx", [
     route("user", "routes/user/dashboard.tsx"),
