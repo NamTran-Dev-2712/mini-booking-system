@@ -37,7 +37,9 @@ export function MentorProfileTab({ mentor }: MentorProfileTabProps) {
           />
           <InfoRow
             label={t("profileTab.experience")}
-            value={`${mentor.experienceYears} ${t("detail.experienceYears", { count: mentor.experienceYears })}`}
+            value={t("detail.experienceYears", {
+              count: mentor.experienceYears,
+            })}
           />
           <InfoRow
             label={t("profileTab.basePrice")}

@@ -59,7 +59,11 @@ export const authService = {
   },
 
   initiateGoogleLogin(): void {
-    window.location.href = `${apiClient.defaults.baseURL}/api/auth/google`;
+    const baseURL =
+      (typeof window !== "undefined" && window.ENV?.VITE_API_URL) ||
+      apiClient.defaults.baseURL ||
+      "";
+    window.location.href = `${baseURL}/api/auth/google`;
   },
 
   async completeProfile(data: { phoneNumber: string }): Promise<void> {
