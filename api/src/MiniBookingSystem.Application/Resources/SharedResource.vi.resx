@@ -197,6 +197,9 @@
   <data name="Response.Auth.Registered" xml:space="preserve">
     <value>Đăng ký tài khoản thành công</value>
   </data>
+  <data name="Response.Auth.MentorRegistered" xml:space="preserve">
+    <value>Đăng ký tài khoản Mentor thành công</value>
+  </data>
   <data name="Response.Auth.ProfileUpdated" xml:space="preserve">
     <value>Cập nhật hồ sơ thành công</value>
   </data>

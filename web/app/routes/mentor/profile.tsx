@@ -136,7 +136,6 @@ export default function MentorProfile() {
                 {t("mentor:profile.experience")}
               </p>
               <p className="text-lg font-semibold">
-                {mentor?.experienceYears ?? 0}{" "}
                 {t("mentor:detail.experienceYears", {
                   count: mentor?.experienceYears ?? 0,
                 })}

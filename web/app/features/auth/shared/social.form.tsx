@@ -60,7 +60,7 @@ export function SocialForm({ action: _action }: SocialFormProps) {
               fill="#EA4335"
             />
           </svg>
-          Google
+          {t("social.google")}
         </Button>
         {/* <Button
           type="button"

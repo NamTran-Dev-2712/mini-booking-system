@@ -7,6 +7,8 @@ import type { LoginRequest } from "./dtos/commands/login/login.request";
 import type { LoginResponse } from "./dtos/commands/login/login.response";
 import type { RegisterRequest } from "./dtos/commands/register/register.request";
 import type { RegisterResponse } from "./dtos/commands/register/register.response";
+import type { RegisterMentorRequest } from "./dtos/commands/register/register-mentor.request";
+import type { RegisterMentorResponse } from "./dtos/commands/register/register-mentor.response";
 import type { ResetPasswordRequest } from "./dtos/commands/reset-password/request";
 import type { UpdateProfileRequest } from "./dtos/commands/update-profile/update-profile.request";
 import type { ProfileResponse } from "./dtos/queries/profile/profile.response";
@@ -23,6 +25,14 @@ export const authService = {
   async register(data: RegisterRequest): Promise<RegisterResponse> {
     const res: AxiosResponse<ApiResponse<RegisterResponse>> =
       await apiClient.post("/api/auth/register", data);
+    return res.data.data!;
+  },
+
+  async registerMentor(
+    data: RegisterMentorRequest,
+  ): Promise<RegisterMentorResponse> {
+    const res: AxiosResponse<ApiResponse<RegisterMentorResponse>> =
+      await apiClient.post("/api/auth/register-mentor", data);
     return res.data.data!;
   },
 

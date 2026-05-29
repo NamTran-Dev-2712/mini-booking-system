@@ -1,4 +1,4 @@
-﻿import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, GraduationCap, Loader2, UserCog } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
@@ -13,18 +13,38 @@ import {
   FormMessage,
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
+import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { SocialForm } from "~/features/auth/shared/social.form";
-import { useRegisterForm } from "./register.hook";
+import { useRegisterForm, type RegisterRole } from "./register.hook";
 
 export function RegisterForm() {
   const { t } = useTranslation("auth");
-  const { form, onSubmit } = useRegisterForm();
+  const [role, setRole] = useState<RegisterRole>("User");
+  const { form, onSubmit } = useRegisterForm(role);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const isSubmitting = form.formState.isSubmitting;
+  const isMentor = role === "Mentor";
 
   return (
     <div className="space-y-6">
+      <Tabs
+        value={role}
+        onValueChange={(v) => setRole(v as RegisterRole)}
+        className="w-full"
+      >
+        <TabsList className="grid w-full grid-cols-2 h-10">
+          <TabsTrigger value="User" className="gap-2">
+            <GraduationCap className="size-4" />
+            {t("register.roleUser")}
+          </TabsTrigger>
+          <TabsTrigger value="Mentor" className="gap-2">
+            <UserCog className="size-4" />
+            {t("register.roleMentor")}
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
+
       <Form {...form}>
         <form onSubmit={onSubmit} className="space-y-4">
           <FormField
@@ -176,7 +196,7 @@ export function RegisterForm() {
 
           <Button type="submit" className="w-full mt-2" disabled={isSubmitting}>
             {isSubmitting && <Loader2 className="mr-2 size-4 animate-spin" />}
-            {t("register.submit")}
+            {isMentor ? t("register.mentorSubmit") : t("register.submit")}
           </Button>
         </form>
       </Form>
