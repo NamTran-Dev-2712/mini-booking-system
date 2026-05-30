@@ -54,6 +54,26 @@ public sealed class EmailJob : IEmailJob
     }
 
     [AutomaticRetry(Attempts = 5, DelaysInSeconds = new[] { 60, 300, 900, 3600, 7200 })]
+    public async Task SendMentorSelfWelcomeEmailAsync(string to, string fullName)
+    {
+        _logger.LogInformation("Sending self-register welcome email to mentor {Email}", to);
+
+        var loginUrl = _configuration[ConfigurationValue.BaseUrlFrontend] + "/login";
+
+        var model = new { FullName = fullName, LoginUrl = loginUrl };
+
+        var htmlBody = await _templateService.RenderAsync("mentor-self-welcome", model);
+
+        await _emailService.SendEmailAsync(
+            to,
+            "Welcome to MiniBookingSystem - Your Mentor Account",
+            htmlBody
+        );
+
+        _logger.LogInformation("Self-register welcome email sent successfully to {Email}", to);
+    }
+
+    [AutomaticRetry(Attempts = 5, DelaysInSeconds = new[] { 60, 300, 900, 3600, 7200 })]
     public async Task SendPasswordResetEmailAsync(
         string to,
         string fullName,

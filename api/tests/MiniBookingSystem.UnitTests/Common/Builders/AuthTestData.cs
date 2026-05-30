@@ -66,6 +66,21 @@ internal static class AuthTestData
         );
     }
 
+    public static RegisterMentorCommand BuildRegisterMentorCommand(
+        string? fullName = null,
+        string? email = null,
+        string? password = null,
+        string? phoneNumber = null,
+        string? avatarUrl = null
+    ) =>
+        new(
+            FullName: fullName ?? Valid.FullName,
+            Email: email ?? Valid.Email,
+            Password: password ?? Valid.Password,
+            PhoneNumber: phoneNumber ?? Valid.PhoneNumber,
+            AvatarUrl: avatarUrl
+        );
+
     public static TokenResult BuildTokenResult()
     {
         return new TokenResult(

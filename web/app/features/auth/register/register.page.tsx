@@ -1,4 +1,5 @@
-﻿import AuthLayout from "~/components/layouts/auth/auth.layout";
+import { useTranslation } from "react-i18next";
+import AuthLayout from "~/components/layouts/auth/auth.layout";
 import { RegisterForm } from "./register.form";
 
 export function meta() {
@@ -9,10 +10,11 @@ export function meta() {
 }
 
 export default function RegisterPage() {
+  const { t } = useTranslation("auth");
   return (
     <AuthLayout
-      title="Create Account"
-      description="Start your mentorship journey completely free"
+      title={t("register.pageTitle")}
+      description={t("register.pageDescription")}
     >
       <RegisterForm />
     </AuthLayout>
