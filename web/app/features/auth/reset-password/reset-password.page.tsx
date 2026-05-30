@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import AuthLayout from "~/components/layouts/auth/auth.layout";
 import { ResetPasswordForm } from "./reset-password.form";
 
@@ -9,10 +10,11 @@ export function meta() {
 }
 
 export default function ResetPasswordPage() {
+  const { t } = useTranslation("auth");
   return (
     <AuthLayout
-      title="Reset your password"
-      description="Enter the OTP code from your email and choose a new password."
+      title={t("resetPassword.pageTitle")}
+      description={t("resetPassword.pageDescription")}
     >
       <ResetPasswordForm />
     </AuthLayout>

@@ -1,5 +1,6 @@
 ﻿import { Link } from "react-router";
 import { CalendarDays } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface AuthLayoutProps {
   children: React.ReactNode;
@@ -12,6 +13,9 @@ export default function AuthLayout({
   title,
   description,
 }: AuthLayoutProps) {
+  const { t } = useTranslation("auth");
+  const year = new Date().getFullYear();
+
   return (
     <div className="min-h-screen grid lg:grid-cols-2">
       {/* Left - Brand panel */}
@@ -23,16 +27,13 @@ export default function AuthLayout({
 
         <div className="space-y-4">
           <blockquote className="text-2xl font-medium leading-relaxed">
-            "Connect with mentors, schedule sessions, and accelerate your growth
-            — all in one place."
+            “{t("layout.tagline")}”
           </blockquote>
-          <p className="text-background/60 text-sm">
-            Trusted by over 1,000 students and mentors every day.
-          </p>
+          <p className="text-background/60 text-sm">{t("layout.trustedBy")}</p>
         </div>
 
         <p className="text-background/40 text-xs">
-          © {new Date().getFullYear()} MiniBooking. All rights reserved.
+          {t("layout.copyright", { year })}
         </p>
       </div>
 

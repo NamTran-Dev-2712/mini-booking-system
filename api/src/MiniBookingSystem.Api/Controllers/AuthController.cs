@@ -29,6 +29,16 @@ public class AuthController : BaseApiController
         return CreatedResponse(result, "Response.Auth.Registered");
     }
 
+    [HttpPost("register-mentor")]
+    public async Task<IActionResult> RegisterMentor(
+        RegisterMentorCommand command,
+        CancellationToken cancellationToken
+    )
+    {
+        var result = await _mediator.Send(command, cancellationToken);
+        return CreatedResponse(result, "Response.Auth.MentorRegistered");
+    }
+
     [HttpPost("login")]
     [EnableRateLimiting(CacheKeys.AuthRateLimitPolicy)]
     public async Task<IActionResult> Login(

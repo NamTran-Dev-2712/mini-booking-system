@@ -1,5 +1,6 @@
 ﻿import { Link } from "react-router";
 import { CalendarDays } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Separator } from "~/components/ui/separator";
 
 function GitHubIcon({ className }: { className?: string }) {
@@ -29,6 +30,9 @@ function XIcon({ className }: { className?: string }) {
 }
 
 export default function PublicFooter() {
+  const { t } = useTranslation("public");
+  const year = new Date().getFullYear();
+
   return (
     <footer className="border-t border-border/60 bg-muted/30">
       <div className="container mx-auto max-w-6xl px-4 py-10">
@@ -40,7 +44,7 @@ export default function PublicFooter() {
               <span>MiniBooking</span>
             </Link>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Smart mentorship scheduling for modern learners.
+              {t("footer.tagline")}
             </p>
             <div className="flex items-center gap-3 pt-1">
               <a
@@ -62,14 +66,16 @@ export default function PublicFooter() {
 
           {/* Product */}
           <div className="space-y-3">
-            <h4 className="text-sm font-medium">Product</h4>
+            <h4 className="text-sm font-medium">
+              {t("footer.sections.product")}
+            </h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
                 <Link
                   to="/"
                   className="hover:text-foreground transition-colors"
                 >
-                  Home
+                  {t("footer.links.home")}
                 </Link>
               </li>
               <li>
@@ -77,7 +83,7 @@ export default function PublicFooter() {
                   to="/about"
                   className="hover:text-foreground transition-colors"
                 >
-                  About
+                  {t("footer.links.about")}
                 </Link>
               </li>
             </ul>
@@ -85,14 +91,16 @@ export default function PublicFooter() {
 
           {/* Account */}
           <div className="space-y-3">
-            <h4 className="text-sm font-medium">Account</h4>
+            <h4 className="text-sm font-medium">
+              {t("footer.sections.account")}
+            </h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
                 <Link
                   to="/login"
                   className="hover:text-foreground transition-colors"
                 >
-                  Sign In
+                  {t("footer.links.signIn")}
                 </Link>
               </li>
               <li>
@@ -100,7 +108,7 @@ export default function PublicFooter() {
                   to="/register"
                   className="hover:text-foreground transition-colors"
                 >
-                  Sign Up
+                  {t("footer.links.signUp")}
                 </Link>
               </li>
             </ul>
@@ -108,13 +116,19 @@ export default function PublicFooter() {
 
           {/* Legal */}
           <div className="space-y-3">
-            <h4 className="text-sm font-medium">Legal</h4>
+            <h4 className="text-sm font-medium">
+              {t("footer.sections.legal")}
+            </h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
-                <span className="cursor-default">Privacy Policy</span>
+                <span className="cursor-default">
+                  {t("footer.links.privacy")}
+                </span>
               </li>
               <li>
-                <span className="cursor-default">Terms of Service</span>
+                <span className="cursor-default">
+                  {t("footer.links.terms")}
+                </span>
               </li>
             </ul>
           </div>
@@ -123,7 +137,7 @@ export default function PublicFooter() {
         <Separator className="my-6" />
 
         <p className="text-center text-xs text-muted-foreground">
-          © {new Date().getFullYear()} MiniBooking. All rights reserved.
+          {t("footer.copyright", { year })}
         </p>
       </div>
     </footer>

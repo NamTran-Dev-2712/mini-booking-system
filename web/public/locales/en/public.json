@@ -49,6 +49,23 @@
     "subtitle": "Join thousands of students connecting with expert mentors every day.",
     "button": "Create Free Account"
   },
+  "footer": {
+    "tagline": "Smart mentorship scheduling for modern learners.",
+    "sections": {
+      "product": "Product",
+      "account": "Account",
+      "legal": "Legal"
+    },
+    "links": {
+      "home": "Home",
+      "about": "About",
+      "signIn": "Sign In",
+      "signUp": "Sign Up",
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service"
+    },
+    "copyright": "© {{year}} MiniBooking. All rights reserved."
+  },
   "about": {
     "badge": "About Us",
     "title": "Building the Future",

@@ -197,6 +197,9 @@
   <data name="Response.Auth.Registered" xml:space="preserve">
     <value>User registered successfully</value>
   </data>
+  <data name="Response.Auth.MentorRegistered" xml:space="preserve">
+    <value>Mentor registered successfully</value>
+  </data>
   <data name="Response.Auth.ProfileUpdated" xml:space="preserve">
     <value>Profile updated successfully</value>
   </data>
