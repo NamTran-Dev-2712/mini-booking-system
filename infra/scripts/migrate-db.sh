@@ -2,10 +2,14 @@
 set -euo pipefail
 
 # Safe Database Migration Script (Expand and Contract pattern)
-# Usage: ./migrate-db.sh
+# Usage: ./migrate-db.sh [target_color]
 #
-# IMPORTANT: This script runs migrations BEFORE switching traffic.
-# Migrations MUST be backward-compatible with the currently running code.
+# Applies EF Core migrations using the NEWLY PULLED image (target color) BEFORE
+# traffic is switched, with a pre-migration backup. Invoked by deploy.sh.
+#
+# IMPORTANT: Migrations MUST be backward-compatible with the currently running
+# (old) code, because old and new containers share the same database during the
+# blue-green cutover window.
 #
 # Rules for safe migrations in Blue-Green:
 #   1. NEVER drop columns/tables in the same deploy that stops using them
@@ -15,43 +19,55 @@ set -euo pipefail
 
 DEPLOY_DIR="/opt/mini-booking-system"
 COMPOSE_FILE="${DEPLOY_DIR}/infra/docker-compose.prod.yml"
+ENV_FILE="${DEPLOY_DIR}/.env.production"
 STATE_FILE="${DEPLOY_DIR}/.active-color"
 
 cd "$DEPLOY_DIR"
 
-# Source env for database connection
+# Target color = the color whose (new) image we migrate with. Defaults to the
+# inactive color derived from the active-color state file.
+TARGET_COLOR="${1:-}"
+if [ -z "$TARGET_COLOR" ]; then
+    CURRENT_COLOR=$(cat "$STATE_FILE" 2>/dev/null || echo "blue")
+    if [ "$CURRENT_COLOR" = "blue" ]; then
+        TARGET_COLOR="green"
+    else
+        TARGET_COLOR="blue"
+    fi
+fi
+
+# Load env (registry, image tag, db creds) for compose interpolation
 set -a
-source .env.production
+# shellcheck source=/dev/null
+source "$ENV_FILE"
 set +a
 
-CURRENT_COLOR=$(cat "$STATE_FILE" 2>/dev/null || echo "blue")
-
 echo "=== Database Migration ==="
-echo "Running against: postgres_db"
-echo "Current active:  $CURRENT_COLOR"
+echo "Image:  ${REGISTRY:-ghcr.io}/${IMAGE_PREFIX}/api:${IMAGE_TAG:-latest}"
+echo "Via:    api-${TARGET_COLOR} (one-shot, --migrate-only)"
 echo "==========================="
 
-# Step 1: Backup before migration
+# Step 1: Backup before migration. A failure here aborts the deploy (set -e)
+# BEFORE any schema change, leaving the live (old) site untouched.
 echo "[1/3] Creating pre-migration backup..."
 bash infra/scripts/backup-db.sh
 
-# Step 2: Run EF Core migrations via the current active API container
+# Step 2: Apply EF Core migrations using the NEW image, then exit.
+# The image ENTRYPOINT is ["dotnet","MiniBookingSystem.Api.dll"], so we only pass
+# the extra "--migrate-only" argument. --no-deps: infra (postgres/redis) is
+# already running from deploy.sh; don't recreate it. A non-zero exit aborts the
+# deploy before traffic is switched.
 echo "[2/3] Applying migrations..."
-docker exec "api-${CURRENT_COLOR}" dotnet MiniBookingSystem.Api.dll --migrate-only 2>/dev/null || {
-    echo "  Fallback: running migrations via temporary container..."
-    docker compose -f "$COMPOSE_FILE" --profile "$CURRENT_COLOR" \
-        run --rm --no-deps -e "ConnectionStrings__DefaultConnection=Host=postgres_db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}" \
-        "api-${CURRENT_COLOR}" \
-        dotnet MiniBookingSystem.Api.dll --migrate-only
-}
+docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" --profile "$TARGET_COLOR" \
+    run --rm --no-deps "api-${TARGET_COLOR}" --migrate-only
 
-# Step 3: Verify migration
+# Step 3: Verify database connectivity
 echo "[3/3] Verifying database connectivity..."
 docker exec postgres_prod pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"
 
 echo ""
 echo "=== Migration Complete ==="
-echo "Remember: Only EXPAND migrations are safe during Blue-Green deploy."
-echo "To CONTRACT (drop old columns), deploy a separate migration after"
-echo "confirming the new code is stable."
+echo "Only EXPAND (additive / nullable) migrations are safe during Blue-Green."
+echo "To CONTRACT (drop or rename columns), deploy a separate migration AFTER"
+echo "the new code is confirmed stable."
 echo "==========================="
