@@ -135,6 +135,60 @@ public sealed class AddSkillMentorCommandHandlerTests
     }
 
     [Fact]
+    public async Task Handle_WhenMentorRequesterIsNotOwner_ThrowsForbiddenException()
+    {
+        // Arrange — requester is a mentor whose user id does NOT own this mentor profile
+        var command = MentorTestData.BuildAddSkillCommand(requesterUserId: Guid.NewGuid());
+
+        _mentorRepo
+            .Setup(r => r.GetByIdAsync(command.MentorId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(MentorTestData.BuildMentor(id: command.MentorId)); // UserId = Valid.UserId
+
+        // Act
+        var act = () => _sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        await act.Should().ThrowAsync<ForbiddenException>();
+        _mentorSkillRepo.Verify(
+            r => r.AddAsync(It.IsAny<MentorSkill>(), It.IsAny<CancellationToken>()),
+            Times.Never
+        );
+    }
+
+    [Fact]
+    public async Task Handle_WhenRequesterIsOwner_AddsSkill()
+    {
+        // Arrange — requester user id matches the mentor's owning user id
+        var command = MentorTestData.BuildAddSkillCommand(
+            requesterUserId: MentorTestData.Valid.UserId
+        );
+        SetupHappyPath(command.MentorId, command.SkillName);
+
+        // Act
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.Should().Be(command.MentorId);
+    }
+
+    [Fact]
+    public async Task Handle_WhenAdminRequester_BypassesOwnershipCheck()
+    {
+        // Arrange — admin acting on a mentor they do not own
+        var command = MentorTestData.BuildAddSkillCommand(
+            requesterUserId: Guid.NewGuid(),
+            requesterIsAdmin: true
+        );
+        SetupHappyPath(command.MentorId, command.SkillName);
+
+        // Act
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.Should().Be(command.MentorId);
+    }
+
+    [Fact]
     public async Task Handle_WhenSkillAlreadyExists_ThrowsConflictException()
     {
         // Arrange

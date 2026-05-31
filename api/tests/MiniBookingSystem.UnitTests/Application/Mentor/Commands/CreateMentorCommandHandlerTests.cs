@@ -166,6 +166,52 @@ public sealed class CreateMentorCommandHandlerTests
     }
 
     [Fact]
+    public async Task Handle_PersistsSocialLinksFromCommand()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var command = MentorTestData.BuildCreateMentorCommand();
+        global::Mentor? captured = null;
+
+        _unitOfWork
+            .Setup(u => u.BeginTransactionAsync(It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+        _identityService
+            .Setup(s =>
+                s.RegisterAsync(
+                    command.FullName,
+                    command.Email,
+                    It.IsAny<string>(),
+                    command.PhoneNumber,
+                    It.IsAny<string?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(userId);
+        _userRepo
+            .Setup(r => r.UpdateRoleAsync(userId, Roles.Mentor, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(userId);
+        _mentorRepo
+            .Setup(r => r.AddAsync(It.IsAny<global::Mentor>(), It.IsAny<CancellationToken>()))
+            .Callback<global::Mentor, CancellationToken>((m, _) => captured = m)
+            .ReturnsAsync((global::Mentor m, CancellationToken _) => m);
+        _unitOfWork.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        _unitOfWork
+            .Setup(u => u.CommitTransactionAsync(It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        await _sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        captured!.FacebookUrl.Should().Be(command.FacebookUrl);
+        captured.GithubUrl.Should().Be(command.GithubUrl);
+        captured.LinkedInUrl.Should().Be(command.LinkedInUrl);
+        captured.TelegramUrl.Should().Be(command.TelegramUrl);
+        captured.WebsiteUrl.Should().Be(command.WebsiteUrl);
+    }
+
+    [Fact]
     public async Task Handle_AssignsMentorRoleToCreatedUser()
     {
         // Arrange

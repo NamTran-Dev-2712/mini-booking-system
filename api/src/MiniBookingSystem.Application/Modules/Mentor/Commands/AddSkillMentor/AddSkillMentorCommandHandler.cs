@@ -27,6 +27,11 @@ public class AddSkillMentorCommandHandler : IRequestHandler<AddSkillMentorComman
         if (mentor == null)
             throw new NotFoundException(_localizer.GetMessage("Mentor.NotFound"));
 
+        // A mentor may only manage skills on their own profile; admins bypass this.
+        // mentor.UserId is the owning user; request.RequesterUserId comes from the JWT.
+        if (!request.RequesterIsAdmin && mentor.UserId != request.RequesterUserId)
+            throw new ForbiddenException(_localizer.GetMessage("Mentor.AddSkillOwn"));
+
         // Check if the skill already exists for the mentor
         if (
             await _unitOfWork.MentorSkill.MentorHasSkillAsync(

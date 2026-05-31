@@ -60,6 +60,11 @@ public class GetMentorDetailHandler : IRequestHandler<GetMentorDetailQuery, Ment
             BasePrice = mentor.BasePrice,
             AvatarUrl = mentor.AvatarUrl,
             IsActive = mentor.IsActive,
+            FacebookUrl = mentor.FacebookUrl,
+            GithubUrl = mentor.GithubUrl,
+            LinkedInUrl = mentor.LinkedInUrl,
+            TelegramUrl = mentor.TelegramUrl,
+            WebsiteUrl = mentor.WebsiteUrl,
             // Guard against legacy rows that have DateTime.MinValue (0001-01-01) stored in DB.
             CreatedAt = mentor.CreatedAt == default ? DateTime.UtcNow : mentor.CreatedAt,
             Skills = mentorSkills
@@ -74,6 +79,7 @@ public class GetMentorDetailHandler : IRequestHandler<GetMentorDetailQuery, Ment
                     EndTime = ms.EndTime,
                     Status = ms.Status,
                     Price = ms.Price,
+                    Location = ms.Location,
                     MaxBookings = ms.MaxBookings,
                     CurrentBookings = ms.CurrentBookings,
                 })

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { mentorSocialSchemaShape } from "~/components/shared/mentor/social-links";
 
 // Vietnamese full name: letters (including diacritics) and spaces only
 const vietnameseNameRegex = /^[a-zA-ZÀ-ỹÀ-ɏḀ-ỿ\s]+$/u;
@@ -65,6 +66,8 @@ export const createMentorSchema = z
       )
       .optional()
       .or(z.literal("")),
+
+    ...mentorSocialSchemaShape,
   })
   .superRefine((data, ctx) => {
     if (
@@ -134,6 +137,8 @@ export const updateMentorSchema = z.object({
     .regex(urlRegex, "Invalid avatar URL")
     .optional()
     .or(z.literal("")),
+
+  ...mentorSocialSchemaShape,
 });
 
 export type UpdateMentorFormData = z.infer<typeof updateMentorSchema>;

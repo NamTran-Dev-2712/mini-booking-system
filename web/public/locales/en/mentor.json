@@ -57,7 +57,9 @@
     "all": "All",
     "newSlot": "New Slot",
     "createNewSlot": "Create New Slot",
-    "editSlotTitle": "Edit Slot"
+    "editSlotTitle": "Edit Slot",
+    "location": "Location",
+    "locationPlaceholder": "e.g. Room 202, Building A — or an online meeting link"
   },
   "skills": {
     "title": "My Skills",
@@ -95,7 +97,15 @@
     "experience": "Experience",
     "basePriceLabel": "Base Price",
     "totalSlots": "Total Slots",
-    "noSkillsProfile": "No skills added yet. Go to the Skills page to add your expertise."
+    "noSkillsProfile": "No skills added yet. Go to the Skills page to add your expertise.",
+    "socialLinks": "Social Links",
+    "social": {
+      "facebook": "Facebook",
+      "github": "GitHub",
+      "linkedin": "LinkedIn",
+      "telegram": "Telegram",
+      "website": "Website"
+    }
   },
   "bookings": {
     "title": "Bookings",

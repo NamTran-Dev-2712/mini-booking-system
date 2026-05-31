@@ -33,6 +33,11 @@ export interface Mentor {
   basePrice: number;
   avatarUrl: string | null;
   isActive: boolean;
+  facebookUrl?: string | null;
+  githubUrl?: string | null;
+  linkedInUrl?: string | null;
+  telegramUrl?: string | null;
+  websiteUrl?: string | null;
   createdAt: string; // ISO string
 }
 
@@ -49,6 +54,7 @@ export interface MentorSlot {
   status: SlotStatus;
   price: number;
   description?: string | null;
+  location?: string | null;
   maxBookings: number;
   currentBookings: number;
 }

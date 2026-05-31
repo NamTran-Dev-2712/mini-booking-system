@@ -64,7 +64,7 @@ public sealed class RemoveSkillMentorCommandHandlerTests
         var skillId = MentorTestData.Valid.SkillId;
         SetupHappyPath(mentorId, skillId);
 
-        var command = new RemoveSkillMentorCommand(mentorId, skillId);
+        var command = MentorTestData.BuildRemoveSkillCommand(mentorId: mentorId, skillId: skillId);
 
         // Act
         var result = await _sut.Handle(command, CancellationToken.None);
@@ -81,7 +81,7 @@ public sealed class RemoveSkillMentorCommandHandlerTests
         var skillId = MentorTestData.Valid.SkillId;
         SetupHappyPath(mentorId, skillId);
 
-        var command = new RemoveSkillMentorCommand(mentorId, skillId);
+        var command = MentorTestData.BuildRemoveSkillCommand(mentorId: mentorId, skillId: skillId);
 
         // Act
         await _sut.Handle(command, CancellationToken.None);
@@ -99,7 +99,7 @@ public sealed class RemoveSkillMentorCommandHandlerTests
         var skillId = MentorTestData.Valid.SkillId;
         SetupHappyPath(mentorId, skillId);
 
-        var command = new RemoveSkillMentorCommand(mentorId, skillId);
+        var command = MentorTestData.BuildRemoveSkillCommand(mentorId: mentorId, skillId: skillId);
 
         // Act
         await _sut.Handle(command, CancellationToken.None);
@@ -109,6 +109,55 @@ public sealed class RemoveSkillMentorCommandHandlerTests
             c => c.RemoveAsync(CacheKeys.MentorDetail(mentorId), It.IsAny<CancellationToken>()),
             Times.Once
         );
+    }
+
+    // ── Ownership ──────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task Handle_WhenMentorRequesterIsNotOwner_ThrowsForbiddenException()
+    {
+        // Arrange — requester is a mentor whose user id does NOT own this mentor profile
+        var mentorId = MentorTestData.Valid.MentorId;
+        var skillId = MentorTestData.Valid.SkillId;
+
+        _mentorRepo
+            .Setup(r => r.GetByIdAsync(mentorId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(MentorTestData.BuildMentor(id: mentorId)); // UserId = Valid.UserId
+
+        var command = MentorTestData.BuildRemoveSkillCommand(
+            mentorId: mentorId,
+            skillId: skillId,
+            requesterUserId: Guid.NewGuid()
+        );
+
+        // Act
+        var act = () => _sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        await act.Should().ThrowAsync<ForbiddenException>();
+        _mentorSkillRepo.Verify(r => r.Remove(It.IsAny<MentorSkill>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_WhenAdminRequester_BypassesOwnershipCheck()
+    {
+        // Arrange — admin acting on a mentor they do not own
+        var mentorId = MentorTestData.Valid.MentorId;
+        var skillId = MentorTestData.Valid.SkillId;
+        SetupHappyPath(mentorId, skillId);
+
+        var command = MentorTestData.BuildRemoveSkillCommand(
+            mentorId: mentorId,
+            skillId: skillId,
+            requesterUserId: Guid.NewGuid(),
+            requesterIsAdmin: true
+        );
+
+        // Act
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.Should().Be(Unit.Value);
     }
 
     // ── Error paths ────────────────────────────────────────────────────────
@@ -124,7 +173,7 @@ public sealed class RemoveSkillMentorCommandHandlerTests
             .Setup(r => r.GetByIdAsync(mentorId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((global::Mentor?)null);
 
-        var command = new RemoveSkillMentorCommand(mentorId, skillId);
+        var command = MentorTestData.BuildRemoveSkillCommand(mentorId: mentorId, skillId: skillId);
 
         // Act
         var act = () => _sut.Handle(command, CancellationToken.None);
@@ -148,7 +197,7 @@ public sealed class RemoveSkillMentorCommandHandlerTests
             .Setup(r => r.GetByIdAsync(skillId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((MentorSkill?)null);
 
-        var command = new RemoveSkillMentorCommand(mentorId, skillId);
+        var command = MentorTestData.BuildRemoveSkillCommand(mentorId: mentorId, skillId: skillId);
 
         // Act
         var act = () => _sut.Handle(command, CancellationToken.None);
@@ -174,7 +223,7 @@ public sealed class RemoveSkillMentorCommandHandlerTests
             .Setup(r => r.GetByIdAsync(skillId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(MentorTestData.BuildMentorSkill(id: skillId, mentorId: otherMentorId));
 
-        var command = new RemoveSkillMentorCommand(mentorId, skillId);
+        var command = MentorTestData.BuildRemoveSkillCommand(mentorId: mentorId, skillId: skillId);
 
         // Act
         var act = () => _sut.Handle(command, CancellationToken.None);

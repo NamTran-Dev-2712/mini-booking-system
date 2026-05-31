@@ -145,6 +145,26 @@ echo "  Generating nginx configs..."
 ensure_nginx_config
 $COMPOSE_CMD up -d postgres_db redis_cache nginx certbot
 
+# Step 2b: Backup + apply database migrations using the NEW image, BEFORE
+# starting the target app or switching traffic. Migrations must be backward-
+# compatible (Expand pattern) so the old containers keep serving safely during
+# the cutover window. If migration fails, the deploy aborts here (set -e) and
+# the live (old) site is left untouched.
+echo "[2b/8] Waiting for postgres to be healthy..."
+PG_RETRIES=0
+until [ "$(docker inspect --format='{{.State.Health.Status}}' postgres_prod 2>/dev/null || echo starting)" = "healthy" ]; do
+    PG_RETRIES=$((PG_RETRIES + 1))
+    if [ $PG_RETRIES -ge 30 ]; then
+        echo "ERROR: postgres did not become healthy in time."
+        exit 1
+    fi
+    echo "  waiting for postgres... ($PG_RETRIES/30)"
+    sleep 2
+done
+
+echo "[2b/8] Backing up and migrating database..."
+bash infra/scripts/migrate-db.sh "$TARGET_COLOR"
+
 # Step 3: Start target color containers
 echo "[3/7] Starting $TARGET_COLOR containers..."
 $COMPOSE_CMD --profile "$TARGET_COLOR" up -d "api-${TARGET_COLOR}" "web-${TARGET_COLOR}"

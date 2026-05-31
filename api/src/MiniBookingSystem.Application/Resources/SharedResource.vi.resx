@@ -179,6 +179,9 @@
   <data name="Mentor.RemoveSkillOwn" xml:space="preserve">
     <value>Bạn chỉ có thể xóa kỹ năng khỏi hồ sơ của mình.</value>
   </data>
+  <data name="Mentor.ManageSlotOwn" xml:space="preserve">
+    <value>Bạn chỉ có thể quản lý lịch (slot) trên hồ sơ của mình.</value>
+  </data>
   <data name="Mentor.IdMismatch" xml:space="preserve">
     <value>ID trong URL không khớp với MentorId trong body.</value>
   </data>

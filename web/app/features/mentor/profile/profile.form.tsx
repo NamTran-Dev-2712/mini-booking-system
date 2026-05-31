@@ -14,6 +14,7 @@ import { Input } from "~/components/ui/input";
 import { Separator } from "~/components/ui/separator";
 import { Skeleton } from "~/components/ui/skeleton";
 import { Textarea } from "~/components/ui/textarea";
+import { MENTOR_SOCIAL_FIELDS } from "~/components/shared/mentor/social-links";
 import { useMentorProfileForm } from "./profile.hook";
 
 export function MentorProfileForm() {
@@ -189,6 +190,41 @@ export function MentorProfileForm() {
                 </FormItem>
               )}
             />
+          </div>
+        </div>
+
+        <Separator />
+
+        <div className="space-y-4">
+          <h4 className="text-sm font-medium text-muted-foreground">
+            {t("profile.socialLinks", { defaultValue: "Social Links" })}
+          </h4>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            {MENTOR_SOCIAL_FIELDS.map((social) => (
+              <FormField
+                key={social.key}
+                control={form.control}
+                name={social.key}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-1.5">
+                      <social.icon className="size-3.5 text-muted-foreground" />
+                      {t(social.labelKey)}
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type="url"
+                        placeholder={social.placeholder}
+                        {...field}
+                        value={field.value ?? ""}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            ))}
           </div>
         </div>
 

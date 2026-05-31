@@ -61,6 +61,11 @@ public class GetMentorQueryHandler : BaseGetQueryHandler<GetMentorQuery, Mentor,
             BasePrice = m.BasePrice,
             AvatarUrl = m.AvatarUrl,
             IsActive = m.IsActive,
+            FacebookUrl = m.FacebookUrl,
+            GithubUrl = m.GithubUrl,
+            LinkedInUrl = m.LinkedInUrl,
+            TelegramUrl = m.TelegramUrl,
+            WebsiteUrl = m.WebsiteUrl,
             CreatedAt = m.CreatedAt,
         });
     }

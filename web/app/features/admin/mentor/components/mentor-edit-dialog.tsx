@@ -41,6 +41,7 @@ import {
 import { useAddMentorSkillMutation } from "~/hooks/mentor/use-add-mentor-skill-mutation";
 import { useRemoveMentorSkillMutation } from "~/hooks/mentor/use-remove-mentor-skill-mutation";
 import { useUpdateMentorMutation } from "~/hooks/mentor/use-update-mentor-mutation";
+import { MENTOR_SOCIAL_FIELDS } from "~/components/shared/mentor/social-links";
 import { HotkeyScopes } from "~/lib/hotkeys/hotkey-scopes";
 import type { MentorDetail, MentorSkill } from "~/types/mentor/mentor";
 import {
@@ -203,6 +204,11 @@ export function MentorEditDialog({
       experienceYears: 0,
       basePrice: 0,
       avatarUrl: "",
+      facebookUrl: "",
+      githubUrl: "",
+      linkedInUrl: "",
+      telegramUrl: "",
+      websiteUrl: "",
     },
   });
 
@@ -220,6 +226,11 @@ export function MentorEditDialog({
         experienceYears: mentor.experienceYears ?? 0,
         basePrice: mentor.basePrice ?? 0,
         avatarUrl: mentor.avatarUrl ?? "",
+        facebookUrl: mentor.facebookUrl ?? "",
+        githubUrl: mentor.githubUrl ?? "",
+        linkedInUrl: mentor.linkedInUrl ?? "",
+        telegramUrl: mentor.telegramUrl ?? "",
+        websiteUrl: mentor.websiteUrl ?? "",
       });
       setActiveTab("profile");
     }
@@ -254,6 +265,11 @@ export function MentorEditDialog({
         experienceYears: data.experienceYears ?? null,
         basePrice: data.basePrice ?? null,
         avatarUrl: data.avatarUrl || null,
+        facebookUrl: data.facebookUrl || null,
+        githubUrl: data.githubUrl || null,
+        linkedInUrl: data.linkedInUrl || null,
+        telegramUrl: data.telegramUrl || null,
+        websiteUrl: data.websiteUrl || null,
       },
     });
     onOpenChange(false);
@@ -475,6 +491,39 @@ export function MentorEditDialog({
                         </FormItem>
                       )}
                     />
+
+                    {/* Social links */}
+                    <div className="space-y-4">
+                      <h4 className="text-sm font-medium text-muted-foreground">
+                        Social Links
+                      </h4>
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        {MENTOR_SOCIAL_FIELDS.map((social) => (
+                          <FormField
+                            key={social.key}
+                            control={form.control}
+                            name={social.key}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="flex items-center gap-1.5">
+                                  <social.icon className="size-3.5 text-muted-foreground" />
+                                  {social.label}
+                                </FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="url"
+                                    placeholder={social.placeholder}
+                                    {...field}
+                                    value={field.value ?? ""}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        ))}
+                      </div>
+                    </div>
 
                     {/* Submit */}
                     <Button

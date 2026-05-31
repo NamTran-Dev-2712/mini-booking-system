@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
+import { Loader2, MapPin } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { Button } from "~/components/ui/button";
@@ -61,6 +61,7 @@ export function MentorSlotForm({
           price: slot.price,
           maxBookings: slot.maxBookings ?? 1,
           description: slot.description ?? "",
+          location: slot.location ?? "",
         }
       : {
           name: "",
@@ -69,6 +70,7 @@ export function MentorSlotForm({
           price: 0,
           maxBookings: 1,
           description: "",
+          location: "",
         },
   });
 
@@ -80,6 +82,7 @@ export function MentorSlotForm({
       price: data.price,
       maxBookings: data.maxBookings,
       description: data.description || null,
+      location: data.location || null,
     };
 
     if (isEdit && slot) {
@@ -187,6 +190,30 @@ export function MentorSlotForm({
             )}
           />
         </div>
+
+        <FormField
+          control={form.control}
+          name="location"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="flex items-center gap-1.5">
+                <MapPin className="size-3.5 text-muted-foreground" />
+                {t("schedule.location", { defaultValue: "Location" })}
+              </FormLabel>
+              <FormControl>
+                <Input
+                  placeholder={t("schedule.locationPlaceholder", {
+                    defaultValue:
+                      "e.g. Room 202, Building A — or an online meeting link",
+                  })}
+                  {...field}
+                  value={field.value ?? ""}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <FormField
           control={form.control}

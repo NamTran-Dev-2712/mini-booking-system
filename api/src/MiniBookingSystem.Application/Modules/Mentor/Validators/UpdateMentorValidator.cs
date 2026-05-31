@@ -43,5 +43,22 @@ public class UpdateMentorCommandValidator : AbstractValidator<UpdateMentorComman
             .NotEmpty()
             .WithMessage("Specialization must not be empty if updating.")
             .When(x => x.Specialization != null);
+
+        // Social links (optional)
+        RuleFor(x => x.FacebookUrl)
+            .MustBeValidSocialLink("Facebook")
+            .When(x => !string.IsNullOrEmpty(x.FacebookUrl));
+        RuleFor(x => x.GithubUrl)
+            .MustBeValidSocialLink("GitHub")
+            .When(x => !string.IsNullOrEmpty(x.GithubUrl));
+        RuleFor(x => x.LinkedInUrl)
+            .MustBeValidSocialLink("LinkedIn")
+            .When(x => !string.IsNullOrEmpty(x.LinkedInUrl));
+        RuleFor(x => x.TelegramUrl)
+            .MustBeValidSocialLink("Telegram")
+            .When(x => !string.IsNullOrEmpty(x.TelegramUrl));
+        RuleFor(x => x.WebsiteUrl)
+            .MustBeValidSocialLink("Website")
+            .When(x => !string.IsNullOrEmpty(x.WebsiteUrl));
     }
 }

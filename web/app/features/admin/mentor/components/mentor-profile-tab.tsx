@@ -1,5 +1,6 @@
 import { format } from "date-fns";
 import { useTranslation } from "react-i18next";
+import { MENTOR_SOCIAL_FIELDS } from "~/components/shared/mentor/social-links";
 import type { MentorDetail } from "~/types/mentor/mentor";
 
 interface MentorProfileTabProps {
@@ -71,6 +72,29 @@ export function MentorProfileTab({ mentor }: MentorProfileTabProps) {
           <p className="rounded-lg border p-4 text-sm leading-relaxed text-muted-foreground">
             {mentor.bio}
           </p>
+        </div>
+      )}
+
+      {/* Social links */}
+      {MENTOR_SOCIAL_FIELDS.some((s) => mentor[s.key]) && (
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium">
+            {t("profile.socialLinks", { defaultValue: "Social Links" })}
+          </h3>
+          <div className="flex flex-col gap-2 rounded-lg border p-4">
+            {MENTOR_SOCIAL_FIELDS.filter((s) => mentor[s.key]).map((social) => (
+              <a
+                key={social.key}
+                href={mentor[social.key] as string}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <social.icon className="size-4 shrink-0" />
+                <span className="break-all">{mentor[social.key]}</span>
+              </a>
+            ))}
+          </div>
         </div>
       )}
     </div>

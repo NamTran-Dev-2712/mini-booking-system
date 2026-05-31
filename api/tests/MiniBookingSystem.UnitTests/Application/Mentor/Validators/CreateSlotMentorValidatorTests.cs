@@ -259,4 +259,36 @@ public sealed class CreateSlotMentorValidatorTests
             .TestValidate(ValidCommand() with { Description = new string('a', 1000) })
             .ShouldNotHaveValidationErrorFor(x => x.Description);
     }
+
+    // ── Location rules ─────────────────────────────────────────────────────
+
+    [Fact]
+    public void Validate_WhenLocationIsNull_HasNoError()
+    {
+        _validator
+            .TestValidate(ValidCommand() with { Location = null })
+            .ShouldNotHaveValidationErrorFor(x => x.Location);
+    }
+
+    [Fact]
+    public void Validate_WhenLocationExceeds500Characters_HasError()
+    {
+        var result = _validator.TestValidate(
+            ValidCommand() with
+            {
+                Location = new string('a', 501),
+            }
+        );
+        result
+            .ShouldHaveValidationErrorFor(x => x.Location)
+            .WithErrorMessage("Location cannot exceed 500 characters.");
+    }
+
+    [Fact]
+    public void Validate_WhenLocationIsExactly500Characters_HasNoError()
+    {
+        _validator
+            .TestValidate(ValidCommand() with { Location = new string('a', 500) })
+            .ShouldNotHaveValidationErrorFor(x => x.Location);
+    }
 }

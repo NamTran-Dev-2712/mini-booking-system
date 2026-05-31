@@ -50,6 +50,11 @@ public class UpdateSlotMentorCommandValidator : AbstractValidator<UpdateSlotMent
             .MaximumLength(1000)
             .WithMessage("Description cannot exceed 1000 characters.");
 
+        // 7b. Validate Location (optional)
+        RuleFor(x => x.Location)
+            .MaximumLength(500)
+            .WithMessage("Location cannot exceed 500 characters.");
+
         // 8. Validate Price
         RuleFor(x => x.Price)
             .GreaterThanOrEqualTo(0)

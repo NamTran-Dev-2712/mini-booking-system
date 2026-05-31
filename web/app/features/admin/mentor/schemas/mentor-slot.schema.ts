@@ -20,6 +20,11 @@ export const mentorSlotSchema = z
       .max(1000, "Description must not exceed 1000 characters")
       .optional()
       .or(z.literal("")),
+    location: z
+      .string()
+      .max(500, "Location must not exceed 500 characters")
+      .optional()
+      .or(z.literal("")),
   })
   .superRefine((data, ctx) => {
     const start = new Date(data.startTime);

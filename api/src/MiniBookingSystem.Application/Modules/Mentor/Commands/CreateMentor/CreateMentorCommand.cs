@@ -9,5 +9,10 @@ public record CreateMentorCommand(
     string? Specialization,
     int ExperienceYears,
     decimal BasePrice,
-    string? AvatarUrl
+    string? AvatarUrl,
+    string? FacebookUrl = null,
+    string? GithubUrl = null,
+    string? LinkedInUrl = null,
+    string? TelegramUrl = null,
+    string? WebsiteUrl = null
 ) : IRequest<Guid>;
