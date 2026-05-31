@@ -36,11 +36,17 @@ if [ -z "$TARGET_COLOR" ]; then
     fi
 fi
 
-# Load env (registry, image tag, db creds) for compose interpolation
-set -a
-# shellcheck source=/dev/null
-source "$ENV_FILE"
-set +a
+# Read ONLY the values we need from the env file. We deliberately do NOT `source`
+# it: values may legitimately contain spaces (e.g. RESEND_FROM_NAME=Mini Booking
+# System), which break shell sourcing ("command not found"). docker compose reads
+# the file itself via --env-file for variable interpolation, so no export needed.
+read_env() { grep -E "^$1=" "$ENV_FILE" | head -n1 | cut -d= -f2-; }
+
+POSTGRES_USER="$(read_env POSTGRES_USER)"
+POSTGRES_DB="$(read_env POSTGRES_DB)"
+REGISTRY="$(read_env REGISTRY)"
+IMAGE_PREFIX="$(read_env IMAGE_PREFIX)"
+IMAGE_TAG="$(read_env IMAGE_TAG)"
 
 echo "=== Database Migration ==="
 echo "Image:  ${REGISTRY:-ghcr.io}/${IMAGE_PREFIX}/api:${IMAGE_TAG:-latest}"

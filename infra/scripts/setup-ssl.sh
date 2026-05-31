@@ -21,10 +21,9 @@ echo "API:      $API_DOMAIN"
 echo "Email:    $EMAIL"
 echo "=================="
 
-# Load environment variables for docker compose
-set -a
-source .env.production
-set +a
+# NOTE: do NOT `source .env.production` — values may contain spaces (e.g.
+# RESEND_FROM_NAME=Mini Booking System) which break shell sourcing. docker
+# compose reads it via the --env-file flag in COMPOSE_CMD for interpolation.
 
 # Step 1: Create temporary nginx config for ACME challenge (both domains)
 echo "[1/5] Creating temporary HTTP-only nginx config..."
