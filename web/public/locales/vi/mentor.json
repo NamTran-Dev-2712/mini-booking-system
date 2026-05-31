@@ -57,7 +57,9 @@
     "all": "Tất cả",
     "newSlot": "Khung giờ mới",
     "createNewSlot": "Tạo khung giờ mới",
-    "editSlotTitle": "Sửa khung giờ"
+    "editSlotTitle": "Sửa khung giờ",
+    "location": "Địa điểm",
+    "locationPlaceholder": "VD: Phòng 202, Toà A — hoặc link họp online"
   },
   "skills": {
     "title": "Kỹ năng của tôi",
@@ -95,7 +97,15 @@
     "experience": "Kinh nghiệm",
     "basePriceLabel": "Giá cơ bản",
     "totalSlots": "Tổng khung giờ",
-    "noSkillsProfile": "Chưa thêm kỹ năng nào. Vào trang Kỹ năng để thêm chuyên môn."
+    "noSkillsProfile": "Chưa thêm kỹ năng nào. Vào trang Kỹ năng để thêm chuyên môn.",
+    "socialLinks": "Liên kết mạng xã hội",
+    "social": {
+      "facebook": "Facebook",
+      "github": "GitHub",
+      "linkedin": "LinkedIn",
+      "telegram": "Telegram",
+      "website": "Website"
+    }
   },
   "bookings": {
     "title": "Lịch hẹn",

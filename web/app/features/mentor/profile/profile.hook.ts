@@ -25,6 +25,11 @@ export function useMentorProfileForm() {
       experienceYears: 0,
       basePrice: 0,
       avatarUrl: "",
+      facebookUrl: "",
+      githubUrl: "",
+      linkedInUrl: "",
+      telegramUrl: "",
+      websiteUrl: "",
     },
   });
 
@@ -39,6 +44,11 @@ export function useMentorProfileForm() {
         experienceYears: mentor.experienceYears,
         basePrice: mentor.basePrice,
         avatarUrl: mentor.avatarUrl ?? "",
+        facebookUrl: mentor.facebookUrl ?? "",
+        githubUrl: mentor.githubUrl ?? "",
+        linkedInUrl: mentor.linkedInUrl ?? "",
+        telegramUrl: mentor.telegramUrl ?? "",
+        websiteUrl: mentor.websiteUrl ?? "",
       });
     }
   }, [profile, mentor, form]);
@@ -53,6 +63,11 @@ export function useMentorProfileForm() {
       experienceYears: data.experienceYears,
       basePrice: data.basePrice,
       avatarUrl: data.avatarUrl || undefined,
+      facebookUrl: data.facebookUrl || undefined,
+      githubUrl: data.githubUrl || undefined,
+      linkedInUrl: data.linkedInUrl || undefined,
+      telegramUrl: data.telegramUrl || undefined,
+      websiteUrl: data.websiteUrl || undefined,
     });
   }
 

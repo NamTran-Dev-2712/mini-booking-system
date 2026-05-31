@@ -194,6 +194,87 @@ public sealed class CreateSlotMentorCommandHandlerTests
         captured!.Name.Should().Be("Morning Session");
     }
 
+    [Fact]
+    public async Task Handle_SetsLocationFromCommand()
+    {
+        // Arrange
+        var command = MentorTestData.BuildCreateSlotCommand(location: "Room 101, Hanoi");
+        MentorSlot? captured = null;
+
+        _mentorRepo
+            .Setup(r => r.GetByIdAsync(command.MentorId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(MentorTestData.BuildMentor(id: command.MentorId));
+        _mentorSlotRepo
+            .Setup(r =>
+                r.IsSlotOverlappingAsync(
+                    command.MentorId,
+                    command.StartTime,
+                    command.EndTime,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(false);
+        _mentorSlotRepo
+            .Setup(r => r.AddAsync(It.IsAny<MentorSlot>(), It.IsAny<CancellationToken>()))
+            .Callback<MentorSlot, CancellationToken>((ms, _) => captured = ms)
+            .ReturnsAsync((MentorSlot ms, CancellationToken _) => ms);
+        _unitOfWork.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        _cacheService
+            .Setup(c =>
+                c.RemoveAsync(
+                    CacheKeys.MentorDetail(command.MentorId),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Returns(Task.CompletedTask);
+
+        // Act
+        await _sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        captured!.Location.Should().Be("Room 101, Hanoi");
+    }
+
+    // ── Ownership ──────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task Handle_WhenMentorRequesterIsNotOwner_ThrowsForbiddenException()
+    {
+        // Arrange — requester is a mentor whose user id does NOT own this mentor profile
+        var command = MentorTestData.BuildCreateSlotCommand(requesterUserId: Guid.NewGuid());
+
+        _mentorRepo
+            .Setup(r => r.GetByIdAsync(command.MentorId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(MentorTestData.BuildMentor(id: command.MentorId)); // UserId = Valid.UserId
+
+        // Act
+        var act = () => _sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        await act.Should().ThrowAsync<ForbiddenException>();
+        _mentorSlotRepo.Verify(
+            r => r.AddAsync(It.IsAny<MentorSlot>(), It.IsAny<CancellationToken>()),
+            Times.Never
+        );
+    }
+
+    [Fact]
+    public async Task Handle_WhenAdminRequester_BypassesOwnershipCheck()
+    {
+        // Arrange — admin acting on a mentor they do not own
+        var command = MentorTestData.BuildCreateSlotCommand(
+            requesterUserId: Guid.NewGuid(),
+            requesterIsAdmin: true
+        );
+        SetupHappyPath(command);
+
+        // Act
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.Should().NotBeEmpty();
+    }
+
     // ── Error paths ────────────────────────────────────────────────────────
 
     [Fact]

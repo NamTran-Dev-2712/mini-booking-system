@@ -97,11 +97,24 @@ try
 
     app.MapControllers();
 
-    // Apply pending migrations automatically in production
+    // Apply pending EF Core migrations. Runs on every startup (idempotent) and is
+    // also the path used by the `--migrate-only` CI/CD step below.
     using (var scope = app.Services.CreateScope())
     {
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         await db.Database.MigrateAsync();
+    }
+
+    // `--migrate-only`: apply migrations then exit 0 WITHOUT starting the web
+    // server or seeding. Used by infra/scripts/migrate-db.sh to run migrations
+    // safely (with a pre-migration backup) before traffic is switched during the
+    // blue-green deploy. The `finally` below still flushes logs.
+    if (args.Contains("--migrate-only"))
+    {
+        Log.Information(
+            "Migrations applied successfully (--migrate-only). Exiting without starting the server."
+        );
+        return;
     }
 
     // Seed initial data (roles, mentors, etc.)

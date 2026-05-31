@@ -48,6 +48,11 @@ export function MentorCreateDialog({
       experienceYears: data.experienceYears,
       basePrice: data.basePrice,
       avatarUrl: data.avatarUrl || null,
+      facebookUrl: data.facebookUrl || null,
+      githubUrl: data.githubUrl || null,
+      linkedInUrl: data.linkedInUrl || null,
+      telegramUrl: data.telegramUrl || null,
+      websiteUrl: data.websiteUrl || null,
     });
     onOpenChange(false);
   }

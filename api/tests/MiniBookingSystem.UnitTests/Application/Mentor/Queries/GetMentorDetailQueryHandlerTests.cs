@@ -219,6 +219,33 @@ public sealed class GetMentorDetailQueryHandlerTests
         result.Slots[0].EndTime.Should().Be(slot.EndTime);
         result.Slots[0].Status.Should().Be(slot.Status);
         result.Slots[0].Price.Should().Be(slot.Price);
+        result.Slots[0].Location.Should().Be(slot.Location);
+    }
+
+    [Fact]
+    public async Task Handle_MapsSocialLinksFromMentor()
+    {
+        // Arrange
+        var mentorId = MentorTestData.Valid.MentorId;
+
+        _cacheService
+            .Setup(c =>
+                c.GetAsync<MentorDetailDTO>(It.IsAny<string>(), It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync((MentorDetailDTO?)null);
+        SetupDbPath(mentorId);
+
+        var query = new GetMentorDetailQuery(mentorId);
+
+        // Act
+        var result = await _sut.Handle(query, CancellationToken.None);
+
+        // Assert
+        result.FacebookUrl.Should().Be(MentorTestData.Valid.FacebookUrl);
+        result.GithubUrl.Should().Be(MentorTestData.Valid.GithubUrl);
+        result.LinkedInUrl.Should().Be(MentorTestData.Valid.LinkedInUrl);
+        result.TelegramUrl.Should().Be(MentorTestData.Valid.TelegramUrl);
+        result.WebsiteUrl.Should().Be(MentorTestData.Valid.WebsiteUrl);
     }
 
     // ── Error path ────────────────────────────────────────────────────────

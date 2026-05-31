@@ -7,5 +7,9 @@ public record CreateSlotMentorCommand(
     DateTime EndTime,
     string? Description,
     int MaxBookings,
-    decimal Price
+    decimal Price,
+    string? Location = null,
+    // Requester context, populated server-side from the JWT (never from the body).
+    Guid RequesterUserId = default,
+    bool RequesterIsAdmin = false
 ) : IRequest<Guid>;

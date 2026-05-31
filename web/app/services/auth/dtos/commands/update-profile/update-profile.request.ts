@@ -7,4 +7,9 @@ export interface UpdateProfileRequest {
   experienceYears?: number;
   basePrice?: number;
   avatarUrl?: string;
+  facebookUrl?: string;
+  githubUrl?: string;
+  linkedInUrl?: string;
+  telegramUrl?: string;
+  websiteUrl?: string;
 }

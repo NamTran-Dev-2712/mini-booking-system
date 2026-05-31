@@ -27,6 +27,10 @@ public class RemoveSkillMentorCommandHandler : IRequestHandler<RemoveSkillMentor
         if (mentor == null)
             throw new NotFoundException(_localizer.GetMessage("Mentor.NotFound"));
 
+        // A mentor may only manage skills on their own profile; admins bypass this.
+        if (!request.RequesterIsAdmin && mentor.UserId != request.RequesterUserId)
+            throw new ForbiddenException(_localizer.GetMessage("Mentor.RemoveSkillOwn"));
+
         // Verify skill exists and belongs to this mentor
         var skill = await _unitOfWork.MentorSkill.GetByIdAsync(request.SkillId, cancellationToken);
         if (skill == null || skill.MentorId != request.MentorId)

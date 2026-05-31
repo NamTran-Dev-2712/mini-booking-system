@@ -8,4 +8,9 @@ export interface CreateMentorRequest {
   experienceYears: number;
   basePrice: number;
   avatarUrl?: string | null;
+  facebookUrl?: string | null;
+  githubUrl?: string | null;
+  linkedInUrl?: string | null;
+  telegramUrl?: string | null;
+  websiteUrl?: string | null;
 }

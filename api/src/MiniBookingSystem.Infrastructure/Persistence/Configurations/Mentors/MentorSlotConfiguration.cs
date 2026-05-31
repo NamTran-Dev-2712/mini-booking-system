@@ -20,6 +20,7 @@ public class MentorSlotConfiguration : IEntityTypeConfiguration<MentorSlot>
         builder.Property(ms => ms.Price).IsRequired().HasColumnType("decimal(18,2)");
 
         builder.Property(ms => ms.Description).HasMaxLength(1000);
+        builder.Property(ms => ms.Location).HasMaxLength(500);
         builder.Property(ms => ms.MaxBookings).IsRequired();
         builder.Property(ms => ms.CurrentBookings).HasDefaultValue(0);
 
