@@ -8,11 +8,16 @@ set -euo pipefail
 
 DEPLOY_DIR="/opt/mini-booking-system"
 BACKUP_DIR="/opt/mini-booking-system/backups"
+ENV_FILE="${DEPLOY_DIR}/.env.production"
 RETENTION_DAYS=7
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 
-# Load env
-source "${DEPLOY_DIR}/.env.production"
+# Read only the DB credentials we need. We deliberately do NOT `source` the env
+# file: values may contain spaces (e.g. RESEND_FROM_NAME=Mini Booking System),
+# which would break shell sourcing ("command not found").
+read_env() { grep -E "^$1=" "$ENV_FILE" | head -n1 | cut -d= -f2-; }
+POSTGRES_USER="$(read_env POSTGRES_USER)"
+POSTGRES_DB="$(read_env POSTGRES_DB)"
 
 mkdir -p "$BACKUP_DIR"
 
