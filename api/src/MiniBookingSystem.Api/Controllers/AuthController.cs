@@ -131,7 +131,12 @@ public class AuthController : BaseApiController
             request.Specialization,
             request.ExperienceYears,
             request.BasePrice,
-            request.AvatarUrl
+            request.AvatarUrl,
+            request.FacebookUrl,
+            request.GithubUrl,
+            request.LinkedInUrl,
+            request.TelegramUrl,
+            request.WebsiteUrl
         );
 
         await _mediator.Send(command, cancellationToken);

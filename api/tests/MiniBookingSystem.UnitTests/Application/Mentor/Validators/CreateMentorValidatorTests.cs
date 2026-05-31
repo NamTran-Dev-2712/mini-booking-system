@@ -225,4 +225,59 @@ public sealed class CreateMentorValidatorTests
             .TestValidate(ValidCommand() with { AvatarUrl = null })
             .ShouldNotHaveValidationErrorFor(x => x.AvatarUrl);
     }
+
+    // ── Social link rules ──────────────────────────────────────────────────
+
+    [Fact]
+    public void Validate_WhenAllSocialLinksAreNull_HasNoError()
+    {
+        var cmd = ValidCommand() with
+        {
+            FacebookUrl = null,
+            GithubUrl = null,
+            LinkedInUrl = null,
+            TelegramUrl = null,
+            WebsiteUrl = null,
+        };
+
+        var result = _validator.TestValidate(cmd);
+
+        result.ShouldNotHaveValidationErrorFor(x => x.FacebookUrl);
+        result.ShouldNotHaveValidationErrorFor(x => x.GithubUrl);
+        result.ShouldNotHaveValidationErrorFor(x => x.LinkedInUrl);
+        result.ShouldNotHaveValidationErrorFor(x => x.TelegramUrl);
+        result.ShouldNotHaveValidationErrorFor(x => x.WebsiteUrl);
+    }
+
+    [Theory]
+    [InlineData("not-a-url")]
+    [InlineData("ftp://invalid")]
+    public void Validate_WhenFacebookUrlIsInvalid_HasUrlError(string url)
+    {
+        var result = _validator.TestValidate(ValidCommand() with { FacebookUrl = url });
+        result
+            .ShouldHaveValidationErrorFor(x => x.FacebookUrl)
+            .WithErrorMessage("Invalid Facebook URL.");
+    }
+
+    [Fact]
+    public void Validate_WhenGithubUrlExceeds500Chars_HasMaxLengthError()
+    {
+        var longUrl = "https://github.com/" + new string('a', 500);
+        var result = _validator.TestValidate(ValidCommand() with { GithubUrl = longUrl });
+        result
+            .ShouldHaveValidationErrorFor(x => x.GithubUrl)
+            .WithErrorMessage("GitHub URL must not exceed 500 characters.");
+    }
+
+    [Fact]
+    public void Validate_WhenSocialLinksAreValidUrls_HasNoError()
+    {
+        var result = _validator.TestValidate(ValidCommand());
+        result.ShouldNotHaveValidationErrorFor(x => x.FacebookUrl);
+        result.ShouldNotHaveValidationErrorFor(x => x.GithubUrl);
+        result.ShouldNotHaveValidationErrorFor(x => x.LinkedInUrl);
+        result.ShouldNotHaveValidationErrorFor(x => x.TelegramUrl);
+        result.ShouldNotHaveValidationErrorFor(x => x.WebsiteUrl);
+    }
 }

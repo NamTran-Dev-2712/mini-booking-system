@@ -1,5 +1,5 @@
 import { format, isSameDay } from "date-fns";
-import { CalendarDays, Clock, Plus } from "lucide-react";
+import { CalendarDays, Clock, MapPin, Plus } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Badge } from "~/components/ui/badge";
@@ -159,6 +159,13 @@ export function MentorSlotsTab({
                           </span>
                         </div>
                       </div>
+
+                      {slot.location && (
+                        <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <MapPin className="size-3.5 shrink-0" />
+                          <span className="truncate">{slot.location}</span>
+                        </div>
+                      )}
 
                       {slot.description && (
                         <Tooltip>

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { mentorSocialSchemaShape } from "~/components/shared/mentor/social-links";
 
 const vietnameseFullName = /^[\p{L}]+(?:\s[\p{L}]+)*$/u;
 const vietnamesePhone = /^(0|\+84|84)(3|5|7|8|9)\d{8}$/;
@@ -49,6 +50,8 @@ export const mentorProfileSchema = z.object({
     )
     .optional()
     .or(z.literal("")),
+
+  ...mentorSocialSchemaShape,
 });
 
 export type MentorProfileFormData = z.infer<typeof mentorProfileSchema>;

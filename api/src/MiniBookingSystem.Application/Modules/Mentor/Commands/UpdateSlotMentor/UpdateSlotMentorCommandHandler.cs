@@ -26,6 +26,10 @@ public class UpdateSlotMentorCommandHandler : IRequestHandler<UpdateSlotMentorCo
         if (mentor == null)
             throw new NotFoundException(_localizer.GetMessage("Mentor.NotFound"));
 
+        // A mentor may only manage slots on their own profile; admins bypass this.
+        if (!request.RequesterIsAdmin && mentor.UserId != request.RequesterUserId)
+            throw new ForbiddenException(_localizer.GetMessage("Mentor.ManageSlotOwn"));
+
         // Check for overlapping slots
         if (
             await _unitOfWork.MentorSlot.IsSlotOverlappingAsync(
@@ -47,6 +51,7 @@ public class UpdateSlotMentorCommandHandler : IRequestHandler<UpdateSlotMentorCo
         mentorSlot.EndTime = request.EndTime;
         mentorSlot.Price = request.Price;
         mentorSlot.Description = request.Description;
+        mentorSlot.Location = request.Location;
         mentorSlot.MaxBookings = request.MaxBookings;
 
         await _unitOfWork.MentorSlot.UpdateSlotAsync(mentorSlot, cancellationToken);

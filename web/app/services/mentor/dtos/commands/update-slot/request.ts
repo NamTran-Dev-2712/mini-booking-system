@@ -6,5 +6,6 @@ export interface UpdateSlotRequest {
   endTime: string; // ISO string
   price: number;
   description?: string | null;
+  location?: string | null;
   maxBookings: number;
 }

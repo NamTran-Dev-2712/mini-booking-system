@@ -179,6 +179,9 @@
   <data name="Mentor.RemoveSkillOwn" xml:space="preserve">
     <value>You can only remove skills from your own profile.</value>
   </data>
+  <data name="Mentor.ManageSlotOwn" xml:space="preserve">
+    <value>You can only manage slots on your own profile.</value>
+  </data>
   <data name="Mentor.IdMismatch" xml:space="preserve">
     <value>ID in URL does not match MentorId in body.</value>
   </data>

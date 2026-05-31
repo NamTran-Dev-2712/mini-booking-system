@@ -25,6 +25,14 @@ internal static class MentorTestData
         public const decimal BasePrice = 500_000m;
         public const string AvatarUrl = "https://example.com/avatar.png";
         public const string SkillName = "C#";
+
+        public const string FacebookUrl = "https://facebook.com/mentor.minh";
+        public const string GithubUrl = "https://github.com/mentorminh";
+        public const string LinkedInUrl = "https://linkedin.com/in/mentorminh";
+        public const string TelegramUrl = "https://t.me/mentorminh";
+        public const string WebsiteUrl = "https://mentorminh.dev";
+
+        public const string SlotLocation = "Room 202, Building A, FPT University";
     }
 
     // ── Entity builders ────────────────────────────────────────────────────
@@ -49,7 +57,12 @@ internal static class MentorTestData
             specialization ?? Valid.Specialization,
             experienceYears ?? Valid.ExperienceYears,
             basePrice ?? Valid.BasePrice,
-            Valid.AvatarUrl
+            Valid.AvatarUrl,
+            Valid.FacebookUrl,
+            Valid.GithubUrl,
+            Valid.LinkedInUrl,
+            Valid.TelegramUrl,
+            Valid.WebsiteUrl
         );
         mentor.Id = id ?? Valid.MentorId;
         mentor.IsActive = isActive;
@@ -76,7 +89,8 @@ internal static class MentorTestData
         DateTime? startTime = null,
         DateTime? endTime = null,
         int maxBookings = 5,
-        int currentBookings = 0
+        int currentBookings = 0,
+        string? location = null
     )
     {
         var start = startTime ?? DateTime.UtcNow.AddDays(1);
@@ -89,6 +103,7 @@ internal static class MentorTestData
             EndTime = endTime ?? start.AddHours(1),
             Price = Valid.BasePrice,
             Status = status,
+            Location = location ?? Valid.SlotLocation,
             MaxBookings = maxBookings,
             CurrentBookings = currentBookings,
         };
@@ -110,13 +125,40 @@ internal static class MentorTestData
             Specialization: Valid.Specialization,
             ExperienceYears: experienceYears ?? Valid.ExperienceYears,
             BasePrice: basePrice ?? Valid.BasePrice,
-            AvatarUrl: Valid.AvatarUrl
+            AvatarUrl: Valid.AvatarUrl,
+            FacebookUrl: Valid.FacebookUrl,
+            GithubUrl: Valid.GithubUrl,
+            LinkedInUrl: Valid.LinkedInUrl,
+            TelegramUrl: Valid.TelegramUrl,
+            WebsiteUrl: Valid.WebsiteUrl
         );
 
     public static AddSkillMentorCommand BuildAddSkillCommand(
         Guid? mentorId = null,
-        string? skillName = null
-    ) => new(MentorId: mentorId ?? Valid.MentorId, SkillName: skillName ?? Valid.SkillName);
+        string? skillName = null,
+        Guid? requesterUserId = null,
+        bool requesterIsAdmin = false
+    ) =>
+        new(
+            MentorId: mentorId ?? Valid.MentorId,
+            SkillName: skillName ?? Valid.SkillName,
+            // Defaults to the owning user so existing happy-path tests pass ownership.
+            RequesterUserId: requesterUserId ?? Valid.UserId,
+            RequesterIsAdmin: requesterIsAdmin
+        );
+
+    public static RemoveSkillMentorCommand BuildRemoveSkillCommand(
+        Guid? mentorId = null,
+        Guid? skillId = null,
+        Guid? requesterUserId = null,
+        bool requesterIsAdmin = false
+    ) =>
+        new(
+            MentorId: mentorId ?? Valid.MentorId,
+            SkillId: skillId ?? Valid.SkillId,
+            RequesterUserId: requesterUserId ?? Valid.UserId,
+            RequesterIsAdmin: requesterIsAdmin
+        );
 
     public static CreateSlotMentorCommand BuildCreateSlotCommand(
         Guid? mentorId = null,
@@ -125,7 +167,10 @@ internal static class MentorTestData
         DateTime? end = null,
         decimal? price = null,
         string? description = null,
-        int maxBookings = 1
+        int maxBookings = 1,
+        string? location = null,
+        Guid? requesterUserId = null,
+        bool requesterIsAdmin = false
     )
     {
         var s = start ?? DateTime.UtcNow.AddDays(1);
@@ -137,7 +182,11 @@ internal static class MentorTestData
             EndTime: e,
             Description: description,
             MaxBookings: maxBookings,
-            Price: price ?? Valid.BasePrice
+            Price: price ?? Valid.BasePrice,
+            Location: location ?? Valid.SlotLocation,
+            // Defaults to the owning user so existing happy-path tests pass ownership.
+            RequesterUserId: requesterUserId ?? Valid.UserId,
+            RequesterIsAdmin: requesterIsAdmin
         );
     }
 
@@ -151,7 +200,12 @@ internal static class MentorTestData
             Specialization: "Updated Specialization",
             ExperienceYears: 6,
             BasePrice: 600_000m,
-            AvatarUrl: "https://example.com/new-avatar.png"
+            AvatarUrl: "https://example.com/new-avatar.png",
+            FacebookUrl: Valid.FacebookUrl,
+            GithubUrl: Valid.GithubUrl,
+            LinkedInUrl: Valid.LinkedInUrl,
+            TelegramUrl: Valid.TelegramUrl,
+            WebsiteUrl: Valid.WebsiteUrl
         );
 
     public static UpdateSlotMentorCommand BuildUpdateSlotCommand(
@@ -159,7 +213,10 @@ internal static class MentorTestData
         Guid? mentorId = null,
         string? name = null,
         string? description = null,
-        int maxBookings = 1
+        int maxBookings = 1,
+        string? location = null,
+        Guid? requesterUserId = null,
+        bool requesterIsAdmin = false
     )
     {
         var start = DateTime.UtcNow.AddDays(2);
@@ -171,7 +228,11 @@ internal static class MentorTestData
             EndTime: start.AddHours(2),
             Price: 700_000m,
             Description: description,
-            MaxBookings: maxBookings
+            MaxBookings: maxBookings,
+            Location: location ?? Valid.SlotLocation,
+            // Defaults to the owning user so existing happy-path tests pass ownership.
+            RequesterUserId: requesterUserId ?? Valid.UserId,
+            RequesterIsAdmin: requesterIsAdmin
         );
     }
 
@@ -185,6 +246,11 @@ internal static class MentorTestData
             DisplayName = Valid.DisplayName,
             Email = Valid.Email,
             Bio = Valid.Bio,
+            FacebookUrl = Valid.FacebookUrl,
+            GithubUrl = Valid.GithubUrl,
+            LinkedInUrl = Valid.LinkedInUrl,
+            TelegramUrl = Valid.TelegramUrl,
+            WebsiteUrl = Valid.WebsiteUrl,
             Skills = [new MentorSkillDTO { Id = Valid.SkillId, SkillName = Valid.SkillName }],
             Slots =
             [
@@ -196,6 +262,7 @@ internal static class MentorTestData
                     EndTime = DateTime.UtcNow.AddDays(1).AddHours(1),
                     Status = MentorSlotStatus.Available,
                     Price = Valid.BasePrice,
+                    Location = Valid.SlotLocation,
                 },
             ],
         };

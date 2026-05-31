@@ -10,6 +10,13 @@ public class Mentor : BaseEntity
     public string? AvatarUrl { get; set; }
     public bool IsActive { get; set; } = true;
 
+    // Social links (all optional)
+    public string? FacebookUrl { get; set; }
+    public string? GithubUrl { get; set; }
+    public string? LinkedInUrl { get; set; }
+    public string? TelegramUrl { get; set; }
+    public string? WebsiteUrl { get; set; }
+
     public ICollection<MentorSkill> Skills { get; set; } = new List<MentorSkill>();
     public ICollection<MentorSlot> Slots { get; set; } = new List<MentorSlot>();
 
@@ -21,7 +28,12 @@ public class Mentor : BaseEntity
         string? specialization,
         int experienceYears,
         decimal basePrice,
-        string? avatarUrl
+        string? avatarUrl,
+        string? facebookUrl = null,
+        string? githubUrl = null,
+        string? linkedInUrl = null,
+        string? telegramUrl = null,
+        string? websiteUrl = null
     )
     {
         UserId = userId;
@@ -32,6 +44,11 @@ public class Mentor : BaseEntity
         ExperienceYears = experienceYears;
         BasePrice = basePrice;
         AvatarUrl = avatarUrl;
+        FacebookUrl = facebookUrl;
+        GithubUrl = githubUrl;
+        LinkedInUrl = linkedInUrl;
+        TelegramUrl = telegramUrl;
+        WebsiteUrl = websiteUrl;
     }
 
     public void Update(
@@ -40,7 +57,12 @@ public class Mentor : BaseEntity
         string? specialization,
         int? experienceYears,
         decimal? basePrice,
-        string? avatarUrl
+        string? avatarUrl,
+        string? facebookUrl = null,
+        string? githubUrl = null,
+        string? linkedInUrl = null,
+        string? telegramUrl = null,
+        string? websiteUrl = null
     )
     {
         if (displayName is not null)
@@ -55,5 +77,15 @@ public class Mentor : BaseEntity
             BasePrice = basePrice.Value;
         if (avatarUrl is not null)
             AvatarUrl = avatarUrl;
+        if (facebookUrl is not null)
+            FacebookUrl = facebookUrl;
+        if (githubUrl is not null)
+            GithubUrl = githubUrl;
+        if (linkedInUrl is not null)
+            LinkedInUrl = linkedInUrl;
+        if (telegramUrl is not null)
+            TelegramUrl = telegramUrl;
+        if (websiteUrl is not null)
+            WebsiteUrl = websiteUrl;
     }
 }

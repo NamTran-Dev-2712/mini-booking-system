@@ -45,7 +45,12 @@ public class UpdateMentorCommandHandler : IRequestHandler<UpdateMentorCommand, G
                 request.Specialization,
                 request.ExperienceYears,
                 request.BasePrice,
-                request.AvatarUrl
+                request.AvatarUrl,
+                request.FacebookUrl,
+                request.GithubUrl,
+                request.LinkedInUrl,
+                request.TelegramUrl,
+                request.WebsiteUrl
             );
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);

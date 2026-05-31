@@ -11,5 +11,10 @@ public class MentorDto
     public decimal BasePrice { get; init; }
     public string? AvatarUrl { get; init; }
     public bool IsActive { get; init; }
+    public string? FacebookUrl { get; init; }
+    public string? GithubUrl { get; init; }
+    public string? LinkedInUrl { get; init; }
+    public string? TelegramUrl { get; init; }
+    public string? WebsiteUrl { get; init; }
     public DateTime CreatedAt { get; init; }
 }

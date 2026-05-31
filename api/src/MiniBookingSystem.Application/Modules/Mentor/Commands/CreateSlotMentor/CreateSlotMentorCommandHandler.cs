@@ -26,6 +26,10 @@ public class CreateSlotMentorCommandHandler : IRequestHandler<CreateSlotMentorCo
         if (mentor == null)
             throw new NotFoundException(_localizer.GetMessage("Mentor.NotFound"));
 
+        // A mentor may only manage slots on their own profile; admins bypass this.
+        if (!request.RequesterIsAdmin && mentor.UserId != request.RequesterUserId)
+            throw new ForbiddenException(_localizer.GetMessage("Mentor.ManageSlotOwn"));
+
         // Check for overlapping slots
         if (
             await _unitOfWork.MentorSlot.IsSlotOverlappingAsync(
@@ -46,6 +50,7 @@ public class CreateSlotMentorCommandHandler : IRequestHandler<CreateSlotMentorCo
             EndTime = request.EndTime,
             Price = request.Price,
             Description = request.Description,
+            Location = request.Location,
             MaxBookings = request.MaxBookings,
             Status = MentorSlotStatus.Available,
         };

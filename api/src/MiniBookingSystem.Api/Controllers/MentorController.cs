@@ -22,6 +22,17 @@ public class MentorController : BaseApiController
         await _cacheStore.EvictByTagAsync(CacheKeys.PublicListMentorTag, cancellationToken);
     }
 
+    // Extracts the caller identity from the JWT. Returns false when the subject
+    // claim is missing/invalid so the action can respond 401. Ownership itself is
+    // enforced in the command handlers using these server-side values.
+    private bool TryGetRequester(out Guid userId, out bool isAdmin)
+    {
+        userId = default;
+        isAdmin = User.IsInRole(Roles.Admin);
+        var claim = User.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub);
+        return claim != null && Guid.TryParse(claim.Value, out userId);
+    }
+
     [HttpPost()]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> CreateMentor(
@@ -45,18 +56,16 @@ public class MentorController : BaseApiController
         if (id != command.MentorId)
             return FailureResponse<Guid>(400, Localizer.GetMessage("Mentor.IdMismatch"));
 
-        // check if user is mentor and trying to add skill to other mentor
-        if (User.IsInRole(Roles.Mentor.ToString()))
-        {
-            var userIdClaim = User.Claims.FirstOrDefault(c =>
-                c.Type == JwtRegisteredClaimNames.Sub
-            );
-            if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
-                return FailureResponse<Guid>(401, Localizer.GetMessage("Auth.InvalidTokenClaim"));
+        if (!TryGetRequester(out var requesterUserId, out var requesterIsAdmin))
+            return FailureResponse<Guid>(401, Localizer.GetMessage("Auth.InvalidTokenClaim"));
 
-            if (userId != command.MentorId)
-                return FailureResponse<Guid>(403, Localizer.GetMessage("Mentor.AddSkillOwn"));
-        }
+        // Populate requester context server-side; ownership (mentor may only manage
+        // their own profile, admins bypass) is enforced in the command handler.
+        command = command with
+        {
+            RequesterUserId = requesterUserId,
+            RequesterIsAdmin = requesterIsAdmin,
+        };
 
         var result = await _mediator.Send(command, cancellationToken);
         return CreatedResponse(result, "Skill added to mentor successfully");
@@ -70,20 +79,12 @@ public class MentorController : BaseApiController
         CancellationToken cancellationToken
     )
     {
-        // check if user is mentor and trying to remove skill from other mentor
-        if (User.IsInRole(Roles.Mentor.ToString()))
-        {
-            var userIdClaim = User.Claims.FirstOrDefault(c =>
-                c.Type == JwtRegisteredClaimNames.Sub
-            );
-            if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
-                return FailureResponse<Guid>(401, Localizer.GetMessage("Auth.InvalidTokenClaim"));
+        if (!TryGetRequester(out var requesterUserId, out var requesterIsAdmin))
+            return FailureResponse<Guid>(401, Localizer.GetMessage("Auth.InvalidTokenClaim"));
 
-            if (userId != id)
-                return FailureResponse<Guid>(403, Localizer.GetMessage("Mentor.RemoveSkillOwn"));
-        }
-
-        var command = new RemoveSkillMentorCommand(id, skillId);
+        // Ownership (mentor may only manage their own profile, admins bypass) is
+        // enforced in the command handler using these server-side values.
+        var command = new RemoveSkillMentorCommand(id, skillId, requesterUserId, requesterIsAdmin);
         await _mediator.Send(command, cancellationToken);
         return NoContentResponse("Response.Mentor.SkillRemoved");
     }
@@ -98,6 +99,15 @@ public class MentorController : BaseApiController
     {
         if (id != command.MentorId)
             return FailureResponse<Guid>(400, Localizer.GetMessage("Mentor.IdMismatch"));
+
+        if (!TryGetRequester(out var requesterUserId, out var requesterIsAdmin))
+            return FailureResponse<Guid>(401, Localizer.GetMessage("Auth.InvalidTokenClaim"));
+
+        command = command with
+        {
+            RequesterUserId = requesterUserId,
+            RequesterIsAdmin = requesterIsAdmin,
+        };
 
         var result = await _mediator.Send(command, cancellationToken);
         return CreatedResponse(result, "Response.Mentor.SlotCreated");
@@ -133,6 +143,15 @@ public class MentorController : BaseApiController
 
         if (slotId != command.Id)
             return FailureResponse<Guid>(400, Localizer.GetMessage("Mentor.SlotIdMismatch"));
+
+        if (!TryGetRequester(out var requesterUserId, out var requesterIsAdmin))
+            return FailureResponse<Guid>(401, Localizer.GetMessage("Auth.InvalidTokenClaim"));
+
+        command = command with
+        {
+            RequesterUserId = requesterUserId,
+            RequesterIsAdmin = requesterIsAdmin,
+        };
 
         var result = await _mediator.Send(command, cancellationToken);
         return OkResponse(result, "Response.Mentor.SlotUpdated");

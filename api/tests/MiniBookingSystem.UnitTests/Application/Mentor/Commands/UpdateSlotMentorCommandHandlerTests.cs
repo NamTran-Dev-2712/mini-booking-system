@@ -131,6 +131,46 @@ public sealed class UpdateSlotMentorCommandHandlerTests
         );
     }
 
+    // ── Ownership ──────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task Handle_WhenMentorRequesterIsNotOwner_ThrowsForbiddenException()
+    {
+        // Arrange — requester is a mentor whose user id does NOT own this mentor profile
+        var command = MentorTestData.BuildUpdateSlotCommand(requesterUserId: Guid.NewGuid());
+
+        _mentorRepo
+            .Setup(r => r.GetByIdAsync(command.MentorId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(MentorTestData.BuildMentor(id: command.MentorId)); // UserId = Valid.UserId
+
+        // Act
+        var act = () => _sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        await act.Should().ThrowAsync<ForbiddenException>();
+        _mentorSlotRepo.Verify(
+            r => r.UpdateSlotAsync(It.IsAny<MentorSlot>(), It.IsAny<CancellationToken>()),
+            Times.Never
+        );
+    }
+
+    [Fact]
+    public async Task Handle_WhenAdminRequester_BypassesOwnershipCheck()
+    {
+        // Arrange — admin acting on a mentor they do not own
+        var command = MentorTestData.BuildUpdateSlotCommand(
+            requesterUserId: Guid.NewGuid(),
+            requesterIsAdmin: true
+        );
+        var slot = SetupHappyPath(command);
+
+        // Act
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.Should().Be(slot.Id);
+    }
+
     // ── Error paths ────────────────────────────────────────────────────────
 
     [Fact]

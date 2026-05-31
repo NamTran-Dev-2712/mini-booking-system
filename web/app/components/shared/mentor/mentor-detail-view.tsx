@@ -5,9 +5,11 @@ import {
   Clock,
   DollarSign,
   Mail,
+  MapPin,
   Phone,
   User,
 } from "lucide-react";
+import { MENTOR_SOCIAL_FIELDS } from "~/components/shared/mentor/social-links";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
@@ -86,6 +88,12 @@ function SlotCard({
         </div>
         {slot.description && (
           <p className="text-xs text-muted-foreground">{slot.description}</p>
+        )}
+        {slot.location && (
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <MapPin className="size-3.5 shrink-0" />
+            <span className="break-all">{slot.location}</span>
+          </div>
         )}
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
           <span className="font-medium text-foreground">
@@ -271,6 +279,27 @@ export function MentorDetailView({ mentorId, context }: MentorDetailViewProps) {
                       </div>
                     )}
                   </div>
+
+                  {/* Social links */}
+                  {MENTOR_SOCIAL_FIELDS.some((s) => mentor[s.key]) && (
+                    <div className="mt-3 flex flex-wrap items-center justify-center gap-2 sm:justify-start">
+                      {MENTOR_SOCIAL_FIELDS.filter((s) => mentor[s.key]).map(
+                        (social) => (
+                          <a
+                            key={social.key}
+                            href={mentor[social.key] as string}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label={social.label}
+                            title={social.label}
+                            className="flex size-8 items-center justify-center rounded-full border text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                          >
+                            <social.icon className="size-4" />
+                          </a>
+                        ),
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </CardContent>
