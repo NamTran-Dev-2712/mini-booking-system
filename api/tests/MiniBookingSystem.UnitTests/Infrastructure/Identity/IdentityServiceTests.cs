@@ -422,6 +422,42 @@ public sealed class IdentityServiceTests
             .WithMessage("Invalid email or password.");
     }
 
+    [Fact]
+    public async Task LoginAsync_WhenAccountDeleted_ThrowsUnauthorizedException()
+    {
+        // Arrange — credentials are valid but the account was soft-deleted
+        var user = AuthTestData.BuildUser(isDeleted: true);
+
+        _userManager.Setup(um => um.FindByEmailAsync(user.Email!)).ReturnsAsync(user);
+        _userManager
+            .Setup(um => um.CheckPasswordAsync(user, AuthTestData.Valid.Password))
+            .ReturnsAsync(true);
+
+        // Act
+        var act = () => _sut.LoginAsync(user.Email!, AuthTestData.Valid.Password);
+
+        // Assert
+        await act.Should().ThrowAsync<UnauthorizedException>().WithMessage("Auth.AccountDeleted");
+    }
+
+    [Fact]
+    public async Task LoginAsync_WhenAccountDisabled_ThrowsUnauthorizedException()
+    {
+        // Arrange — credentials are valid but the account is locked (inactive)
+        var user = AuthTestData.BuildUser(isActive: false);
+
+        _userManager.Setup(um => um.FindByEmailAsync(user.Email!)).ReturnsAsync(user);
+        _userManager
+            .Setup(um => um.CheckPasswordAsync(user, AuthTestData.Valid.Password))
+            .ReturnsAsync(true);
+
+        // Act
+        var act = () => _sut.LoginAsync(user.Email!, AuthTestData.Valid.Password);
+
+        // Assert
+        await act.Should().ThrowAsync<UnauthorizedException>().WithMessage("Auth.AccountDisabled");
+    }
+
     // ══════════════════════════════════════════════════════════════════════
     // GetProfileAsync
     // ══════════════════════════════════════════════════════════════════════
@@ -604,5 +640,63 @@ public sealed class IdentityServiceTests
         await act.Should()
             .ThrowAsync<UnauthorizedException>()
             .WithMessage("User not found for the provided refresh token.");
+    }
+
+    [Fact]
+    public async Task RefreshTokenAsync_WhenAccountDeleted_RevokesTokensAndThrows()
+    {
+        // Arrange — token is valid but the owner account was deleted
+        const string rawToken = "deleted-raw-token";
+        const string hash = "deleted-hash";
+        var user = AuthTestData.BuildUser(isDeleted: true);
+        var storedToken = new RefreshToken
+        {
+            UserId = user.Id,
+            Token = hash,
+            ExpiresAt = DateTime.UtcNow.AddDays(1),
+        };
+
+        _tokenHasher.Setup(th => th.HashToken(rawToken)).Returns(hash);
+        _refreshTokenRepo.Setup(r => r.GetRefreshTokenAsync(hash)).ReturnsAsync(storedToken);
+        _userManager.Setup(um => um.FindByIdAsync(user.Id.ToString())).ReturnsAsync(user);
+        _refreshTokenRepo
+            .Setup(r => r.RemoveRefreshTokenAsync(user.Id.ToString()))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        var act = () => _sut.RefreshTokenAsync(rawToken);
+
+        // Assert
+        await act.Should().ThrowAsync<UnauthorizedException>().WithMessage("Auth.AccountDeleted");
+        _refreshTokenRepo.Verify(r => r.RemoveRefreshTokenAsync(user.Id.ToString()), Times.Once);
+    }
+
+    [Fact]
+    public async Task RefreshTokenAsync_WhenAccountDisabled_RevokesTokensAndThrows()
+    {
+        // Arrange — token is valid but the owner account was locked (inactive)
+        const string rawToken = "locked-raw-token";
+        const string hash = "locked-hash";
+        var user = AuthTestData.BuildUser(isActive: false);
+        var storedToken = new RefreshToken
+        {
+            UserId = user.Id,
+            Token = hash,
+            ExpiresAt = DateTime.UtcNow.AddDays(1),
+        };
+
+        _tokenHasher.Setup(th => th.HashToken(rawToken)).Returns(hash);
+        _refreshTokenRepo.Setup(r => r.GetRefreshTokenAsync(hash)).ReturnsAsync(storedToken);
+        _userManager.Setup(um => um.FindByIdAsync(user.Id.ToString())).ReturnsAsync(user);
+        _refreshTokenRepo
+            .Setup(r => r.RemoveRefreshTokenAsync(user.Id.ToString()))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        var act = () => _sut.RefreshTokenAsync(rawToken);
+
+        // Assert
+        await act.Should().ThrowAsync<UnauthorizedException>().WithMessage("Auth.AccountDisabled");
+        _refreshTokenRepo.Verify(r => r.RemoveRefreshTokenAsync(user.Id.ToString()), Times.Once);
     }
 }

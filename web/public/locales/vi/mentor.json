@@ -142,7 +142,17 @@
     "actions": "Thao tác",
     "viewDetail": "Xem chi tiết",
     "edit": "Sửa",
-    "delete": "Xóa"
+    "delete": "Xóa",
+    "lock": "Khóa tài khoản",
+    "unlock": "Mở khóa tài khoản"
+  },
+  "statusDialog": {
+    "lockTitle": "Khóa tài khoản Mentor",
+    "unlockTitle": "Mở khóa tài khoản Mentor",
+    "lockDescription": "Bạn có chắc muốn khóa \"{{name}}\"? Mentor sẽ bị đăng xuất, không thể đăng nhập và bị ẩn khỏi danh sách công khai.",
+    "unlockDescription": "Bạn có chắc muốn mở khóa \"{{name}}\"? Mentor sẽ có thể đăng nhập lại và hiển thị trong danh sách công khai.",
+    "lockConfirm": "Khóa",
+    "unlockConfirm": "Mở khóa"
   },
   "profileTab": {
     "basicInfo": "Thông tin cơ bản",

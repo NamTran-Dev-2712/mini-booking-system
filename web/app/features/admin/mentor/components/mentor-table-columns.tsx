@@ -1,6 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
-import { MoreHorizontal } from "lucide-react";
+import { Lock, MoreHorizontal, Unlock } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Badge } from "~/components/ui/badge";
@@ -20,12 +20,14 @@ interface MentorColumnsOptions {
   onEdit: (mentor: Mentor) => void;
   onDelete: (mentor: Mentor) => void;
   onViewDetail: (mentor: Mentor) => void;
+  onToggleStatus: (mentor: Mentor) => void;
 }
 
 export function getMentorColumns({
   onEdit,
   onDelete,
   onViewDetail,
+  onToggleStatus,
 }: MentorColumnsOptions): ColumnDef<Mentor>[] {
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const { t } = useTranslation("mentor");
@@ -188,6 +190,14 @@ export function getMentorColumns({
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onEdit(mentor)}>
                 {t("columns.edit")}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onToggleStatus(mentor)}>
+                {mentor.isActive ? (
+                  <Lock className="size-4" />
+                ) : (
+                  <Unlock className="size-4" />
+                )}
+                {mentor.isActive ? t("columns.lock") : t("columns.unlock")}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem

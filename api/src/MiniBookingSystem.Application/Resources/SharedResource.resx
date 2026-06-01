@@ -44,6 +44,9 @@
   <data name="Auth.AccountDisabled" xml:space="preserve">
     <value>Your account has been disabled.</value>
   </data>
+  <data name="Auth.AccountDeleted" xml:space="preserve">
+    <value>Your account has been deleted.</value>
+  </data>
   <data name="Auth.InvalidRefreshToken" xml:space="preserve">
     <value>Invalid or expired refresh token.</value>
   </data>
@@ -241,6 +244,9 @@
   </data>
   <data name="Response.Mentor.Deleted" xml:space="preserve">
     <value>Mentor deleted successfully</value>
+  </data>
+  <data name="Response.Mentor.StatusUpdated" xml:space="preserve">
+    <value>Mentor status updated successfully</value>
   </data>
   <data name="Response.Mentor.SlotCreated" xml:space="preserve">
     <value>Slot created successfully</value>

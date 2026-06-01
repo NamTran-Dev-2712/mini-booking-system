@@ -94,6 +94,13 @@ public class IdentityService : IIdentityService
         if (!passwordValid)
             throw new UnauthorizedException(_localizer.GetMessage("Auth.InvalidCredentials"));
 
+        // Account-state gate. Checked only after the password is verified so we never
+        // reveal account state to someone who is not the legitimate owner.
+        if (user.IsDeleted)
+            throw new UnauthorizedException(_localizer.GetMessage("Auth.AccountDeleted"));
+        if (!user.IsActive)
+            throw new UnauthorizedException(_localizer.GetMessage("Auth.AccountDisabled"));
+
         // Generate tokens
         var roles = await _userManager.GetRolesAsync(user);
         var tokenResult = await _tokenService.GenerateTokensAsync(
@@ -180,6 +187,19 @@ public class IdentityService : IIdentityService
 
         if (user is null)
             throw new UnauthorizedException(_localizer.GetMessage("Auth.RefreshTokenUserNotFound"));
+
+        // Account-state gate: a session must end the moment the account is deleted or
+        // locked. Revoke any remaining tokens so the client is forced to log in again.
+        if (user.IsDeleted)
+        {
+            await _refreshTokenRepository.RemoveRefreshTokenAsync(user.Id.ToString());
+            throw new UnauthorizedException(_localizer.GetMessage("Auth.AccountDeleted"));
+        }
+        if (!user.IsActive)
+        {
+            await _refreshTokenRepository.RemoveRefreshTokenAsync(user.Id.ToString());
+            throw new UnauthorizedException(_localizer.GetMessage("Auth.AccountDisabled"));
+        }
 
         // Generate new tokens
         var roles = await _userManager.GetRolesAsync(user);

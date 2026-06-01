@@ -194,7 +194,7 @@ export function MentorSlotsTab({
 
       {/* Create slot dialog */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{t("slots.createSlot")}</DialogTitle>
           </DialogHeader>
@@ -207,7 +207,7 @@ export function MentorSlotsTab({
 
       {/* Edit slot dialog */}
       <Dialog open={!!editSlot} onOpenChange={(o) => !o && setEditSlot(null)}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{t("slots.editSlot")}</DialogTitle>
           </DialogHeader>

@@ -131,6 +131,8 @@
     "mentorCreatedDesc": "Tài khoản mentor đã được tạo và thông tin đăng nhập đã gửi qua email.",
     "mentorUpdated": "Cập nhật mentor thành công",
     "mentorDeleted": "Xóa mentor thành công",
+    "mentorLocked": "Đã khóa tài khoản mentor",
+    "mentorUnlocked": "Đã mở khóa tài khoản mentor",
     "skillAdded": "Thêm kỹ năng thành công",
     "skillRemoved": "Xóa kỹ năng thành công"
   }
