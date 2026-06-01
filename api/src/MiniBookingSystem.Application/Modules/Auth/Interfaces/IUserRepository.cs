@@ -25,6 +25,7 @@ public interface IUserRepository
         string? phoneNumber,
         CancellationToken cancellationToken = default
     );
+    Task SetActiveAsync(Guid userId, bool isActive, CancellationToken cancellationToken = default);
     Task<Guid> DeleteUserAsync(Guid userId, CancellationToken cancellationToken = default);
     Task<Guid> UpdateRoleAsync(
         Guid userId,

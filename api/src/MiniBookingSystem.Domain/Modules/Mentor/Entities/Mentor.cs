@@ -88,4 +88,13 @@ public class Mentor : BaseEntity
         if (websiteUrl is not null)
             WebsiteUrl = websiteUrl;
     }
+
+    /// <summary>
+    /// Enables or disables the mentor. When disabled the mentor is hidden from
+    /// public listings and (paired with the linked account) blocked from operating.
+    /// </summary>
+    public void SetActive(bool isActive)
+    {
+        IsActive = isActive;
+    }
 }

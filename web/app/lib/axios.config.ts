@@ -4,6 +4,7 @@ import axios, {
   type AxiosRequestConfig,
   type AxiosResponse,
 } from "axios";
+import { toast } from "sonner";
 import type { ApiError, ApiResponse } from "~/types/global/api.response";
 
 // ---------------------------------------------------------------------------
@@ -124,7 +125,7 @@ apiClient.interceptors.response.use(
         processQueue(null);
         return apiClient(originalRequest);
       } catch (refreshError) {
-        // Refresh failed (e.g. refresh token also expired)
+        // Refresh failed: token expired, OR the account was deleted/locked.
         processQueue(refreshError);
 
         // Clear client-side auth state and redirect to login
@@ -132,12 +133,19 @@ apiClient.interceptors.response.use(
         const { useAuthStore } = await import("~/stores/auth.store");
         useAuthStore.getState().clearUser();
 
+        // Prefer the backend reason (e.g. "Your account has been deleted")
+        // so the user understands WHY they were signed out.
+        const reason =
+          (refreshError as ApiError | undefined)?.message ??
+          "Session expired. Please log in again.";
+
         if (typeof window !== "undefined") {
+          toast.error(reason);
           window.location.href = "/login";
         }
 
         const error: ApiError = {
-          message: "Session expired. Please log in again.",
+          message: reason,
           errors: [],
           statusCode: 401,
         };

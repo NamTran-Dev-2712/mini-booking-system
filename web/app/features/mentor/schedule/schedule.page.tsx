@@ -224,7 +224,7 @@ export default function MentorSchedule() {
       )}
 
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{t("schedule.createNewSlot")}</DialogTitle>
           </DialogHeader>
@@ -238,7 +238,7 @@ export default function MentorSchedule() {
       </Dialog>
 
       <Dialog open={!!editSlot} onOpenChange={(o) => !o && setEditSlot(null)}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{t("schedule.editSlotTitle")}</DialogTitle>
           </DialogHeader>
