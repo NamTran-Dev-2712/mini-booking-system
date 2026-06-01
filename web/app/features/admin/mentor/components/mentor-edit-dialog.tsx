@@ -29,7 +29,6 @@ import {
   FormMessage,
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
-import { ScrollArea } from "~/components/ui/scroll-area";
 import { Separator } from "~/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Textarea } from "~/components/ui/textarea";
@@ -278,7 +277,7 @@ export function MentorEditDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="flex max-h-[90vh] w-full max-w-2xl flex-col gap-0 p-0"
+        className="flex max-h-[90vh] w-full max-w-2xl flex-col gap-0 overflow-hidden p-0"
         onInteractOutside={(e) => isPending && e.preventDefault()}
         onEscapeKeyDown={(e) => isPending && e.preventDefault()}
       >
@@ -296,7 +295,7 @@ export function MentorEditDialog({
         <Tabs
           value={activeTab}
           onValueChange={(v) => setActiveTab(v as "profile" | "skills")}
-          className="flex flex-1 flex-col overflow-hidden"
+          className="flex min-h-0 flex-1 flex-col overflow-hidden"
         >
           <TabsList className="mx-6 mt-4 w-auto self-start">
             <TabsTrigger value="profile" className="gap-1.5">
@@ -318,171 +317,31 @@ export function MentorEditDialog({
           </TabsList>
 
           {/* ── Profile tab ──────────────────────────────────────────── */}
-          <TabsContent value="profile" className="flex-1 overflow-hidden mt-0">
-            <ScrollArea className="h-full max-h-[calc(90vh-200px)]">
-              <div className="px-6 py-5">
-                <Form {...form}>
-                  <form
-                    id="mentor-edit-form"
-                    onSubmit={form.handleSubmit(handleSubmit)}
-                    className="space-y-4"
-                  >
-                    {/* Full name + Display name */}
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                      <FormField
-                        control={form.control}
-                        name="fullName"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Full Name</FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder="Nguyễn Văn A"
-                                {...field}
-                                value={field.value ?? ""}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="displayName"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Display Name</FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder="Mentor Huy"
-                                {...field}
-                                value={field.value ?? ""}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    {/* Phone + Specialization */}
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                      <FormField
-                        control={form.control}
-                        name="phoneNumber"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Phone Number</FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder="0912345678"
-                                {...field}
-                                value={field.value ?? ""}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="specialization"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Specialization</FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder="React, Node.js..."
-                                {...field}
-                                value={field.value ?? ""}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    {/* Experience + Base price */}
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                      <FormField
-                        control={form.control}
-                        name="experienceYears"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Experience (years)</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                min={0}
-                                max={50}
-                                {...field}
-                                value={field.value ?? 0}
-                                onChange={(e) =>
-                                  field.onChange(Number(e.target.value))
-                                }
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="basePrice"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Base Price (VND)</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                min={0}
-                                step={1000}
-                                {...field}
-                                value={field.value ?? 0}
-                                onChange={(e) =>
-                                  field.onChange(Number(e.target.value))
-                                }
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    {/* Bio */}
+          {/* Native overflow scroll on the flex-bounded TabsContent — reliable
+              regardless of nested flex depth (Radix ScrollArea was not picking
+              up the bounded height here). */}
+          <TabsContent
+            value="profile"
+            className="mt-0 min-h-0 flex-1 overflow-y-auto"
+          >
+            <div className="px-6 py-5">
+              <Form {...form}>
+                <form
+                  id="mentor-edit-form"
+                  onSubmit={form.handleSubmit(handleSubmit)}
+                  className="space-y-4"
+                >
+                  {/* Full name + Display name */}
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <FormField
                       control={form.control}
-                      name="bio"
+                      name="fullName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Bio</FormLabel>
-                          <FormControl>
-                            <Textarea
-                              placeholder="Tell us about this mentor..."
-                              className="resize-none"
-                              rows={3}
-                              {...field}
-                              value={field.value ?? ""}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    {/* Avatar URL */}
-                    <FormField
-                      control={form.control}
-                      name="avatarUrl"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Avatar URL</FormLabel>
+                          <FormLabel>Full Name</FormLabel>
                           <FormControl>
                             <Input
-                              type="url"
-                              placeholder="https://..."
+                              placeholder="Nguyễn Văn A"
                               {...field}
                               value={field.value ?? ""}
                             />
@@ -491,73 +350,214 @@ export function MentorEditDialog({
                         </FormItem>
                       )}
                     />
-
-                    {/* Social links */}
-                    <div className="space-y-4">
-                      <h4 className="text-sm font-medium text-muted-foreground">
-                        Social Links
-                      </h4>
-                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        {MENTOR_SOCIAL_FIELDS.map((social) => (
-                          <FormField
-                            key={social.key}
-                            control={form.control}
-                            name={social.key}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="flex items-center gap-1.5">
-                                  <social.icon className="size-3.5 text-muted-foreground" />
-                                  {social.label}
-                                </FormLabel>
-                                <FormControl>
-                                  <Input
-                                    type="url"
-                                    placeholder={social.placeholder}
-                                    {...field}
-                                    value={field.value ?? ""}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Submit */}
-                    <Button
-                      type="submit"
-                      className="w-full"
-                      disabled={isPending}
-                    >
-                      {isPending && (
-                        <Loader2 className="mr-2 size-4 animate-spin" />
+                    <FormField
+                      control={form.control}
+                      name="displayName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Display Name</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Mentor Huy"
+                              {...field}
+                              value={field.value ?? ""}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
                       )}
-                      Save Changes
-                    </Button>
-                  </form>
-                </Form>
-              </div>
-            </ScrollArea>
+                    />
+                  </div>
+
+                  {/* Phone + Specialization */}
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <FormField
+                      control={form.control}
+                      name="phoneNumber"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Phone Number</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="0912345678"
+                              {...field}
+                              value={field.value ?? ""}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="specialization"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Specialization</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="React, Node.js..."
+                              {...field}
+                              value={field.value ?? ""}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  {/* Experience + Base price */}
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <FormField
+                      control={form.control}
+                      name="experienceYears"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Experience (years)</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              min={0}
+                              max={50}
+                              {...field}
+                              value={field.value ?? 0}
+                              onChange={(e) =>
+                                field.onChange(Number(e.target.value))
+                              }
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="basePrice"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Base Price (VND)</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              min={0}
+                              step={1000}
+                              {...field}
+                              value={field.value ?? 0}
+                              onChange={(e) =>
+                                field.onChange(Number(e.target.value))
+                              }
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  {/* Bio */}
+                  <FormField
+                    control={form.control}
+                    name="bio"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Bio</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Tell us about this mentor..."
+                            className="resize-none"
+                            rows={3}
+                            {...field}
+                            value={field.value ?? ""}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Avatar URL */}
+                  <FormField
+                    control={form.control}
+                    name="avatarUrl"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Avatar URL</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="url"
+                            placeholder="https://..."
+                            {...field}
+                            value={field.value ?? ""}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Social links */}
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-medium text-muted-foreground">
+                      Social Links
+                    </h4>
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      {MENTOR_SOCIAL_FIELDS.map((social) => (
+                        <FormField
+                          key={social.key}
+                          control={form.control}
+                          name={social.key}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="flex items-center gap-1.5">
+                                <social.icon className="size-3.5 text-muted-foreground" />
+                                {social.label}
+                              </FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="url"
+                                  placeholder={social.placeholder}
+                                  {...field}
+                                  value={field.value ?? ""}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Submit */}
+                  <Button type="submit" className="w-full" disabled={isPending}>
+                    {isPending && (
+                      <Loader2 className="mr-2 size-4 animate-spin" />
+                    )}
+                    Save Changes
+                  </Button>
+                </form>
+              </Form>
+            </div>
           </TabsContent>
 
           {/* ── Skills tab ───────────────────────────────────────────── */}
-          <TabsContent value="skills" className="flex-1 overflow-hidden mt-0">
-            <ScrollArea className="h-full max-h-[calc(90vh-200px)]">
-              <div className="space-y-6 px-6 py-5">
-                {/* Add skill */}
-                <div>
-                  <h3 className="mb-3 text-sm font-medium">Add Skill</h3>
-                  <InlineSkillForm mentorId={mentor.id} />
-                </div>
-
-                <Separator />
-
-                {/* Current skills */}
-                <SkillsList mentorId={mentor.id} skills={mentor.skills} />
+          <TabsContent
+            value="skills"
+            className="mt-0 min-h-0 flex-1 overflow-y-auto"
+          >
+            <div className="space-y-6 px-6 py-5">
+              {/* Add skill */}
+              <div>
+                <h3 className="mb-3 text-sm font-medium">Add Skill</h3>
+                <InlineSkillForm mentorId={mentor.id} />
               </div>
-            </ScrollArea>
+
+              <Separator />
+
+              {/* Current skills */}
+              <SkillsList mentorId={mentor.id} skills={mentor.skills} />
+            </div>
           </TabsContent>
         </Tabs>
       </DialogContent>

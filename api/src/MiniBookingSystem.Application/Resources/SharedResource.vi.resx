@@ -44,6 +44,9 @@
   <data name="Auth.AccountDisabled" xml:space="preserve">
     <value>Tài khoản của bạn đã bị vô hiệu hóa.</value>
   </data>
+  <data name="Auth.AccountDeleted" xml:space="preserve">
+    <value>Tài khoản của bạn đã bị xóa.</value>
+  </data>
   <data name="Auth.InvalidRefreshToken" xml:space="preserve">
     <value>Token làm mới không hợp lệ hoặc đã hết hạn.</value>
   </data>
@@ -241,6 +244,9 @@
   </data>
   <data name="Response.Mentor.Deleted" xml:space="preserve">
     <value>Xóa mentor thành công</value>
+  </data>
+  <data name="Response.Mentor.StatusUpdated" xml:space="preserve">
+    <value>Cập nhật trạng thái mentor thành công</value>
   </data>
   <data name="Response.Mentor.SlotCreated" xml:space="preserve">
     <value>Tạo khung giờ thành công</value>

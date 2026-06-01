@@ -142,7 +142,17 @@
     "actions": "Actions",
     "viewDetail": "View detail",
     "edit": "Edit",
-    "delete": "Delete"
+    "delete": "Delete",
+    "lock": "Lock account",
+    "unlock": "Unlock account"
+  },
+  "statusDialog": {
+    "lockTitle": "Lock Mentor Account",
+    "unlockTitle": "Unlock Mentor Account",
+    "lockDescription": "Are you sure you want to lock \"{{name}}\"? They will be logged out and blocked from signing in, and hidden from public listings.",
+    "unlockDescription": "Are you sure you want to unlock \"{{name}}\"? They will be able to sign in again and appear in public listings.",
+    "lockConfirm": "Lock",
+    "unlockConfirm": "Unlock"
   },
   "profileTab": {
     "basicInfo": "Basic Information",

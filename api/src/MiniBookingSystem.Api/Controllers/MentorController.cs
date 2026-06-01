@@ -157,6 +157,22 @@ public class MentorController : BaseApiController
         return OkResponse(result, "Response.Mentor.SlotUpdated");
     }
 
+    [HttpPatch("{id:guid}/status")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> UpdateMentorStatus(
+        Guid id,
+        UpdateMentorStatusCommand command,
+        CancellationToken cancellationToken
+    )
+    {
+        if (id != command.Id)
+            return FailureResponse<Guid>(400, Localizer.GetMessage("Mentor.IdBodyMismatch"));
+
+        var result = await _mediator.Send(command, cancellationToken);
+        await EvictMentorCache(cancellationToken);
+        return OkResponse(result, "Response.Mentor.StatusUpdated");
+    }
+
     [HttpDelete("{id:guid}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteMentor(Guid id, CancellationToken cancellationToken)

@@ -3,16 +3,19 @@ using MediatR;
 public class DeleteMentorCommandHandler : IRequestHandler<DeleteMentorCommand, Unit>
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IRefreshTokenRepository _refreshTokenRepository;
     private readonly ICacheService _cacheService;
     private readonly ILocalizationService _localizer;
 
     public DeleteMentorCommandHandler(
         IUnitOfWork unitOfWork,
+        IRefreshTokenRepository refreshTokenRepository,
         ICacheService cacheService,
         ILocalizationService localizer
     )
     {
         _unitOfWork = unitOfWork;
+        _refreshTokenRepository = refreshTokenRepository;
         _cacheService = cacheService;
         _localizer = localizer;
     }
@@ -34,10 +37,15 @@ public class DeleteMentorCommandHandler : IRequestHandler<DeleteMentorCommand, U
             mentor.DeletedAt = DateTime.UtcNow;
             _unitOfWork.Mentor.Update(mentor);
 
-            // delete the associated user
+            // delete the associated user (soft delete + deactivate)
             await _unitOfWork.User.DeleteUserAsync(mentor.UserId, cancellationToken);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            // End any active session immediately so the deleted account is logged out
+            // on its next API/refresh call (the refresh gate also blocks re-issue).
+            await _refreshTokenRepository.RemoveRefreshTokenAsync(mentor.UserId.ToString());
+
             await _unitOfWork.CommitTransactionAsync(cancellationToken);
 
             await _cacheService.RemoveAsync(CacheKeys.MentorDetail(mentor.Id));

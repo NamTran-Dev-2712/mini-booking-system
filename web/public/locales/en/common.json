@@ -131,6 +131,8 @@
     "mentorCreatedDesc": "The mentor account has been created and credentials sent via email.",
     "mentorUpdated": "Mentor updated successfully",
     "mentorDeleted": "Mentor deleted successfully",
+    "mentorLocked": "Mentor account locked",
+    "mentorUnlocked": "Mentor account unlocked",
     "skillAdded": "Skill added successfully",
     "skillRemoved": "Skill removed successfully"
   }

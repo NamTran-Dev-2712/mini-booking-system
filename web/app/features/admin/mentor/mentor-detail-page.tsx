@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { useHotkeys } from "react-hotkeys-hook";
-import { ArrowLeft, Edit, Trash2 } from "lucide-react";
+import { ArrowLeft, Edit, Lock, Trash2, Unlock } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Badge } from "~/components/ui/badge";
@@ -20,6 +20,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { useMentorDetailQuery } from "~/hooks/mentor/use-mentor-detail-query";
 import { HotkeyScopes } from "~/lib/hotkeys/hotkey-scopes";
 import { MentorDeleteDialog } from "./components/mentor-delete-dialog";
+import { MentorStatusDialog } from "./components/mentor-status-dialog";
 import { MentorEditDialog } from "./components/mentor-edit-dialog";
 import { MentorProfileTab } from "./components/mentor-profile-tab";
 import { MentorSkillsTab } from "./components/mentor-skills-tab";
@@ -40,10 +41,11 @@ export function MentorDetailPage({ mentorId }: MentorDetailPageProps) {
 
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [statusOpen, setStatusOpen] = useState(false);
 
   const { data: mentor, isPending, isError } = useMentorDetailQuery(mentorId);
 
-  const isFormOpen = editOpen || deleteOpen;
+  const isFormOpen = editOpen || deleteOpen || statusOpen;
 
   useHotkeys(
     "1",
@@ -181,6 +183,19 @@ export function MentorDetailPage({ mentorId }: MentorDetailPageProps) {
             <Kbd>E</Kbd>
           </Button>
           <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setStatusOpen(true)}
+            className="gap-1.5"
+          >
+            {mentor.isActive ? (
+              <Lock className="size-4" />
+            ) : (
+              <Unlock className="size-4" />
+            )}
+            {mentor.isActive ? t("columns.lock") : t("columns.unlock")}
+          </Button>
+          <Button
             variant="destructive"
             size="sm"
             onClick={() => setDeleteOpen(true)}
@@ -242,6 +257,11 @@ export function MentorDetailPage({ mentorId }: MentorDetailPageProps) {
           setDeleteOpen(o);
           if (!o) navigate("/admin/mentors");
         }}
+      />
+      <MentorStatusDialog
+        mentor={mentor}
+        open={statusOpen}
+        onOpenChange={setStatusOpen}
       />
     </div>
   );

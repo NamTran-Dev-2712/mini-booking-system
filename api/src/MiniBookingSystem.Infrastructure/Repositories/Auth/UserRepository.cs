@@ -10,6 +10,27 @@ public class UserRepository : IUserRepository
         _userManager = userManager;
     }
 
+    public async Task SetActiveAsync(
+        Guid userId,
+        bool isActive,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user is null)
+            throw new NotFoundException("User", userId.ToString());
+
+        user.IsActive = isActive;
+        user.UpdatedAt = DateTime.UtcNow;
+
+        var result = await _userManager.UpdateAsync(user);
+        if (!result.Succeeded)
+        {
+            var errors = result.Errors.Select(e => e.Description).ToList();
+            throw new BadRequestException("Failed to update user status.", errors);
+        }
+    }
+
     public async Task<Guid> DeleteUserAsync(
         Guid userId,
         CancellationToken cancellationToken = default
@@ -21,6 +42,7 @@ public class UserRepository : IUserRepository
 
         var tombstone = $"deleted_{Guid.NewGuid():N}@deleted.local";
         user.IsDeleted = true;
+        user.IsActive = false;
         user.DeletedAt = DateTime.UtcNow;
         user.UpdatedAt = DateTime.UtcNow;
         user.Email = tombstone;

@@ -11,6 +11,7 @@ import type { CreateSlotRequest } from "./dtos/commands/create-slot/request";
 import type { CreateSlotResponse } from "./dtos/commands/create-slot/response";
 import type { UpdateMentorRequest } from "./dtos/commands/update-mentor/request";
 import type { UpdateMentorResponse } from "./dtos/commands/update-mentor/response";
+import type { UpdateMentorStatusResponse } from "./dtos/commands/update-mentor-status/response";
 import type { UpdateSlotRequest } from "./dtos/commands/update-slot/request";
 import type { UpdateSlotResponse } from "./dtos/commands/update-slot/response";
 import type { GetMentorsRequest } from "./dtos/queries/get-mentors/request";
@@ -51,6 +52,17 @@ export const mentorService = {
     const res: AxiosResponse<ApiResponse<string>> = await apiClient.put(
       `/api/Mentor/${id}`,
       { ...body, id },
+    );
+    return { id: res.data.data! };
+  },
+
+  async updateMentorStatus(
+    id: string,
+    isActive: boolean,
+  ): Promise<UpdateMentorStatusResponse> {
+    const res: AxiosResponse<ApiResponse<string>> = await apiClient.patch(
+      `/api/Mentor/${id}/status`,
+      { id, isActive },
     );
     return { id: res.data.data! };
   },

@@ -6,7 +6,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog";
-import { ScrollArea } from "~/components/ui/scroll-area";
 import { HotkeyScopes } from "~/lib/hotkeys/hotkey-scopes";
 import { useCreateMentorMutation } from "~/hooks/mentor/use-create-mentor-mutation";
 import type { CreateMentorFormData } from "../schemas/mentor.schema";
@@ -60,7 +59,7 @@ export function MentorCreateDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="flex max-h-[90vh] w-full max-w-2xl flex-col gap-0 p-0"
+        className="flex max-h-[90vh] w-full max-w-2xl flex-col gap-0 overflow-hidden p-0"
         // Prevent closing while submitting
         onInteractOutside={(e) => isPending && e.preventDefault()}
         onEscapeKeyDown={(e) => isPending && e.preventDefault()}
@@ -76,8 +75,8 @@ export function MentorCreateDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {/* Scrollable form body */}
-        <ScrollArea className="flex-1 overflow-y-auto">
+        {/* Scrollable form body — native overflow on the flex-bounded body */}
+        <div className="min-h-0 flex-1 overflow-y-auto">
           <div className="px-6 py-5">
             <MentorForm
               mode="create"
@@ -85,7 +84,7 @@ export function MentorCreateDialog({
               isSubmitting={isPending}
             />
           </div>
-        </ScrollArea>
+        </div>
       </DialogContent>
     </Dialog>
   );

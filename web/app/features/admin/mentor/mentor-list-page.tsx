@@ -27,6 +27,7 @@ import { MentorCardList } from "./components/mentor-card-list";
 import { MentorCreateDialog } from "./components/mentor-create-dialog";
 import { MentorEditDialogLoader } from "./components/mentor-edit-dialog-loader";
 import { MentorDeleteDialog } from "./components/mentor-delete-dialog";
+import { MentorStatusDialog } from "./components/mentor-status-dialog";
 import { MentorShortcutHelp } from "./components/mentor-shortcut-help";
 import {
   parseMentorFilters,
@@ -45,6 +46,7 @@ export function MentorListPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [editMentor, setEditMentor] = useState<Mentor | null>(null);
   const [deleteMentor, setDeleteMentor] = useState<Mentor | null>(null);
+  const [statusMentor, setStatusMentor] = useState<Mentor | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
   const [highlightedId, setHighlightedId] = useState<string | undefined>();
   const commandPalette = useCommandPalette();
@@ -60,6 +62,7 @@ export function MentorListPage() {
     onEdit: (m) => setEditMentor(m),
     onDelete: (m) => setDeleteMentor(m),
     onViewDetail: (m) => navigate(`/admin/mentors/${m.id}`),
+    onToggleStatus: (m) => setStatusMentor(m),
   });
 
   const table = useReactTable({
@@ -94,7 +97,8 @@ export function MentorListPage() {
   }
 
   // ── Keyboard navigation ──────────────────────────────────────────────────
-  const isFormOpen = createOpen || !!editMentor || !!deleteMentor;
+  const isFormOpen =
+    createOpen || !!editMentor || !!deleteMentor || !!statusMentor;
 
   // New mentor
   useHotkeys("n", () => setCreateOpen(true), {
@@ -271,6 +275,7 @@ export function MentorListPage() {
           onEdit={(m) => setEditMentor(m)}
           onDelete={(m) => setDeleteMentor(m)}
           onViewDetail={(m) => navigate(`/admin/mentors/${m.id}`)}
+          onToggleStatus={(m) => setStatusMentor(m)}
         />
       </div>
 
@@ -299,6 +304,11 @@ export function MentorListPage() {
         mentor={deleteMentor}
         open={!!deleteMentor}
         onOpenChange={(o) => !o && setDeleteMentor(null)}
+      />
+      <MentorStatusDialog
+        mentor={statusMentor}
+        open={!!statusMentor}
+        onOpenChange={(o) => !o && setStatusMentor(null)}
       />
       <MentorShortcutHelp open={helpOpen} onOpenChange={setHelpOpen} />
       <CommandPalette

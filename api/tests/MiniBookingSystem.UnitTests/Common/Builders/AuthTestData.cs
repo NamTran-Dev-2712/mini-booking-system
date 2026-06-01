@@ -22,7 +22,9 @@ internal static class AuthTestData
         Guid? id = null,
         string? email = null,
         string? phoneNumber = null,
-        string? fullName = null
+        string? fullName = null,
+        bool isActive = true,
+        bool isDeleted = false
     )
     {
         return new ApplicationUser
@@ -33,7 +35,8 @@ internal static class AuthTestData
             PhoneNumber = phoneNumber ?? Valid.PhoneNumber,
             FullName = fullName ?? Valid.FullName,
             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-            IsActive = true,
+            IsActive = isActive,
+            IsDeleted = isDeleted,
         };
     }
 
